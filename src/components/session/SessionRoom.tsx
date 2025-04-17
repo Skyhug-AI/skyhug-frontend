@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTherapist } from '@/context/TherapistContext';
 import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
@@ -12,6 +12,7 @@ import { Toggle } from "@/components/ui/toggle";
 const SessionRoom = () => {
   const { messages, sendMessage, isProcessing } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
+  const navigate = useNavigate();
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -21,6 +22,10 @@ const SessionRoom = () => {
 
   const handleVoiceRecorded = (transcript: string) => {
     sendMessage(transcript);
+  };
+
+  const handleEndChat = () => {
+    navigate('/session-summary');
   };
 
   return (
@@ -61,6 +66,7 @@ const SessionRoom = () => {
             variant="outline"
             size="sm"
             className="text-gray-600"
+            onClick={handleEndChat}
           >
             End chat & continue
           </Button>

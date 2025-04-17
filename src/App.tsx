@@ -18,6 +18,7 @@ import SettingsPage from "./pages/SettingsPage";
 import BlogPage from "./pages/BlogPage";
 import SessionPage from "./pages/SessionPage";
 import ProfilePage from "./pages/ProfilePage";
+import SessionSummary from "@/components/session/SessionSummary";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <SessionPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/session-summary" 
+                element={
+                  <ProtectedRoute>
+                    <SessionSummary />
                   </ProtectedRoute>
                 } 
               />
