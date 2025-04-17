@@ -1,20 +1,18 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTherapist } from '@/context/TherapistContext';
 import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
 import { Button } from "@/components/ui/button";
-import { HelpCircle, ArrowRight } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SessionRoom = () => {
   const { messages, sendMessage, isProcessing } = useTherapist();
-  const [currentMessage, setCurrentMessage] = useState('');
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
       sendMessage(message);
-      setCurrentMessage('');
     }
   };
 
@@ -69,14 +67,6 @@ const SessionRoom = () => {
               isDisabled={isProcessing}
             />
           </div>
-          <Button
-            size="icon"
-            className="rounded-full bg-blue-500 hover:bg-blue-600"
-            disabled={!currentMessage.trim() || isProcessing}
-            onClick={() => handleSendMessage(currentMessage)}
-          >
-            <ArrowRight className="h-5 w-5" />
-          </Button>
         </div>
       </motion.div>
     </div>
