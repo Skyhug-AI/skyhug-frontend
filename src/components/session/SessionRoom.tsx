@@ -1,19 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTherapist } from '@/context/TherapistContext';
 import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
+import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import { Button } from "@/components/ui/button";
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Mic, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Toggle } from "@/components/ui/toggle";
 
 const SessionRoom = () => {
   const { messages, sendMessage, isProcessing } = useTherapist();
+  const [isVoiceMode, setIsVoiceMode] = useState(true);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
       sendMessage(message);
     }
+  };
+
+  const handleVoiceRecorded = (transcript: string) => {
+    sendMessage(transcript);
   };
 
   return (
@@ -57,15 +64,32 @@ const SessionRoom = () => {
           >
             End chat & continue
           </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-gray-500" />
+            <Toggle 
+              pressed={!isVoiceMode}
+              onPressedChange={(pressed) => setIsVoiceMode(!pressed)}
+              aria-label="Toggle input mode"
+            >
+              <Mic className="h-4 w-4" />
+            </Toggle>
+          </div>
         </div>
 
         <div className="flex gap-2">
           <div className="flex-grow">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              placeholder="Write your answer"
-              isDisabled={isProcessing}
-            />
+            {isVoiceMode ? (
+              <VoiceRecorder
+                onVoiceRecorded={handleVoiceRecorded}
+                isDisabled={isProcessing}
+              />
+            ) : (
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                placeholder="Write your answer"
+                isDisabled={isProcessing}
+              />
+            )}
           </div>
         </div>
       </motion.div>
