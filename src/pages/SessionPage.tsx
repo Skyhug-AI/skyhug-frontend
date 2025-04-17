@@ -20,6 +20,10 @@ const SessionPage = () => {
     setIsSessionStarted(true);
   };
 
+  const handleEndSession = () => {
+    navigate('/session-summary');
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-gray-100 bg-white">
@@ -38,10 +42,7 @@ const SessionPage = () => {
               variant="ghost" 
               size="sm"
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-              onClick={() => {
-                clearMessages();
-                navigate('/home');
-              }}
+              onClick={handleEndSession}
             >
               End Chat & Continue
             </Button>
