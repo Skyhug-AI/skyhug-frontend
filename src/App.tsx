@@ -17,6 +17,7 @@ import PastSessionsPage from "./pages/PastSessionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import BlogPage from "./pages/BlogPage";
 import SessionPage from "./pages/SessionPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <HomePage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
                   </ProtectedRoute>
                 } 
               />
