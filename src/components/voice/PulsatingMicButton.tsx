@@ -15,9 +15,9 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       disabled={disabled}
       className={cn(
         "relative w-16 h-16 rounded-full overflow-hidden transition-all duration-500",
-        "bg-gradient-to-r from-sky-400 via-sky-500 to-sky-600",
+        "bg-gradient-to-tr from-sky-400 via-purple-500 to-rose-500",
         isRecording ? [
-          "animate-spin-slow hover:shadow-xl",
+          "animate-pulse-gentle hover:shadow-xl",
           "shadow-lg shadow-sky-500/20",
         ] : [
           "hover:shadow-lg",

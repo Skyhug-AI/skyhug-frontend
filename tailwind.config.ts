@@ -157,8 +157,14 @@ export default {
           '100%': { transform: 'rotate(360deg)' },
         },
         'pulse-gentle': {
-          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
-          '50%': { transform: 'scale(1.05)', opacity: '0.9' },
+          '0%, 100%': { 
+            transform: 'scale(1)',
+            opacity: '1'
+          },
+          '50%': { 
+            transform: 'scale(1.03)',
+            opacity: '0.95'
+          }
         },
       },
       animation: {
@@ -173,7 +179,7 @@ export default {
         'scale-down': 'scale-down 0.3s ease-out',
         'shimmer': 'shimmer 3s ease-in-out infinite',
         'spin-slow': 'spin-slow 3s linear infinite',
-        'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
+        'pulse-gentle': 'pulse-gentle 3s ease-in-out infinite',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
