@@ -15,13 +15,13 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       disabled={disabled}
       className={cn(
         "relative w-16 h-16 rounded-full overflow-hidden transition-all duration-500",
-        "bg-flowing-gradient bg-gradient-size shadow-md",
+        "bg-orb-gradient shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
         isRecording ? [
-          "animate-pulse-gentle hover:shadow-xl",
-          "shadow-lg shadow-sky-500/20",
+          "animate-soft-pulse",
+          "shadow-lg shadow-orb-periwinkle/30",
         ] : [
-          "animate-gradient-flow hover:shadow-lg",
-          "shadow-md shadow-sky-500/10",
+          "hover:shadow-lg hover:scale-[1.02] transition-transform",
+          "shadow-md shadow-orb-periwinkle/20",
         ],
         disabled && "opacity-50 cursor-not-allowed"
       )}
@@ -31,3 +31,4 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
 };
 
 export default PulsatingMicButton;
+

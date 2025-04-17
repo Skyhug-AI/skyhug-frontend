@@ -94,6 +94,11 @@ export default {
           900: '#303b81',
           950: '#1e224a',
         },
+        orb: {
+          periwinkle: '#B9C6FF',
+          lavender: '#D7C4F7',
+          fog: '#F3E9FF',
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -174,6 +179,20 @@ export default {
             'background-position': '100% 50%',
           },
         },
+        'soft-pulse': {
+          '0%': {
+            boxShadow: '0 0 0 0 rgba(185, 198, 255, 0.6)',
+            transform: 'scale(1)',
+          },
+          '70%': {
+            boxShadow: '0 0 0 12px rgba(185, 198, 255, 0)',
+            transform: 'scale(1.03)',
+          },
+          '100%': {
+            boxShadow: '0 0 0 0 rgba(185, 198, 255, 0)',
+            transform: 'scale(1)',
+          }
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -189,12 +208,14 @@ export default {
         'spin-slow': 'spin-slow 3s linear infinite',
         'pulse-gentle': 'pulse-gentle 3s ease-in-out infinite',
         'gradient-flow': 'gradient-flow 8s ease infinite',
+        'soft-pulse': 'soft-pulse 2.8s ease-in-out infinite',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'therapy-gradient': 'linear-gradient(to right, #2563eb, #3b82f6, #60a5fa)',
         'blue-sky': 'linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)',
         'flowing-gradient': 'linear-gradient(-45deg, #60a5fa, #8b5cf6, #ec4899, #3b82f6)',
+        'orb-gradient': 'linear-gradient(135deg, #B9C6FF 0%, #D7C4F7 50%, #F3E9FF 100%)',
       },
       backgroundSize: {
         'gradient-size': '300% 300%',
