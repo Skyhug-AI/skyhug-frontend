@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -45,7 +46,9 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      <Header />
+      <div className="sticky top-0 z-50">
+        <Header />
+      </div>
       <FloatingJournalButton />
       
       <CloudBackground className="opacity-90" />
