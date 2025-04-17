@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, SendHorizonal } from 'lucide-react';
+import { SendHorizonal } from 'lucide-react';
+import PulsatingMicButton from './PulsatingMicButton';
 
 type VoiceRecorderProps = {
   onVoiceRecorded: (transcript: string) => void;
@@ -17,12 +18,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
     if (isDisabled) return;
     
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      // Ensure previous instance is cleaned up
       if (recognitionInstance) {
         recognitionInstance.stop();
       }
       
-      // Browser compatibility
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
@@ -83,21 +82,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
         )}
         
         <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant={isRecording ? "destructive" : "default"}
-            size="lg"
-            className={`rounded-full shadow-md transition-all duration-300 hover:scale-105 ${
-              isRecording 
-                ? "bg-pink-500 hover:bg-pink-600" 
-                : "bg-serenity-500 hover:bg-serenity-600"
-            }`}
+          <PulsatingMicButton
+            isRecording={isRecording}
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isDisabled}
-          >
-            {isRecording ? <MicOff className="h-5 w-5 mr-2" /> : <Mic className="h-5 w-5 mr-2" />}
-            {isRecording ? "Stop Recording" : "I'm Ready to Talk"}
-          </Button>
+          />
           
           {transcript && (
             <Button
@@ -111,21 +100,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
             </Button>
           )}
         </div>
-        
-        {isRecording && (
-          <div className="flex justify-center space-x-1 mt-2">
-            {[...Array(5)].map((_, i) => (
-              <div 
-                key={i} 
-                className="w-2 h-2 rounded-full bg-serenity-400 animate-pulse" 
-                style={{ 
-                  animationDelay: `${i * 0.15}s`,
-                  animationDuration: '1s'
-                }}
-              ></div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -152,6 +152,14 @@ export default {
           '50%': { opacity: '1' },
           '100%': { opacity: '0.4' },
         },
+        'spin-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        'pulse-gentle': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.05)', opacity: '0.9' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -164,6 +172,8 @@ export default {
         'scale-up': 'scale-up 0.3s ease-out',
         'scale-down': 'scale-down 0.3s ease-out',
         'shimmer': 'shimmer 3s ease-in-out infinite',
+        'spin-slow': 'spin-slow 3s linear infinite',
+        'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
