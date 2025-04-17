@@ -11,20 +11,37 @@ interface PulsatingMicButtonProps {
 
 const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButtonProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [cleanupFunction, setCleanupFunction] = useState<(() => void) | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     if (isRecording) {
       const { initVoiceDetection } = useVoiceDetection((speaking) => {
         setIsSpeaking(speaking);
       });
       
-      const cleanup = initVoiceDetection();
-      return () => {
-        cleanup?.();
-      };
+      // Handle the promise properly
+      initVoiceDetection()
+        .then(cleanup => {
+          if (isMounted && cleanup) {
+            setCleanupFunction(() => cleanup);
+          }
+        })
+        .catch(error => {
+          console.error('Error initializing voice detection:', error);
+        });
     } else {
       setIsSpeaking(false);
     }
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      if (cleanupFunction) {
+        cleanupFunction();
+      }
+    };
   }, [isRecording]);
 
   return (
