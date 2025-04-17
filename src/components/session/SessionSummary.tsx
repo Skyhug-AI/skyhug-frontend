@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,7 +58,6 @@ const moodOptions = [
 const SessionSummary: React.FC<SessionSummaryProps> = ({ summary = mockSummary, onClose }) => {
   const [journalEntry, setJournalEntry] = useState('');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleJournalChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

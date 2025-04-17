@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,7 +19,7 @@ import SettingsPage from "./pages/SettingsPage";
 import BlogPage from "./pages/BlogPage";
 import SessionPage from "./pages/SessionPage";
 import ProfilePage from "./pages/ProfilePage";
-import SessionSummary from "@/components/session/SessionSummary";
+import SessionSummaryPage from "./pages/SessionSummaryPage";
 
 const queryClient = new QueryClient();
 
@@ -95,7 +96,7 @@ const App = () => (
                 path="/session-summary" 
                 element={
                   <ProtectedRoute>
-                    <SessionSummary />
+                    <SessionSummaryPage />
                   </ProtectedRoute>
                 } 
               />
