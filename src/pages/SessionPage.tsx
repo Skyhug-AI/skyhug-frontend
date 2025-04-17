@@ -25,8 +25,8 @@ const SessionPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-100 bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
+      <header className="border-b border-gray-100 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <Button 
             variant="ghost" 
@@ -50,7 +50,7 @@ const SessionPage = () => {
         </div>
       </header>
       
-      <div className="max-w-3xl mx-auto px-4">
+      <div className="flex-grow max-w-3xl mx-auto px-4 w-full">
         {!isSessionStarted ? (
           <SessionIntro onStartSession={handleStartSession} />
         ) : (
