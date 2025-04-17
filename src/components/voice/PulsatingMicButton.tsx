@@ -20,7 +20,7 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
           "animate-spin-slow hover:shadow-xl",
           "shadow-lg shadow-sky-500/20",
         ] : [
-          "animate-pulse-gentle hover:shadow-lg",
+          "hover:shadow-lg",
           "shadow-md shadow-sky-500/10",
         ],
         disabled && "opacity-50 cursor-not-allowed"
