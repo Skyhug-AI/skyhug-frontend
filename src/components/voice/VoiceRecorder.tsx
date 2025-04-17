@@ -49,6 +49,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
       
       recognition.onend = () => {
         setIsRecording(false);
+        if (transcript.trim()) {
+          onVoiceRecorded(transcript);
+          setTranscript('');
+        }
       };
       
       recognition.start();
@@ -62,13 +66,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
     if (recognitionInstance) {
       recognitionInstance.stop();
       setIsRecording(false);
-    }
-  };
-
-  const sendVoice = () => {
-    if (transcript.trim()) {
-      onVoiceRecorded(transcript);
-      setTranscript('');
     }
   };
 
@@ -87,18 +84,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isDisabled}
           />
-          
-          {transcript && (
-            <Button
-              type="button"
-              size="icon"
-              className="rounded-full shadow-md bg-serenity-500 hover:bg-serenity-600 transition-all duration-300 hover:scale-105"
-              onClick={sendVoice}
-              disabled={isDisabled}
-            >
-              <SendHorizonal className="h-5 w-5" />
-            </Button>
-          )}
         </div>
       </div>
     </div>
