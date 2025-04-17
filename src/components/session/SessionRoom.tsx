@@ -84,20 +84,20 @@ const SessionRoom = () => {
         </div>
 
         <div className="flex gap-2">
-          <div className="flex-grow">
-            {isVoiceMode ? (
-              <VoiceRecorder
-                onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing}
-              />
-            ) : (
+          {isVoiceMode ? (
+            <VoiceRecorder
+              onVoiceRecorded={handleVoiceRecorded}
+              isDisabled={isProcessing}
+            />
+          ) : (
+            <div className="flex-grow">
               <ChatInput
                 onSendMessage={handleSendMessage}
                 placeholder="Write your answer"
                 isDisabled={isProcessing}
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

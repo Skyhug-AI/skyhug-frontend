@@ -1,7 +1,5 @@
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { SendHorizonal } from 'lucide-react';
 import PulsatingMicButton from './PulsatingMicButton';
 
 type VoiceRecorderProps = {
@@ -70,22 +68,12 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
   };
 
   return (
-    <div className="p-4 bg-white/50 backdrop-blur-sm border-t border-serenity-100">
-      <div className="flex flex-col items-center gap-4">
-        {transcript && (
-          <div className="w-full p-3 bg-white/80 rounded-xl border border-serenity-100 text-left shadow-sm">
-            {transcript}
-          </div>
-        )}
-        
-        <div className="flex items-center gap-3">
-          <PulsatingMicButton
-            isRecording={isRecording}
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={isDisabled}
-          />
-        </div>
-      </div>
+    <div className="flex-grow flex items-center justify-center py-4">
+      <PulsatingMicButton
+        isRecording={isRecording}
+        onClick={isRecording ? stopRecording : startRecording}
+        disabled={isDisabled}
+      />
     </div>
   );
 };
