@@ -7,9 +7,9 @@ interface CloudBackgroundProps {
 
 const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => {
   return (
-    <div className={`absolute inset-0 overflow-hidden z-0 ${className}`}>
+    <div className={`fixed inset-0 overflow-hidden z-0 ${className}`}>
       {/* Softer gradient background - lavender to white */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#EEF2FF] via-[#F7F8FD] to-white"></div>
+      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF] via-[#F7F8FD] to-white"></div>
       
       {/* Soft accent gradients */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-[#FDE1D3] to-transparent opacity-30 rounded-full blur-3xl"></div>
@@ -17,7 +17,7 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
       
       {/* Subtle noise texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none">
-        <div className="absolute inset-0 bg-repeat" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+        <div className="absolute inset-0 w-screen h-screen bg-repeat" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
       </div>
       
       {/* Sparkles (Duolingo-style) floating particles */}
