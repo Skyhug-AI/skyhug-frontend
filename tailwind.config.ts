@@ -166,6 +166,14 @@ export default {
             opacity: '0.95'
           }
         },
+        'gradient-flow': {
+          '0%, 100%': {
+            'background-position': '0% 50%',
+          },
+          '50%': {
+            'background-position': '100% 50%',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -180,11 +188,16 @@ export default {
         'shimmer': 'shimmer 3s ease-in-out infinite',
         'spin-slow': 'spin-slow 3s linear infinite',
         'pulse-gentle': 'pulse-gentle 3s ease-in-out infinite',
+        'gradient-flow': 'gradient-flow 8s ease infinite',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'therapy-gradient': 'linear-gradient(to right, #2563eb, #3b82f6, #60a5fa)',
         'blue-sky': 'linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)',
+        'flowing-gradient': 'linear-gradient(-45deg, #60a5fa, #8b5cf6, #ec4899, #3b82f6)',
+      },
+      backgroundSize: {
+        'gradient-size': '300% 300%',
       },
     }
   },
