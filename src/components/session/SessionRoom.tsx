@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTherapist } from '@/context/TherapistContext';
 import ChatBubble from '@/components/chat/ChatBubble';
@@ -12,6 +12,15 @@ const SessionRoom = () => {
   const { messages, sendMessage, isProcessing } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const navigate = useNavigate();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -56,6 +65,7 @@ const SessionRoom = () => {
             timestamp={message.timestamp}
           />
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <motion.div 
