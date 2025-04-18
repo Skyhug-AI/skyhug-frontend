@@ -30,6 +30,54 @@ const SessionRoom = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 py-3 px-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-gray-600 text-sm">
+          <span>You're in a therapy session with Sky — your AI companion</span>
+          <div className="flex items-center gap-1 text-skyhug-500">
+            <motion.div
+              className="w-2 h-2 rounded-full bg-skyhug-500"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <span className="text-xs font-medium">live</span>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-gray-600"
+          onClick={handleEndChat}
+        >
+          End chat & continue
+        </Button>
+      </div>
+
+      {isVoiceMode && (
+        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
+          <motion.div
+            className="w-2 h-2 rounded-full bg-skyhug-500"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <span>Sky is listening...</span>
+        </div>
+      )}
+
       <div className="flex-grow overflow-y-auto py-6">
         {messages.map((message, index) => (
           <ChatBubble
@@ -61,14 +109,6 @@ const SessionRoom = () => {
             className="text-gray-600"
           >
             Skip question
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-gray-600"
-            onClick={handleEndChat}
-          >
-            End chat & continue
           </Button>
           <div className="ml-auto">
             <Button
