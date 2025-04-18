@@ -102,7 +102,7 @@ const SessionRoom = () => {
             marginTop: hasStartedChat ? 0 : 'auto',
             marginBottom: hasStartedChat ? 0 : 'auto',
           }}
-          className="border-t border-gray-100 bg-white p-4"
+          className="border-t border-gray-100 bg-white/50 backdrop-blur-sm p-4"
         >
           <div className="flex items-center gap-3 mb-4">
             <Button
