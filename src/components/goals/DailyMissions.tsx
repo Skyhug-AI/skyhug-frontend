@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Brain, Headphones, MessageSquare } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import MoodSelectionDialog from '@/components/mood/MoodSelectionDialog';
 
 interface Mission {
   id: string;
@@ -14,7 +15,7 @@ interface Mission {
 }
 
 const DailyMissions = () => {
-  const missions: Mission[] = [
+  const [missions, setMissions] = useState<Mission[]>([
     {
       id: 'mood',
       title: 'Tap to log a mood',
@@ -36,7 +37,9 @@ const DailyMissions = () => {
       icon: <MessageSquare className="h-5 w-5 text-rose-400" />,
       completed: false,
     },
-  ];
+  ]);
+
+  const [moodDialogOpen, setMoodDialogOpen] = useState(false);
 
   const totalPoints = missions.reduce((acc, mission) => acc + mission.points, 0);
   const earnedPoints = missions
@@ -44,6 +47,18 @@ const DailyMissions = () => {
     .reduce((acc, mission) => acc + mission.points, 0);
   
   const progressPercentage = (earnedPoints / totalPoints) * 100;
+
+  const handleMissionClick = (missionId: string) => {
+    if (missionId === 'mood') {
+      setMoodDialogOpen(true);
+    }
+  };
+
+  const handleMoodSelect = () => {
+    setMissions(missions.map(mission => 
+      mission.id === 'mood' ? { ...mission, completed: true } : mission
+    ));
+  };
 
   return (
     <Card className="glass-panel mb-8">
@@ -74,6 +89,8 @@ const DailyMissions = () => {
                           ? 'bg-skyhug-50 text-skyhug-700' 
                           : 'hover:bg-skyhug-50/50'
                         }`}
+                      onClick={() => handleMissionClick(mission.id)}
+                      disabled={mission.completed}
                     >
                       <div className={`p-2 rounded-full ${
                         mission.completed ? 'bg-skyhug-100' : 'bg-muted'
@@ -97,6 +114,12 @@ const DailyMissions = () => {
           </div>
         </div>
       </CardContent>
+      
+      <MoodSelectionDialog 
+        open={moodDialogOpen}
+        onOpenChange={setMoodDialogOpen}
+        onMoodSelect={handleMoodSelect}
+      />
     </Card>
   );
 };
