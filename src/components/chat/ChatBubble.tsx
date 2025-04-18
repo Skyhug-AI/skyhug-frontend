@@ -18,7 +18,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   hasInitialSunIcon = false 
 }) => {
   return (
-    <div className={cn("flex gap-3 max-w-full", isUser ? "justify-end" : "justify-start")}>
+    <div className={cn(
+      "flex gap-3 max-w-full mb-4", // Increased vertical spacing
+      isUser ? "justify-end" : "justify-start"
+    )}>
       {!isUser && (
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="AI" />
@@ -31,17 +34,25 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-2xl px-4 py-3 max-w-md",
+          "rounded-[20px] px-6 py-3 max-w-md shadow-sm", // Increased padding and rounded corners
           isUser 
-            ? "bg-[#F5F5F5] text-gray-800" 
+            ? "bg-gradient-to-br from-[#f2edff] to-[#e8eaff] text-gray-800" 
             : "bg-sky-50 text-sky-800",
           isUser ? "" : "flex items-start space-x-2"
         )}>
           {!isUser && hasInitialSunIcon && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
-          <p className="whitespace-pre-wrap font-medium">{message}</p>
+          <p className={cn(
+            "whitespace-pre-wrap",
+            isUser ? "font-medium" : "font-[500]" // Different font weights
+          )}>
+            {message}
+          </p>
         </div>
         {timestamp && (
-          <span className="text-xs text-muted-foreground mt-1 px-1 opacity-50 hover:opacity-100 transition-opacity">
+          <span className={cn(
+            "text-xs text-[#A0A0A0] mt-1 px-1 opacity-50 hover:opacity-100 transition-opacity",
+            isUser ? "text-right" : "text-left" // Right-aligned timestamps for user messages
+          )}>
             {timestamp}
           </span>
         )}
@@ -49,7 +60,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       {isUser && (
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="User" />
-          <AvatarFallback className="bg-serenity-500 text-white">U</AvatarFallback>
+          <AvatarFallback className="bg-gradient-to-br from-[#A0B0FF] to-[#C5CDFF] text-white">
+            U
+          </AvatarFallback>
         </Avatar>
       )}
     </div>
