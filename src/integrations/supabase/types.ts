@@ -12,6 +12,7 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string
+          ended: boolean | null
           id: string
           patient_id: string
           title: string | null
@@ -20,6 +21,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          ended?: boolean | null
           id?: string
           patient_id: string
           title?: string | null
@@ -28,6 +30,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          ended?: boolean | null
           id?: string
           patient_id?: string
           title?: string | null
