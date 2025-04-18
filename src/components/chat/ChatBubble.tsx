@@ -16,7 +16,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="AI" />
           <AvatarFallback 
-            className="bg-purple-100 text-purple-600 font-medium flex items-center justify-center"
+            className="bg-orb-gradient text-white font-semibold flex items-center justify-center"
           >
             S
           </AvatarFallback>
