@@ -33,7 +33,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         <div className={cn(
           "rounded-2xl px-4 py-3 max-w-md",
           isUser 
-            ? "bg-[#E7ECFF] text-gray-800" 
+            ? "bg-[#F5F5F5] text-gray-800" 
             : "bg-sky-50 text-sky-800",
           isUser ? "" : "flex items-start space-x-2"
         )}>
