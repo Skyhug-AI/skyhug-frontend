@@ -17,7 +17,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="AI" />
           <AvatarFallback 
-            className="bg-orb-gradient text-white font-semibold flex items-center justify-center"
+            className="bg-sky-100 text-sky-800 font-semibold flex items-center justify-center"
           >
             S
           </AvatarFallback>
@@ -25,11 +25,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-2xl px-4 py-3 max-w-md",
-          isUser 
-            ? "bg-gradient-to-br from-blush-50 to-blush-100 text-gray-800" 
-            : "bg-sky-50 text-sky-800",
-          isUser ? "" : "flex items-start space-x-2"
+          "rounded-2xl px-4 py-3 max-w-md bg-sky-50 text-sky-800",
+          !isUser ? "flex items-start space-x-2" : ""
         )}>
           {!isUser && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
           <p className="whitespace-pre-wrap font-medium">{message}</p>
@@ -43,7 +40,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
       {isUser && (
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="User" />
-          <AvatarFallback className="bg-serenity-500 text-white">U</AvatarFallback>
+          <AvatarFallback className="bg-sky-100 text-sky-800">
+            e
+          </AvatarFallback>
         </Avatar>
       )}
     </div>
