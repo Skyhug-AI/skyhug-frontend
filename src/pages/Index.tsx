@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -8,19 +7,15 @@ import MoodTrackingPreview from '@/components/landing/MoodTrackingPreview';
 import TalkToSkyButton from '@/components/landing/TalkToSkyButton';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText, Brain, Heart, ArrowRight } from 'lucide-react';
-
 const Index = () => {
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-grow">
         <HeroSection />
         
         {/* Quick Access Button */}
-        <div className="py-16 text-center">
-          <TalkToSkyButton />
-        </div>
+        
         
         {/* Mood Tracking Preview */}
         <section className="py-32 px-4 md:px-8 bg-gradient-to-b from-serenity-50/50 to-white">
@@ -142,11 +137,7 @@ const Index = () => {
             <p className="text-xl mb-12 opacity-90">
               Free to try, no account required. Just say hi.
             </p>
-            <Button 
-              size="lg"
-              className="rounded-full px-8 bg-white text-serenity-600 hover:bg-serenity-50 group"
-              onClick={() => window.location.href = '/voice'}
-            >
+            <Button size="lg" className="rounded-full px-8 bg-white text-serenity-600 hover:bg-serenity-50 group" onClick={() => window.location.href = '/voice'}>
               Begin Now <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -154,8 +145,6 @@ const Index = () => {
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
