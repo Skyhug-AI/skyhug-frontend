@@ -6,7 +6,7 @@ import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare } from 'lucide-react';
+import { HelpCircle, Mic, MessageSquare, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SessionRoom = () => {
@@ -30,6 +30,15 @@ const SessionRoom = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-3 px-4">
+        <div className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#b6baff] to-[#e0d5ff] px-3 py-1">
+          <MessageCircle className="h-4 w-4 text-gray-600" />
+          <span className="text-[13px] text-gray-600 font-medium">
+            You're in a therapy session with Sky — your AI companion
+          </span>
+        </div>
+      </div>
+      
       <div className="flex-grow overflow-y-auto py-6">
         {messages.map((message, index) => (
           <ChatBubble
