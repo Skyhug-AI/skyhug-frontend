@@ -34,9 +34,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-[16px] px-3 py-2 max-w-md shadow-sm border-none", 
+          "rounded-[16px] px-3 py-2 max-w-md shadow-sm border-none",
           isUser ? "" : "flex items-start space-x-2",
-          !isUser && "animate-fade-in"
+          !isUser && "animate-fade-in",
+          "bg-gradient-to-b from-[#f9faff] to-[#fdfcff] bg-opacity-50"
         )}>
           {!isUser && hasInitialSunIcon && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
           <p className={cn(
