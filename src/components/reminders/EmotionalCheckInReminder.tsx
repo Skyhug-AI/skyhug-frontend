@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -38,7 +37,7 @@ const EmotionalCheckInReminder = () => {
           <div className="relative">
             <Avatar className="h-10 w-10 ring-2 ring-serenity-100 animate-pulse-slow">
               <AvatarFallback 
-                className="bg-orb-gradient text-white font-semibold flex items-center justify-center"
+                className="bg-gradient-to-br from-orb-periwinkle/80 to-orb-lavender/80 text-white font-semibold flex items-center justify-center"
               >
                 S
               </AvatarFallback>
