@@ -103,9 +103,11 @@ const HomePage = () => {
           <MoodChart moodData={moodData} />
           <StreakTracker currentStreak={3} longestStreak={7} />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
+          <div className="flex flex-col gap-6">
+            <div className="w-full">
               <ProfileStatsCard />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <AchievementsCard />
               <StartSessionCard />
             </div>
