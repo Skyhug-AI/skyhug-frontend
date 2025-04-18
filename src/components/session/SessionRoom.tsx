@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTherapist } from '@/context/TherapistContext';
 import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
+import ChatAtmosphere from '@/components/chat/ChatAtmosphere';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
-import CloudBackground from '@/components/CloudBackground';
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -40,10 +39,10 @@ const SessionRoom = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col relative">
-      <CloudBackground className="opacity-70" />
+      <ChatAtmosphere />
       
       {isVoiceMode && (
-        <div className="fixed bottom-4 left-4 z-20 flex items-center gap-2 text-sm bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-sky-100">
+        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
           <motion.div
             className="w-2 h-2 rounded-full bg-skyhug-500"
             animate={{
@@ -56,11 +55,11 @@ const SessionRoom = () => {
               ease: "easeInOut"
             }}
           />
-          <span className="font-medium text-gray-700">Sky is listening...</span>
+          <span>Sky is listening...</span>
         </div>
       )}
 
-      <div className="flex-grow overflow-y-auto py-6 relative z-10">
+      <div className="flex-grow overflow-y-auto py-6 relative">
         {messages.map((message, index) => (
           <ChatBubble
             key={index}
@@ -75,7 +74,7 @@ const SessionRoom = () => {
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky bottom-0 border-t border-gray-100 bg-white/95 backdrop-blur-sm p-4 z-10"
+        className="sticky bottom-0 border-t border-gray-100 bg-white p-4"
       >
         <div className="flex items-center gap-3 mb-4">
           <Button
