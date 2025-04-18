@@ -50,26 +50,20 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       disabled={disabled}
       className={cn(
         "relative w-16 h-16 rounded-full overflow-hidden transition-all duration-500",
-        "bg-gradient-to-r from-blue-400 to-purple-400 shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
+        "bg-orb-gradient shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
         isRecording && isSpeaking ? [
           "animate-soft-pulse",
-          "shadow-lg shadow-blue-300/50",
-          "ring-4 ring-blue-300/30 ring-opacity-60"
+          "shadow-lg shadow-orb-periwinkle/30",
         ] : isRecording ? [
-          "shadow-md shadow-blue-300/30",
-          "ring-2 ring-blue-200/50"
+          "shadow-md shadow-orb-periwinkle/20",
         ] : [
           "hover:shadow-lg hover:scale-[1.02] transition-transform",
-          "shadow-md shadow-blue-200/20",
+          "shadow-md shadow-orb-periwinkle/20",
         ],
         disabled && "opacity-50 cursor-not-allowed"
       )}
       aria-label={isRecording ? "Stop recording" : "Start recording"}
-    >
-      <span className="flex items-center justify-center h-full text-white text-2xl">
-        🎙️
-      </span>
-    </button>
+    />
   );
 };
 
