@@ -6,11 +6,12 @@ import { Star, Sparkles, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const EmotionalCheckInReminder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   
   const firstName = user?.name?.split(' ')[0] || 'there';
   
@@ -36,7 +37,9 @@ const EmotionalCheckInReminder = () => {
         <div className="flex items-start gap-4">
           <div className="relative">
             <Avatar className="h-10 w-10 ring-2 ring-serenity-100 animate-pulse-slow">
-              <AvatarFallback className="bg-serenity-500 text-white">
+              <AvatarFallback 
+                className="bg-orb-gradient text-white font-semibold flex items-center justify-center"
+              >
                 S
               </AvatarFallback>
             </Avatar>
