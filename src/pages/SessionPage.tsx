@@ -1,12 +1,12 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTherapist } from '@/context/TherapistContext';
-import SessionIntro from '@/components/session/SessionIntro';
-import SessionRoom from '@/components/session/SessionRoom';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTherapist } from "@/context/TherapistContext";
+import SessionIntro from "@/components/session/SessionIntro";
+import SessionRoom from "@/components/session/SessionRoom";
+import Header from "@/components/Header";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -22,7 +22,7 @@ const SessionPage = () => {
   };
 
   const handleEndSession = () => {
-    navigate('/session-summary');
+    navigate("/session-summary");
   };
 
   return (
@@ -30,11 +30,11 @@ const SessionPage = () => {
       <header className="border-b border-gray-100 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="text-gray-600"
-              onClick={() => navigate('/home')}
+              onClick={() => navigate("/home")}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -42,7 +42,9 @@ const SessionPage = () => {
 
             {isSessionStarted && (
               <div className="flex items-center gap-2 text-gray-600 text-sm">
-                <span>You're in a therapy session with Sky — your AI companion 💙</span>
+                <span>
+                  You're in a therapy session with Sky — your AI companion 💙
+                </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
                     className="w-2 h-2 rounded-full bg-skyhug-500"
@@ -53,7 +55,7 @@ const SessionPage = () => {
                     transition={{
                       duration: 2,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "easeInOut",
                     }}
                   />
                   <span className="text-xs font-medium">live</span>
@@ -61,10 +63,10 @@ const SessionPage = () => {
               </div>
             )}
           </div>
-          
+
           {isSessionStarted && (
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
               onClick={handleEndSession}
@@ -74,7 +76,7 @@ const SessionPage = () => {
           )}
         </div>
       </header>
-      
+
       <div className="flex-grow max-w-3xl mx-auto px-4 w-full">
         {!isSessionStarted ? (
           <SessionIntro onStartSession={handleStartSession} />
