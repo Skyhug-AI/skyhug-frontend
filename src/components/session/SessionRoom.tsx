@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTherapist } from '@/context/TherapistContext';
 import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
-import ChatAtmosphere from '@/components/chat/ChatAtmosphere';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare } from 'lucide-react';
@@ -38,9 +37,7 @@ const SessionRoom = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col relative">
-      <ChatAtmosphere />
-      
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
         <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
           <motion.div
@@ -59,7 +56,7 @@ const SessionRoom = () => {
         </div>
       )}
 
-      <div className="flex-grow overflow-y-auto py-6 relative">
+      <div className="flex-grow overflow-y-auto py-6">
         {messages.map((message, index) => (
           <ChatBubble
             key={index}
