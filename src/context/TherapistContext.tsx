@@ -39,7 +39,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello, I'm Sky, your AI therapist. How are you feeling today?", // Changed from Serenity
+      content: "🌤️ Hi there, I'm Sky, your AI therapist. You're safe here. How are you feeling today?",
       isUser: false,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
@@ -83,7 +83,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({ children 
     setMessages([
       {
         id: '1',
-        content: "Hello, I'm Sky, your AI therapist. How are you feeling today?", // Changed from Serenity
+        content: "🌤️ Hi there, I'm Sky, your AI therapist. You're safe here. How are you feeling today?",
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
@@ -112,4 +112,3 @@ export const useTherapist = (): TherapistContextType => {
   }
   return context;
 };
-
