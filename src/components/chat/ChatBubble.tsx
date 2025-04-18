@@ -43,7 +43,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           {!isUser && hasInitialSunIcon && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
           <p className={cn(
             "whitespace-pre-wrap",
-            isUser ? "font-medium text-base" : "font-[500] text-base", // Restored to text-base
+            "text-[16px] font-ui-sans-serif text-[#020817]",
+            isUser ? "font-medium" : "font-[500]", 
             "leading-[1.5]"
           )}>
             {message}
