@@ -6,7 +6,7 @@ import ChatBubble from '@/components/chat/ChatBubble';
 import ChatInput from '@/components/chat/ChatInput';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare } from 'lucide-react';
+import { HelpCircle, Mic, MessageSquare, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SessionRoom = () => {
@@ -69,6 +69,27 @@ const SessionRoom = () => {
             timestamp={message.timestamp}
           />
         ))}
+        {isProcessing && (
+          <div className="flex items-center gap-2 px-4 py-2">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            >
+              <Loader className="h-4 w-4 text-skyhug-500" />
+            </motion.div>
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-sm text-gray-600"
+            >
+              Sky is thinking...
+            </motion.span>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
