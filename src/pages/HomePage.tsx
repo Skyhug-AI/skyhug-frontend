@@ -99,10 +99,6 @@ const HomePage = () => {
         
         <section>
           <EmotionalCheckInReminder />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <ProfileStatsCard />
-            <StartSessionCard />
-          </div>
           <DailyGoalsCard />
           <MoodChart moodData={moodData} />
           <StreakTracker currentStreak={3} longestStreak={7} />
@@ -116,6 +112,13 @@ const HomePage = () => {
 
         <section>
           <AffirmationCard />
+        </section>
+
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ProfileStatsCard />
+            <StartSessionCard />
+          </div>
         </section>
       </main>
       
