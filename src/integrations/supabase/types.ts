@@ -16,6 +16,7 @@ export type Database = {
           patient_id: string
           title: string | null
           updated_at: string
+          voice_enabled: boolean
         }
         Insert: {
           created_at?: string
@@ -23,6 +24,7 @@ export type Database = {
           patient_id: string
           title?: string | null
           updated_at?: string
+          voice_enabled?: boolean
         }
         Update: {
           created_at?: string
@@ -30,6 +32,7 @@ export type Database = {
           patient_id?: string
           title?: string | null
           updated_at?: string
+          voice_enabled?: boolean
         }
         Relationships: [
           {
