@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -111,6 +112,51 @@ const HomePage = () => {
         </section>
 
         <section>
+          <div className="bg-gray-50 rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-lg font-bold text-blue-600">
+                e
+              </div>
+              <div>
+                <h3 className="font-medium">erica</h3>
+                <p className="text-sm text-gray-500">Building momentum</p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span>✨ 720 Calm Points</span>
+                </div>
+                <div className="w-1/2 bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{width: '60%'}}></div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span>🔥 3-day streak</span>
+                </div>
+                <div className="flex gap-1">
+                  {[...Array(7)].map((_, i) => (
+                    <div 
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        i < 3 ? 'bg-orange-500' : 'bg-orange-100'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span>🏆 6 badges earned</span>
+                </div>
+                <span className="text-xs text-gray-500">Latest: First Night Session</span>
+              </div>
+            </div>
+            <button className="w-full mt-4 text-sm bg-gray-100 py-2 rounded-lg hover:bg-gray-200 transition">
+              View Full Profile
+            </button>
+          </div>
           <AffirmationCard />
         </section>
 
@@ -127,3 +173,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
