@@ -19,7 +19,7 @@ const StartSessionCard = () => {
         <Button 
           onClick={() => navigate('/session')} 
           size="lg"
-          className="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
                      text-white rounded-full py-6 shadow-md hover:shadow-lg 
                      transition-all duration-300 font-medium text-base"
         >
