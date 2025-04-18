@@ -36,7 +36,9 @@ const EmotionalCheckInReminder = () => {
         <div className="flex items-start gap-4">
           <div className="relative">
             <Avatar className="h-10 w-10 ring-2 ring-serenity-100 animate-pulse-slow">
-              <AvatarFallback className="bg-serenity-500 text-white">
+              <AvatarFallback 
+                className="bg-gradient-to-br from-[#B9C6FF] via-[#D7C4F7] to-[#F3E9FF] text-white font-semibold flex items-center justify-center"
+              >
                 S
               </AvatarFallback>
             </Avatar>
