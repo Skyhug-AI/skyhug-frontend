@@ -49,15 +49,6 @@ const SessionRoom = () => {
             <span className="text-xs font-medium">live</span>
           </div>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-gray-600"
-          onClick={handleEndChat}
-        >
-          End chat & continue
-        </Button>
       </div>
 
       {isVoiceMode && (
@@ -110,7 +101,15 @@ const SessionRoom = () => {
           >
             Skip question
           </Button>
-          <div className="ml-auto">
+          <div className="ml-auto space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-600"
+              onClick={handleEndChat}
+            >
+              End chat & continue
+            </Button>
             <Button
               variant="ghost"
               size="icon"
