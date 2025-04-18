@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -7,13 +6,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
-
 const EmotionalCheckInReminder = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  
+  const {
+    user
+  } = useAuth();
   const firstName = user?.name?.split(' ')[0] || 'there';
-  
   const handleCheckIn = () => {
     navigate('/session');
     toast({
@@ -21,7 +19,6 @@ const EmotionalCheckInReminder = () => {
       description: "+10 points for checking in. Keep up the great work!"
     });
   };
-
   const handleTextChat = () => {
     navigate('/chat');
     toast({
@@ -29,9 +26,7 @@ const EmotionalCheckInReminder = () => {
       description: "Let's chat through what's on your mind"
     });
   };
-
-  return (
-    <Card className="bg-white border-[#E5E7EB] shadow-lg mb-6">
+  return <Card className="bg-white border-[#E5E7EB] shadow-lg mb-6">
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className="relative">
@@ -65,14 +60,12 @@ const EmotionalCheckInReminder = () => {
               
               <div className="flex items-center gap-1 text-sm text-serenity-600">
                 <Star className="h-4 w-4" />
-                <span>+10 Calm Points</span>
+                <span>+50 Calm Points</span>
               </div>
             </div>
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default EmotionalCheckInReminder;
