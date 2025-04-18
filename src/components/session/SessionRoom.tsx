@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTherapist } from '@/context/TherapistContext';
@@ -100,14 +101,28 @@ const SessionRoom = () => {
           >
             Skip question
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-gray-600"
-            onClick={handleEndChat}
-          >
-            End chat & continue
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-600"
+              onClick={handleEndChat}
+            >
+              End chat & continue
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsVoiceMode(!isVoiceMode)}
+              className="rounded-full w-8 h-8"
+            >
+              {isVoiceMode ? (
+                <MessageSquare className="h-4 w-4 text-gray-600" />
+              ) : (
+                <Mic className="h-4 w-4 text-gray-600" />
+              )}
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-2">
