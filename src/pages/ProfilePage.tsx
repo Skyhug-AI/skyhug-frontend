@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Award, Edit, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { StreakVault } from '@/components/achievements/StreakVault';
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -67,6 +68,8 @@ const ProfilePage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <StreakVault />
           </div>
         </div>
       </main>

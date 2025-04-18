@@ -6,7 +6,6 @@ import CloudBackground from '@/components/CloudBackground';
 import EmotionalCheckInReminder from '@/components/reminders/EmotionalCheckInReminder';
 import DailyGoalsCard from '@/components/goals/DailyGoalsCard';
 import EncouragementFeed from '@/components/therapy/EncouragementFeed';
-import { StreakVault } from '@/components/achievements/StreakVault';
 import DailyMissions from '@/components/goals/DailyMissions';
 import MoodChart from '@/components/progress/MoodChart';
 import AchievementsCard from '@/components/achievements/AchievementsCard';
@@ -115,7 +114,6 @@ const HomePage = () => {
         
         <section className="mt-8">
           <EncouragementFeed />
-          <StreakVault />
           <DailyMissions />
         </section>
 
