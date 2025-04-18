@@ -8,7 +8,6 @@ import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Toggle } from "@/components/ui/toggle";
 
 const SessionRoom = () => {
   const { messages, sendMessage, isProcessing } = useTherapist();
@@ -71,15 +70,19 @@ const SessionRoom = () => {
           >
             End chat & continue
           </Button>
-          <div className="ml-auto flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-gray-500" />
-            <Toggle 
-              pressed={!isVoiceMode}
-              onPressedChange={(pressed) => setIsVoiceMode(!pressed)}
-              aria-label="Toggle input mode"
+          <div className="ml-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsVoiceMode(!isVoiceMode)}
+              className="rounded-full w-8 h-8"
             >
-              <Mic className="h-4 w-4" />
-            </Toggle>
+              {isVoiceMode ? (
+                <MessageSquare className="h-4 w-4 text-gray-600" />
+              ) : (
+                <Mic className="h-4 w-4 text-gray-600" />
+              )}
+            </Button>
           </div>
         </div>
 
