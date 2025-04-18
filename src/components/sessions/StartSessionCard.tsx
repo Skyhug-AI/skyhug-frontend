@@ -12,7 +12,7 @@ const StartSessionCard = () => {
       </div>
       
       <div className="flex flex-col gap-y-4">
-        <Button onClick={() => navigate('/session')} size="lg" className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white py-6 shadow-md hover:shadow-lg transition-all duration-300 font-medium text-base rounded">
+        <Button onClick={() => navigate('/session')} size="lg" className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-400 hover:to-blue-300 text-white py-6 shadow-md hover:shadow-lg transition-all duration-300 font-medium text-base rounded">
           <Headphones className="mr-2 h-4 w-4" />
           Begin Session with Sky
         </Button>
