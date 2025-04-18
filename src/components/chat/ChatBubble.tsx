@@ -52,7 +52,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         </div>
         {timestamp && (
           <span className={cn(
-            "text-xs text-[#A0A0A0] mt-[8px] px-1 opacity-50 hover:opacity-100 transition-opacity",
+            "text-xs text-muted-foreground rounded mt-1 px-1 opacity-50 hover:opacity-100 transition-opacity",
             isUser ? "text-right" : "text-left"
           )}>
             {timestamp}
