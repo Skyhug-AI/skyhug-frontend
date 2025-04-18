@@ -19,11 +19,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 }) => {
   return (
     <div className={cn(
-      "flex gap-3 max-w-full mb-[20px]", // Reduced vertical spacing between messages
+      "flex gap-3 max-w-full mb-[20px]", 
       isUser ? "justify-end" : "justify-start"
     )}>
       {!isUser && (
-        <Avatar className="h-8 w-8 self-center"> {/* Vertically center avatar */}
+        <Avatar className="h-8 w-8 self-center">
           <AvatarImage src="" alt="AI" />
           <AvatarFallback 
             className="bg-orb-gradient text-white font-semibold flex items-center justify-center"
@@ -34,7 +34,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-[20px] px-4 py-3 max-w-md shadow-sm", // Reduced padding to 16px
+          "rounded-[20px] px-3 py-2 max-w-md shadow-sm", // Reduced padding from px-4 py-3 to px-3 py-2
           isUser 
             ? "bg-gradient-to-br from-[#f2edff] to-[#e8eaff] text-gray-800" 
             : "bg-sky-50 text-sky-800",
@@ -44,14 +44,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           <p className={cn(
             "whitespace-pre-wrap",
             isUser ? "font-medium" : "font-[500]",
-            "leading-[1.5]" // Reduced line-height for more compact text
+            "leading-[1.5]"
           )}>
             {message}
           </p>
         </div>
         {timestamp && (
           <span className={cn(
-            "text-xs text-[#A0A0A0] mt-[8px] px-1 opacity-50 hover:opacity-100 transition-opacity", // Reduced timestamp spacing
+            "text-xs text-[#A0A0A0] mt-[8px] px-1 opacity-50 hover:opacity-100 transition-opacity",
             isUser ? "text-right" : "text-left"
           )}>
             {timestamp}
@@ -59,7 +59,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         )}
       </div>
       {isUser && (
-        <Avatar className="h-8 w-8 self-center"> {/* Vertically center avatar */}
+        <Avatar className="h-8 w-8 self-center">
           <AvatarImage src="" alt="User" />
           <AvatarFallback className="bg-gradient-to-br from-[#A0B0FF] to-[#C5CDFF] text-white">
             U
