@@ -101,8 +101,7 @@ const SessionRoom = () => {
           >
             Skip question
           </Button>
-          <div className="ml-auto flex items-center gap-2">
-            <Button
+          <Button
               variant="outline"
               size="sm"
               className="text-gray-600"
@@ -110,6 +109,7 @@ const SessionRoom = () => {
             >
               End chat & continue
             </Button>
+          <div className="ml-auto flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
