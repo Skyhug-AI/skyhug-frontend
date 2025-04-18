@@ -5,21 +5,36 @@ import { motion } from 'framer-motion';
 const ChatAtmosphere = () => {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Soft cloud in top-left */}
-      <div className="absolute top-[-20px] left-[-20px] w-48 h-32">
-        <motion.div 
-          className="w-full h-full bg-white/20 rounded-full blur-xl"
-          animate={{
-            scale: [1, 1.05, 1],
-            opacity: [0.3, 0.4, 0.3],
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#f8faff] to-[#ffffff] opacity-70" />
+      
+      {/* Soft clouds */}
+      {[...Array(4)].map((_, i) => (
+        <motion.div
+          key={`cloud-${i}`}
+          className="absolute"
+          style={{
+            top: `${i * 25}%`,
+            left: `${(i % 2) * 70}%`,
+            width: '300px',
+            height: '120px',
           }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      </div>
+        >
+          <motion.div 
+            className="w-full h-full bg-white/10 rounded-full blur-2xl"
+            animate={{
+              scale: [1, 1.05, 1],
+              opacity: [0.2, 0.3, 0.2],
+              x: [0, 10, 0],
+            }}
+            transition={{
+              duration: 8 + i * 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </motion.div>
+      ))}
 
       {/* Twinkling stars */}
       <div className="absolute bottom-10 right-10 w-32 h-32">
