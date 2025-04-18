@@ -7,12 +7,14 @@ import { Sun } from 'lucide-react';
 type ChatBubbleProps = {
   message: string;
   isUser: boolean;
+  timestamp?: string;
   hasInitialSunIcon?: boolean;
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ 
   message, 
   isUser, 
+  timestamp,
   hasInitialSunIcon = false 
 }) => {
   return (
@@ -32,7 +34,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-[16px] px-3 py-2 max-w-md shadow-sm border border-transparent", 
+          "rounded-[16px] px-3 py-2 max-w-md shadow-sm border-none", 
           isUser ? "" : "flex items-start space-x-2",
           !isUser && "animate-fade-in"
         )}>
@@ -46,6 +48,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
             {message}
           </p>
         </div>
+        {timestamp && (
+          <span className={cn(
+            "text-xs text-muted-foreground rounded mt-1 px-1 opacity-50 hover:opacity-100 transition-opacity",
+            isUser ? "text-right" : "text-left"
+          )}>
+            {timestamp}
+          </span>
+        )}
       </div>
       {isUser && (
         <Avatar className="h-8 w-8 self-center">
