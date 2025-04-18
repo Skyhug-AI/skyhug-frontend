@@ -44,7 +44,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           <p className={cn(
             "whitespace-pre-wrap",
             "text-[16px] font-ui-sans-serif text-[#020817]",
-            isUser ? "font-medium" : "font-[500]", 
+            isUser ? "font-normal" : "font-[400]", 
             "leading-[1.5]"
           )}>
             {message}
