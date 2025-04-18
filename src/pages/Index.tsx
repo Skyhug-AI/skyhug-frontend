@@ -13,10 +13,14 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <TalkToSkyButton />
       
       <main className="flex-grow">
         <HeroSection />
+        
+        {/* Quick Access Button */}
+        <div className="py-16 text-center">
+          <TalkToSkyButton />
+        </div>
         
         {/* Mood Tracking Preview */}
         <section className="py-32 px-4 md:px-8 bg-gradient-to-b from-serenity-50/50 to-white">
