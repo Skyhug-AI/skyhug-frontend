@@ -30,6 +30,14 @@ const ChatPage = () => {
   }, [patientReady]);
 
   useEffect(() => {
+    scrollToBottom();
+  }, [messages, isProcessing]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isProcessing]);
 
