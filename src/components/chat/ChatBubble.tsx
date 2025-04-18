@@ -15,7 +15,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
       {!isUser && (
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="AI" />
-          <AvatarFallback className="bg-serenity-100 text-serenity-600">S</AvatarFallback>
+          <AvatarFallback 
+            className="bg-purple-100 text-purple-600 font-medium flex items-center justify-center"
+          >
+            S
+          </AvatarFallback>
         </Avatar>
       )}
       <div className="flex flex-col">
