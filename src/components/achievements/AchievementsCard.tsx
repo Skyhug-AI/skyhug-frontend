@@ -22,7 +22,7 @@ const AchievementsCard = () => {
       <CardContent>
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-4 mb-2">
-            <div className="h-16 w-16 bg-gradient-to-br from-skyhug-200 to-skyhug-400 rounded-full flex items-center justify-center shadow-lg">
+            <div className="h-16 w-16 bg-gradient-to-br from-[#B9C6FF] via-[#D7C4F7] to-[#F3E9FF] rounded-full flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-2xl">3</span>
             </div>
             <div>
