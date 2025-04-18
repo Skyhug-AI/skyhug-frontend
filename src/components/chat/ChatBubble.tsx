@@ -8,9 +8,15 @@ type ChatBubbleProps = {
   message: string;
   isUser: boolean;
   timestamp?: string;
+  hasInitialSunIcon?: boolean; // Add this prop
 };
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ 
+  message, 
+  isUser, 
+  timestamp, 
+  hasInitialSunIcon = false 
+}) => {
   return (
     <div className={cn("flex gap-3 max-w-full", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
@@ -31,7 +37,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
             : "bg-sky-50 text-sky-800",
           isUser ? "" : "flex items-start space-x-2"
         )}>
-          {!isUser && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
+          {!isUser && hasInitialSunIcon && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
           <p className="whitespace-pre-wrap font-medium">{message}</p>
         </div>
         {timestamp && (

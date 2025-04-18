@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
 // Message interface
@@ -7,6 +6,7 @@ export interface Message {
   content: string;
   isUser: boolean;
   timestamp: string;
+  hasInitialSunIcon?: boolean;
 }
 
 // Context interface
@@ -39,9 +39,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello, I'm Sky, your AI therapist. How are you feeling today?", // Changed from Serenity
+      content: "Hello, I'm Sky, your AI therapist. How are you feeling today?",
       isUser: false,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      hasInitialSunIcon: true,
     },
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -83,9 +84,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({ children 
     setMessages([
       {
         id: '1',
-        content: "Hello, I'm Sky, your AI therapist. How are you feeling today?", // Changed from Serenity
+        content: "Hello, I'm Sky, your AI therapist. How are you feeling today?",
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        hasInitialSunIcon: true,
       },
     ]);
   };
@@ -112,4 +114,3 @@ export const useTherapist = (): TherapistContextType => {
   }
   return context;
 };
-
