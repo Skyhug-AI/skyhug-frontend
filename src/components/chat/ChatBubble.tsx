@@ -15,19 +15,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, timestamp }) =
       {!isUser && (
         <Avatar className="h-8 w-8 mt-1">
           <AvatarImage src="" alt="AI" />
-          <AvatarFallback 
-            className="bg-orb-gradient text-serenity-600 flex items-center justify-center"
-          >
-            S
-          </AvatarFallback>
+          <AvatarFallback className="bg-serenity-100 text-serenity-600">S</AvatarFallback>
         </Avatar>
       )}
       <div className="flex flex-col">
         <div className={cn(
           isUser 
             ? "chat-bubble-user" 
-            : "chat-bubble-ai animate-scale-up bg-orb-gradient",
-          "rounded-xl"
+            : "chat-bubble-ai animate-scale-up"
         )}>
           <p className="whitespace-pre-wrap">{message}</p>
         </div>
