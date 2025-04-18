@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -17,35 +16,71 @@ import StreakTracker from '@/components/achievements/StreakTracker';
 import FloatingJournalButton from '@/components/journal/FloatingJournalButton';
 import AffirmationCard from '@/components/affirmations/AffirmationCard';
 import ProfileStatsCard from '@/components/profile/ProfileStatsCard';
-
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(' ')[0] || 'Friend';
 };
-
 const HomePage = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
-  
   const firstName = getFirstName(user?.name);
-
-  const moodData = [
-    { day: 'Mon', value: 2, mood: '😐', note: 'Feeling neutral' },
-    { day: 'Tue', value: 3, mood: '🙂', note: 'Slightly better today' },
-    { day: 'Wed', value: 1, mood: '😔', note: 'Difficult day' },
-    { day: 'Thu', value: 4, mood: '😄', note: 'Great progress' },
-    { day: 'Fri', value: 3, mood: '🙂', note: 'Steady improvement' },
-    { day: 'Sat', value: 4, mood: '😄', note: 'Feeling good' },
-    { day: 'Sun', value: 5, mood: '🌟', note: 'Excellent day' },
-  ];
-
-  const sessionHistory = [
-    { day: 'Monday', type: 'Voice Session with Serenity', topic: 'anxiety before presentation', moodBefore: '😐', moodAfter: '🙂' },
-    { day: 'Thursday', type: 'Reflection Journal', topic: 'social burnout', moodBefore: '😔', moodAfter: '😐' },
-    { day: 'Saturday', type: 'Voice Session with Serenity', topic: 'weekend planning', moodBefore: '🙂', moodAfter: '😄' },
-  ];
-
-  return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+  const moodData = [{
+    day: 'Mon',
+    value: 2,
+    mood: '😐',
+    note: 'Feeling neutral'
+  }, {
+    day: 'Tue',
+    value: 3,
+    mood: '🙂',
+    note: 'Slightly better today'
+  }, {
+    day: 'Wed',
+    value: 1,
+    mood: '😔',
+    note: 'Difficult day'
+  }, {
+    day: 'Thu',
+    value: 4,
+    mood: '😄',
+    note: 'Great progress'
+  }, {
+    day: 'Fri',
+    value: 3,
+    mood: '🙂',
+    note: 'Steady improvement'
+  }, {
+    day: 'Sat',
+    value: 4,
+    mood: '😄',
+    note: 'Feeling good'
+  }, {
+    day: 'Sun',
+    value: 5,
+    mood: '🌟',
+    note: 'Excellent day'
+  }];
+  const sessionHistory = [{
+    day: 'Monday',
+    type: 'Voice Session with Serenity',
+    topic: 'anxiety before presentation',
+    moodBefore: '😐',
+    moodAfter: '🙂'
+  }, {
+    day: 'Thursday',
+    type: 'Reflection Journal',
+    topic: 'social burnout',
+    moodBefore: '😔',
+    moodAfter: '😐'
+  }, {
+    day: 'Saturday',
+    type: 'Voice Session with Serenity',
+    topic: 'weekend planning',
+    moodBefore: '🙂',
+    moodAfter: '😄'
+  }];
+  return <div className="min-h-screen flex flex-col relative overflow-hidden">
       <div className="sticky top-0 z-50">
         <Header />
       </div>
@@ -86,14 +121,12 @@ const HomePage = () => {
           <DailyMissions />
         </section>
 
-        <section className="mt-8">
+        <section className="">
           <AffirmationCard />
         </section>
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
