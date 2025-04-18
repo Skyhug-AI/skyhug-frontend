@@ -104,18 +104,23 @@ const HomePage = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-              <SessionHistoryCard sessionHistory={sessionHistory} />
+              {/* <SessionHistoryCard sessionHistory={sessionHistory} /> */}
+              <ProfileStatsCard />
+              <StartSessionCard />
             </div>
             
             <div>
-              <ProfileStatsCard />
               <AchievementsCard />
-              <StartSessionCard />
             </div>
           </div>
         </section>
         
- 
+        <section className="mt-8">
+          <EncouragementFeed />
+          <StreakVault />
+          <DailyMissions />
+        </section>
+
         <section className="">
           <AffirmationCard />
         </section>
