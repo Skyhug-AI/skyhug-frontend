@@ -9,22 +9,22 @@ import EncouragementFeed from '@/components/therapy/EncouragementFeed';
 import { StreakVault } from '@/components/achievements/StreakVault';
 import DailyMissions from '@/components/goals/DailyMissions';
 import MoodChart from '@/components/progress/MoodChart';
-import SessionHistoryCard from '@/components/sessions/SessionHistoryCard';
 import AchievementsCard from '@/components/achievements/AchievementsCard';
 import StartSessionCard from '@/components/sessions/StartSessionCard';
 import StreakTracker from '@/components/achievements/StreakTracker';
 import FloatingJournalButton from '@/components/journal/FloatingJournalButton';
 import AffirmationCard from '@/components/affirmations/AffirmationCard';
 import ProfileStatsCard from '@/components/profile/ProfileStatsCard';
+
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(' ')[0] || 'Friend';
 };
+
 const HomePage = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const firstName = getFirstName(user?.name);
+  
   const moodData = [{
     day: 'Mon',
     value: 2,
@@ -61,6 +61,7 @@ const HomePage = () => {
     mood: '🌟',
     note: 'Excellent day'
   }];
+
   const sessionHistory = [{
     day: 'Monday',
     type: 'Voice Session with Serenity',
@@ -80,6 +81,7 @@ const HomePage = () => {
     moodBefore: '🙂',
     moodAfter: '😄'
   }];
+
   return <div className="min-h-screen flex flex-col relative overflow-hidden">
       <div className="sticky top-0 z-50">
         <Header />
@@ -103,10 +105,6 @@ const HomePage = () => {
           <StreakTracker currentStreak={3} longestStreak={7} />
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-2">
-              <SessionHistoryCard sessionHistory={sessionHistory} />
-            </div>
-            
             <div>
               <ProfileStatsCard />
               <AchievementsCard />
@@ -129,4 +127,5 @@ const HomePage = () => {
       <Footer />
     </div>;
 };
+
 export default HomePage;
