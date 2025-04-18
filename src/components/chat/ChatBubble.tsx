@@ -8,7 +8,7 @@ type ChatBubbleProps = {
   message: string;
   isUser: boolean;
   timestamp?: string;
-  hasInitialSunIcon?: boolean;
+  hasInitialSunIcon?: boolean; // Add this prop
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ 
@@ -34,7 +34,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           "rounded-2xl px-4 py-3 max-w-md",
           isUser 
             ? "bg-gradient-to-br from-blush-50 to-blush-100 text-gray-800" 
-            : "bg-[#F2EDFF] text-sky-800",
+            : "bg-sky-50 text-sky-800",
           isUser ? "" : "flex items-start space-x-2"
         )}>
           {!isUser && hasInitialSunIcon && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
