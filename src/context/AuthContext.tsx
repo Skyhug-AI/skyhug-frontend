@@ -1,15 +1,16 @@
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
 };
 
-type AuthContextType = {
+export type AuthContextType = {
   user: User | null;
   loading: boolean;
+  patientReady: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -18,35 +19,76 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [patientReady, setPatientReady] = useState(false);
 
   useEffect(() => {
-    // Check localStorage for existing user session
-    const storedUser = localStorage.getItem('skyhug_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          const supaUser = session.user;
+          const loadedUser = {
+            id: supaUser.id,
+            email: supaUser.email!,
+            name: supaUser.email!.split("@")[0],
+          };
+          setUser(loadedUser);
+          checkPatientExists(supaUser.id);
+        } else {
+          setUser(null);
+          setPatientReady(false);
+        }
+        setLoading(false);
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
+
+  const checkPatientExists = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("patients")
+      .select("id")
+      .eq("id", userId)
+      .single();
+
+    if (!error && data) {
+      setPatientReady(true);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, any email/password combination works
-      // In a real app, you would validate against a backend
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      if (error || !data.user) throw error;
+
+      const supaUser = data.user;
       const newUser = {
-        id: `user_${Date.now()}`,
-        email,
-        name: email.split('@')[0],
+        id: supaUser.id,
+        email: supaUser.email!,
+        name: supaUser.email!.split("@")[0],
       };
-      
       setUser(newUser);
-      localStorage.setItem('skyhug_user', JSON.stringify(newUser));
+
+      const { error: patientError } = await supabase
+        .from("patients")
+        .upsert(
+          { id: newUser.id, full_name: newUser.name },
+          { onConflict: "id" }
+        );
+
+      if (!patientError) setPatientReady(true);
     } finally {
       setLoading(false);
     }
@@ -55,37 +97,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, create user locally
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      if (error || !data.user) throw error;
+
+      const supaUser = data.user;
       const newUser = {
-        id: `user_${Date.now()}`,
-        email,
+        id: supaUser.id,
+        email: supaUser.email!,
         name,
       };
-      
       setUser(newUser);
-      localStorage.setItem('skyhug_user', JSON.stringify(newUser));
+
+      const { error: patientError } = await supabase
+        .from("patients")
+        .upsert({ id: newUser.id, full_name: name }, { onConflict: "id" });
+
+      if (!patientError) setPatientReady(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('skyhug_user');
+    setPatientReady(false);
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        loading, 
-        login, 
-        signup, 
-        logout, 
-        isAuthenticated: !!user 
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        patientReady,
+        login,
+        signup,
+        logout,
+        isAuthenticated: !!user,
       }}
     >
       {children}
@@ -96,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

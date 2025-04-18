@@ -24,6 +24,7 @@ interface TherapistContextType {
   sendAudioMessage: (blob: Blob) => Promise<void>;
   clearMessages: () => Promise<void>;
   setVoiceEnabled: (on: boolean) => Promise<void>;
+  endConversation: () => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
