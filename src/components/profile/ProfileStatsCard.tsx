@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Award, Flame, Sparkles, Star } from 'lucide-react';
+import { Award, Flame, Sparkles, Leaf } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const ProfileStatsCard = () => {
@@ -26,7 +26,7 @@ const ProfileStatsCard = () => {
             <div>
               <h3 className="font-medium">{user?.name || 'User'}</h3>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Star className="h-4 w-4 text-skyhug-400" /> Building momentum
+                <Leaf className="h-4 w-4 text-green-500" /> Building momentum
               </p>
             </div>
           </div>
