@@ -25,7 +25,7 @@ const StartSessionCard = () => {
       
       <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500">
         <Sparkles className="h-3.5 w-3.5 text-sky-500" />
-        <span>+10 Calm Points today</span>
+        <span>+50 Calm Points today</span>
       </div>
     </Card>;
 };
