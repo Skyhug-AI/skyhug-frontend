@@ -34,7 +34,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-[16px] px-3 py-2 max-w-md shadow-sm", 
+          "rounded-[16px] px-3 py-2 max-w-md shadow-sm", // Reduced border radius from 20px to 16px
           isUser 
             ? "bg-gradient-to-br from-[#f2edff] to-[#e8eaff] text-gray-800" 
             : "bg-sky-50 text-sky-800",
@@ -43,7 +43,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           {!isUser && hasInitialSunIcon && <Sun className="h-5 w-5 text-yellow-500 mr-2" />}
           <p className={cn(
             "whitespace-pre-wrap",
-            isUser ? "font-medium text-sm" : "font-[500] text-sm", // Reduced text size to 'text-sm'
+            isUser ? "font-medium" : "font-[500]",
             "leading-[1.5]"
           )}>
             {message}
