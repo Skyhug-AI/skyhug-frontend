@@ -1,16 +1,24 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTherapist } from '@/context/TherapistContext';
-import ChatBubble from '@/components/chat/ChatBubble';
-import ChatInput from '@/components/chat/ChatInput';
-import VoiceRecorder from '@/components/voice/VoiceRecorder';
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTherapist } from "@/context/TherapistContext";
+import ChatBubble from "@/components/chat/ChatBubble";
+import ChatInput from "@/components/chat/ChatInput";
+import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { HelpCircle, Mic, MessageSquare, Loader } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 const SessionRoom = () => {
-  const { messages, sendMessage, isProcessing } = useTherapist();
+  const { toast } = useToast();
+  const {
+    messages,
+    sendMessage,
+    isProcessing,
+    clearMessages,
+    setVoiceEnabled,
+    endConversation,
+  } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const navigate = useNavigate();
@@ -31,13 +39,19 @@ const SessionRoom = () => {
     }
   };
 
+  const handleEndSession = async () => {
+    toast({
+      title: "Session ended",
+      description: "Thank you for sharing today. Take care!",
+      duration: 3000,
+    });
+    await endConversation();
+    navigate("/session-summary");
+  };
+
   const handleVoiceRecorded = (transcript: string) => {
     setHasStartedChat(true);
     sendMessage(transcript);
-  };
-
-  const handleEndChat = () => {
-    navigate('/session-summary');
   };
 
   return (
@@ -53,7 +67,7 @@ const SessionRoom = () => {
             transition={{
               duration: 2,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
           />
           <span>Sky is listening...</span>
@@ -76,7 +90,7 @@ const SessionRoom = () => {
               transition={{
                 duration: 1,
                 repeat: Infinity,
-                ease: "linear"
+                ease: "linear",
               }}
             >
               <Loader className="h-4 w-4 text-skyhug-500" />
@@ -94,37 +108,29 @@ const SessionRoom = () => {
       </div>
 
       <AnimatePresence>
-        <motion.div 
+        <motion.div
           initial={false}
           animate={{
             y: hasStartedChat ? 0 : -200,
-            position: hasStartedChat ? 'sticky' : 'relative',
-            marginTop: hasStartedChat ? 0 : 'auto',
-            marginBottom: hasStartedChat ? 0 : 'auto',
+            position: hasStartedChat ? "sticky" : "relative",
+            marginTop: hasStartedChat ? 0 : "auto",
+            marginBottom: hasStartedChat ? 0 : "auto",
           }}
           className="border-t border-gray-100 bg-white/50 backdrop-blur-sm p-4"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-600"
-            >
+            <Button variant="outline" size="sm" className="text-gray-600">
               <HelpCircle className="h-4 w-4 mr-2" />
               Help me answer
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-600"
-            >
+            <Button variant="outline" size="sm" className="text-gray-600">
               Skip question
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="text-gray-600"
-              onClick={handleEndChat}
+              onClick={handleEndSession}
             >
               End chat & continue
             </Button>
