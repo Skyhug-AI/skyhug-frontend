@@ -34,7 +34,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       )}
       <div className="flex flex-col">
         <div className={cn(
-          "rounded-[20px] px-3 py-2 max-w-md shadow-sm", // Reduced padding from px-4 py-3 to px-3 py-2
+          "rounded-[16px] px-3 py-2 max-w-md shadow-sm", // Reduced border radius from 20px to 16px
           isUser 
             ? "bg-gradient-to-br from-[#f2edff] to-[#e8eaff] text-gray-800" 
             : "bg-sky-50 text-sky-800",
