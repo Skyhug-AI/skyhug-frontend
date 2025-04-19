@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import SocialLoginButton from '@/components/auth/SocialLoginButton';
+import Logo from '@/components/Logo';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -68,69 +69,74 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-serenity-50 flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-block">
-              <div className="h-16 w-16 rounded-full bg-serenity-500 mx-auto flex items-center justify-center relative">
-                <div className="absolute w-6 h-6 bg-white rounded-full top-2 left-2 opacity-30"></div>
-                <span className="text-white text-3xl font-bold">S</span>
-              </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#fef6f9] to-[#eef5fb] flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12">
+        <div className="w-full max-w-[480px] animate-fade-in">
+          <div className="text-center mb-10">
+            <Link to="/" className="inline-block mb-6">
+              <Logo />
             </Link>
-            <h1 className="text-2xl font-bold mt-6 mb-2">Welcome Back</h1>
-            <p className="text-muted-foreground">Sign in to continue your journey with Serenity</p>
+            <h1 className="text-2xl md:text-3xl font-normal mb-3">welcome back, we missed you ☀️</h1>
+            <p className="text-[#9b9b9b] text-base">sky's here to support you. let's keep going.</p>
           </div>
           
-          <div className="bg-card rounded-lg border shadow-sm p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="bg-white/70 backdrop-blur-sm rounded-[24px] border border-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.05)] p-8 md:p-10">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                <Label 
+                  htmlFor="email" 
+                  className="flex items-center gap-2 text-[15px] text-[#616161] font-normal"
+                >
+                  <Mail className="h-4 w-4 text-[#9b9b9b]" />
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="your@email.com"
+                  className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                  <p className="text-sm text-rose-300 mt-1">{errors.email.message}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2">
-                  <Lock className="h-4 w-4" />
+                <Label 
+                  htmlFor="password" 
+                  className="flex items-center gap-2 text-[15px] text-[#616161] font-normal"
+                >
+                  <Lock className="h-4 w-4 text-[#9b9b9b]" />
                   Password
                 </Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
+                  className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
                   {...register('password')}
                 />
                 {errors.password && (
-                  <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                  <p className="text-sm text-rose-300 mt-1">{errors.password.message}</p>
                 )}
               </div>
               
               <Button 
                 type="submit" 
-                className="w-full bg-serenity-500 hover:bg-serenity-600 mt-6"
+                className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal"
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign In'} <LogIn className="ml-2 h-4 w-4" />
+                {loading ? 'signing in...' : 'sign in'} <LogIn className="ml-2 h-4 w-4" />
               </Button>
             </form>
             
-            <div className="relative my-6">
+            <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                <span className="w-full border-t border-[#eee]" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white/70 px-4 text-[#9b9b9b]">or continue with</span>
               </div>
             </div>
 
@@ -140,10 +146,13 @@ const LoginPage = () => {
               disabled={loading}
             />
             
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="mt-8 text-center">
+              <p className="text-[#9b9b9b] text-[15px]">
                 Don't have an account?{' '}
-                <Link to="/signup" className="text-serenity-600 hover:underline font-medium">
+                <Link 
+                  to="/signup" 
+                  className="text-serenity-600 hover:text-serenity-700 font-medium hover:underline transition-colors"
+                >
                   Create an account <ArrowRight className="inline h-3 w-3" />
                 </Link>
               </p>
