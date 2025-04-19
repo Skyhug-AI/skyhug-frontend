@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Google } from 'lucide-react';
+import { Chrome } from 'lucide-react';
 
 interface SocialLoginButtonProps {
   provider: 'google';
@@ -18,7 +18,7 @@ const SocialLoginButton = ({ provider, onClick, disabled }: SocialLoginButtonPro
       onClick={onClick}
       disabled={disabled}
     >
-      <Google className="h-4 w-4" />
+      <Chrome className="h-4 w-4" />
       Continue with Google
     </Button>
   );
