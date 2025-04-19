@@ -73,7 +73,11 @@ const DailyGoalsCard = () => {
               <span>Daily Goal: 1 Reflection or Voice Session</span>
               <span className="text-skyhug-500 font-medium">20%</span>
             </div>
-            <Progress value={20} className="h-2" />
+            <Progress 
+              value={20} 
+              className="h-2" 
+              indicatorClassName="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB]" 
+            />
           </div>
           
           <div className="bg-muted/20 rounded-lg p-4">
@@ -100,3 +104,4 @@ const DailyGoalsCard = () => {
 };
 
 export default DailyGoalsCard;
+
