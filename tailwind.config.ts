@@ -20,6 +20,7 @@ export default {
     extend: {
       fontFamily: {
         'plus-jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+        'nunito': ['Nunito', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
