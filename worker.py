@@ -2,7 +2,8 @@ import os, time, io, json, requests
 from supabase import create_client
 from openai import OpenAI
 from dotenv import load_dotenv
-from datetime import datetime, timezone 
+from datetime import datetime, timezone, timedelta
+
 import tempfile
 
 load_dotenv()
@@ -98,6 +99,23 @@ def download_audio(path, bucket="raw-audio"):
 
 def upload_audio(path, data, bucket="tts-audio"):
     supabase.storage.from_(bucket).upload(path, io.BytesIO(data), {"content-type":"audio/mpeg"})
+
+def close_inactive_conversations():
+    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    print("⏰ Checking for inactive conversations...")
+
+    response = supabase.table("conversations") \
+        .select("id") \
+        .eq("ended", False) \
+        .lt("updated_at", cutoff_time.isoformat()) \
+        .execute()
+
+    for conv in response.data or []:
+        supabase.table("conversations") \
+            .update({"ended": True}) \
+            .eq("id", conv["id"]) \
+            .execute()
+        print(f"✅ Auto-ended conversation {conv['id']}")
 
 # ─── Summarization to Keep Context Small ─────────────────────────────────────
 def build_chat_payload(conv_id):
@@ -297,6 +315,8 @@ if __name__ == "__main__":
             process_transcriptions()
             process_ai()
             process_tts()
+        else:
+            close_inactive_conversations()
 
         time.sleep(1)
 
