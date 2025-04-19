@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import SocialLoginButton from '@/components/auth/SocialLoginButton';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -29,6 +31,24 @@ const LoginPage = () => {
       password: '',
     },
   });
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast({
+        title: 'Login failed',
+        description: 'Unable to sign in with Google. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -104,6 +124,21 @@ const LoginPage = () => {
                 {loading ? 'Signing in...' : 'Sign In'} <LogIn className="ml-2 h-4 w-4" />
               </Button>
             </form>
+            
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <SocialLoginButton 
+              provider="google"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+            />
             
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
