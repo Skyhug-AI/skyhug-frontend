@@ -68,7 +68,7 @@ const SignupPage = () => {
               <Logo />
             </Link>
             <h1 className="text-2xl md:text-3xl font-normal mb-3">Let's get started with skyhug 🌤️</h1>
-            <p className="text-[#9b9b9b] text-base">begin your journey toward clarity and calm</p>
+            <p className="text-[#9b9b9b] text-base">Begin your journey toward clarity and calm</p>
           </div>
           
           <div className="bg-white/70 backdrop-blur-sm rounded-[24px] border border-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.05)] p-8 md:p-10">
