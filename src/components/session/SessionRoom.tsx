@@ -135,12 +135,16 @@ const SessionRoom = () => {
               End chat & continue
             </Button>
             <div className="ml-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsVoiceMode(!isVoiceMode)}
-                className="rounded-full w-8 h-8"
-              >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => {
+                const next = !isVoiceMode;
+                setIsVoiceMode(next);
+                await setVoiceEnabled(next); // ✅ persist voice/chat mode to Supabase
+              }}
+              className="rounded-full w-8 h-8"
+            >
                 {isVoiceMode ? (
                   <MessageSquare className="h-4 w-4 text-gray-600" />
                 ) : (

@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
-  const { clearMessages } = useTherapist();
+  const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,7 +21,8 @@ const SessionPage = () => {
     setIsSessionStarted(true);
   };
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
+    await endConversation();
     navigate("/session-summary");
   };
 

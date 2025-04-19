@@ -201,13 +201,24 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const endConversation = async () => {
-    if (!conversationId) return;
+    console.log("📕 Attempting to end conversation:", conversationId);
+    if (!conversationId) {
+      console.warn("⚠️ No conversationId set; cannot end.");
+      return;
+    }
+  
     const { error } = await supabase
       .from("conversations")
       .update({ ended: true })
       .eq("id", conversationId);
-    if (error) console.error("❌ Error ending conversation:", error);
+  
+    if (error) {
+      console.error("❌ Supabase error ending conversation:", error);
+    } else {
+      console.log("✅ Conversation ended successfully.");
+    }
   };
+  
 
   useEffect(() => {
     if (!conversationId) return;
