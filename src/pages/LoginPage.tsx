@@ -12,11 +12,14 @@ import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import SocialLoginButton from '@/components/auth/SocialLoginButton';
 import Logo from '@/components/Logo';
+
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
+
 type LoginFormValues = z.infer<typeof loginSchema>;
+
 const LoginPage = () => {
   const {
     login,
@@ -39,6 +42,7 @@ const LoginPage = () => {
       password: ''
     }
   });
+
   const handleGoogleSignIn = async () => {
     try {
       const {
@@ -58,6 +62,7 @@ const LoginPage = () => {
       });
     }
   };
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       await login(data.email, data.password);
@@ -74,6 +79,7 @@ const LoginPage = () => {
       });
     }
   };
+
   return <div className="min-h-screen bg-gradient-to-b from-[#fef6f9] to-[#eef5fb] flex flex-col">
       <div className="flex-1 flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-[480px] animate-fade-in">
@@ -82,7 +88,7 @@ const LoginPage = () => {
               <Logo />
             </Link>
             <h1 className="text-2xl md:text-3xl font-normal mb-3">Welcome back, we missed you ☀️</h1>
-            <p className="text-[#9b9b9b] text-base">Sky's here to support you. Let's keep going.</p>
+            <p className="text-[#9b9b9b] text-base">Sky's here to support you. let's keep going.</p>
           </div>
           
           <div className="bg-white/70 backdrop-blur-sm rounded-[24px] border border-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.05)] p-8 md:p-10">
@@ -105,7 +111,7 @@ const LoginPage = () => {
                 {errors.password && <p className="text-sm text-rose-300 mt-1">{errors.password.message}</p>}
               </div>
               
-              <Button type="submit" disabled={loading} className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal rounded">
+              <Button type="submit" className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal" disabled={loading}>
                 {loading ? 'Signing In...' : 'Sign In'} <LogIn className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -134,4 +140,5 @@ const LoginPage = () => {
       </div>
     </div>;
 };
+
 export default LoginPage;
