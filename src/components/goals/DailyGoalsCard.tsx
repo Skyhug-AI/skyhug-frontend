@@ -3,7 +3,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Check, Brain, PenLine, SmilePlus, Sparkles } from 'lucide-react';
+import { BadgeCheck, BookOpen, Brain, Feather, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 
 interface DailyGoalItem {
@@ -17,24 +18,24 @@ const goalItems: DailyGoalItem[] = [
   { 
     action: "Completing a session", 
     points: 50, 
-    icon: <Check className="h-4 w-4 text-green-500" />,
+    icon: <BadgeCheck className="h-5 w-5 text-green-500 animate-pulse-gentle" />,
     path: '/session'
   },
   { 
     action: "Logging a reflection", 
     points: 30, 
-    icon: <PenLine className="h-4 w-4 text-violet-500" />,
+    icon: <Feather className="h-5 w-5 text-violet-500" />,
     path: '/journal'
   },
   { 
     action: "Mood check-in", 
     points: 10, 
-    icon: <SmilePlus className="h-4 w-4 text-amber-500" />
+    icon: <Sparkles className="h-5 w-5 text-amber-500" />
   },
   { 
     action: "Reading AI summary", 
     points: 10, 
-    icon: <Sparkles className="h-4 w-4 text-sky-500" />
+    icon: <BookOpen className="h-5 w-5 text-sky-500" />
   },
 ];
 
@@ -54,14 +55,14 @@ const DailyGoalsCard = () => {
   };
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 rounded-xl border border-orb-fog/50 shadow-md hover:shadow-lg transition-all">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-skyhug-500" />
-            Today's Goals
+            <Brain className="h-5 w-5 text-skyhug-500 animate-pulse-slow" />
+            <span className="font-medium">Today's Goals</span>
           </CardTitle>
-          <span className="text-sm font-medium text-skyhug-600">
+          <span className="text-sm font-medium bg-gradient-to-r from-skyhug-400 to-serenity-500 bg-clip-text text-transparent">
             {currentPoints}/{targetPoints} Calm Points
           </span>
         </div>
@@ -73,22 +74,30 @@ const DailyGoalsCard = () => {
               <span>Daily Goal: 1 Reflection or Voice Session</span>
               <span className="text-skyhug-500 font-medium">20%</span>
             </div>
-            <Progress value={20} className="h-2" />
+            <Progress 
+              value={20} 
+              className="h-2" 
+              indicatorClassName="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB]" 
+            />
           </div>
           
-          <div className="bg-muted/20 rounded-lg p-4">
+          <div className="bg-orb-fog/20 rounded-lg p-4">
             <h4 className="text-sm font-medium mb-3">Earn Calm Points for:</h4>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {goalItems.map((item, index) => (
                 <li 
                   key={index} 
                   onClick={() => handleItemClick(item)}
-                  className={`flex items-center gap-3 text-sm p-2 rounded-md transition-colors
-                    ${item.path ? 'cursor-pointer hover:bg-skyhug-50 hover:text-skyhug-700' : ''}`}
+                  className={`flex items-center gap-3 p-3 rounded-md transition-all
+                    ${item.path ? 'cursor-pointer hover:bg-white/70 hover:shadow-sm' : ''}`}
                 >
-                  {item.icon}
-                  <span className="flex-1">{item.action}</span>
-                  <span className="font-medium text-skyhug-500">+{item.points}</span>
+                  <div className="p-1.5 bg-white rounded-full shadow-sm">
+                    {item.icon}
+                  </div>
+                  <span className="flex-1 font-medium text-sm">{item.action}</span>
+                  <Badge className="font-medium bg-gradient-to-r from-serenity-400 to-serenity-500 hover:from-serenity-500 hover:to-serenity-600 px-3 py-1.5">
+                    +{item.points}
+                  </Badge>
                 </li>
               ))}
             </ul>
