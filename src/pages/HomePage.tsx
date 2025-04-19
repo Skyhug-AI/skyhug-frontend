@@ -108,8 +108,8 @@ const HomePage = () => {
             </div>
             
             <div>
-              <ProfileStatsCard />
-              <AchievementsCard />
+              {/* <ProfileStatsCard />
+              <AchievementsCard /> */}
               <StartSessionCard />
             </div>
           </div>
