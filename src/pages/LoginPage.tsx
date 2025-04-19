@@ -82,7 +82,7 @@ const LoginPage = () => {
               <Logo />
             </Link>
             <h1 className="text-2xl md:text-3xl font-normal mb-3">Welcome back, we missed you ☀️</h1>
-            <p className="text-[#9b9b9b] text-base">sky's here to support you. let's keep going.</p>
+            <p className="text-[#9b9b9b] text-base">Sky's here to support you. let's keep going.</p>
           </div>
           
           <div className="bg-white/70 backdrop-blur-sm rounded-[24px] border border-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.05)] p-8 md:p-10">
