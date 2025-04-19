@@ -1,17 +1,23 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 type ChatInputProps = {
   onSendMessage: (message: string) => void;
   onStartVoice?: (blob: Blob) => void;
   isVoiceEnabled?: boolean;
+  placeholder?: string;
+  isDisabled?: boolean;
 };
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   onStartVoice,
   isVoiceEnabled = false,
+  placeholder = "Type your message...",
+  isDisabled = false,
 }) => {
   const [message, setMessage] = useState("");
 
@@ -55,8 +61,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type your message..."
-          className="w-full p-3 pr-10 rounded-full border border-input bg-background focus:outline-none focus:ring-2 focus:ring-serenity-300 transition-all"
+          placeholder={placeholder}
+          disabled={isDisabled}
+          className="w-full p-3 pr-10 rounded-full border border-input bg-background focus:outline-none focus:ring-2 focus:ring-serenity-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -67,6 +74,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           size="icon"
           className="rounded-full"
           onClick={startRecording}
+          disabled={isDisabled}
         >
           <Mic className="h-5 w-5 text-serenity-500" />
         </Button>
@@ -76,7 +84,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         type="submit"
         size="icon"
         className="rounded-full bg-serenity-500 hover:bg-serenity-600"
-        disabled={!message.trim()}
+        disabled={isDisabled || !message.trim()}
       >
         <Send className="h-5 w-5" />
       </Button>
