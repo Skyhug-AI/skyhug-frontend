@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, User, Mail, Lock, ArrowLeft } from 'lucide-react';
 import Logo from '@/components/Logo';
-
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
@@ -20,9 +19,7 @@ const signupSchema = z.object({
   message: "Passwords don't match",
   path: ['confirmPassword']
 });
-
 type SignupFormValues = z.infer<typeof signupSchema>;
-
 const SignupPage = () => {
   const {
     signup,
@@ -47,7 +44,6 @@ const SignupPage = () => {
       confirmPassword: ''
     }
   });
-
   const onSubmit = async (data: SignupFormValues) => {
     try {
       await signup(data.name, data.email, data.password);
@@ -64,7 +60,6 @@ const SignupPage = () => {
       });
     }
   };
-
   return <div className="min-h-screen bg-gradient-to-b from-[#fef6f9] to-[#eef5fb] flex flex-col">
       <div className="flex-1 flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-[480px] animate-fade-in">
@@ -114,7 +109,7 @@ const SignupPage = () => {
                 {errors.confirmPassword && <p className="text-sm text-rose-300 mt-1">{errors.confirmPassword.message}</p>}
               </div>
               
-              <Button type="submit" className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal" disabled={loading}>
+              <Button type="submit" disabled={loading} className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal rounded">
                 {loading ? 'Creating Account...' : 'Create Account'} <UserPlus className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -132,5 +127,4 @@ const SignupPage = () => {
       </div>
     </div>;
 };
-
 export default SignupPage;
