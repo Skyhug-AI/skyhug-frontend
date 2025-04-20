@@ -3,7 +3,6 @@ from supabase import create_client
 from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
-
 import tempfile
 
 load_dotenv()
@@ -19,6 +18,21 @@ supabase = create_client(
     os.getenv("SUPABASE_URL"),
     os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 )
+
+supabase_admin = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")  # ⚠️ must be the SERVICE ROLE KEY
+)
+print("🔑 Supabase token prefix:", os.getenv("SUPABASE_SERVICE_ROLE_KEY")[:10])
+
+
+info = supabase.rpc("auth_role").execute()
+print("🔐 Auth role seen by Supabase:", info)
+
+
+
+
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
@@ -139,7 +153,7 @@ def build_chat_payload(conv_id):
     if len(messages) > MAX_HISTORY:
         # prepare summarization call
         to_summarize = messages[:-MAX_HISTORY]
-        summary_resp = openai.ChatCompletion.create(
+        summary_resp = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[{"role":"system","content":SYSTEM_PROMPT}] +
                      EXAMPLE_DIALOG +
@@ -242,19 +256,25 @@ def process_tts():
     pending = fetch_pending("messages", sender_role="assistant", tts_status="pending")
     print(f"🔊 TTS stage: {len(pending)} messages pending")
     for msg in pending:
-        # Check if voice is enabled; skip if not
-        conv = supabase.table("conversations") \
-            .select("voice_enabled") \
-            .eq("id", msg["conversation_id"]) \
-            .single() \
-            .execute()
-        voice_on = conv.data.get("voice_enabled", False) if conv.data else False
-        if not voice_on:
-            update_status("messages", msg["id"], {"tts_status": "done"})
-            print(f"⏭ Skipping TTS for {msg['id']} (chat mode)")
-            continue
-
+        print(f"📄 Processing message: {msg['id']}")
         try:
+            print("📥 Fetching conversation info...")
+            conv = supabase_admin.table("conversations") \
+                .select("voice_enabled") \
+                .eq("id", msg["conversation_id"]) \
+                .single() \
+                .execute()
+            voice_on = conv.data.get("voice_enabled", False) if conv.data else False
+            print(f"🎚 Voice enabled? {voice_on}")
+            if not voice_on:
+                print("⏭ Voice off. Updating tts_status to done...")
+                supabase_admin.table("messages").update({
+                    "tts_status": "done"
+                }).eq("id", msg["id"]).execute()
+                continue
+
+            # Generate ElevenLabs TTS
+            print("🎤 Sending TTS request to ElevenLabs...")
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{os.getenv('ELEVENLABS_VOICE_ID')}"
             headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
             body = {
@@ -262,7 +282,6 @@ def process_tts():
                 "voice_settings": {"stability": 0.75, "similarity_boost": 0.75}
             }
 
-            # Stream the response to a temp file
             with requests.post(url, json=body, headers=headers, stream=True) as r:
                 r.raise_for_status()
                 with tempfile.NamedTemporaryFile(suffix=".mp3") as tmp:
@@ -271,27 +290,39 @@ def process_tts():
                             tmp.write(chunk)
                     tmp.flush()
 
-                    # Upload from the temp file to Supabase
                     path = f"{msg['conversation_id']}/{msg['id']}.mp3"
+
+                    # Upload to Supabase
+                    print("📤 Getting signed upload URL...")
+                    signed_upload_url = supabase_admin.storage.from_("tts-audio").create_signed_upload_url(path)
+                    print("🔍 Supabase signed URL response:", signed_upload_url)
+                    upload_url = signed_upload_url.get("signed_url") or signed_upload_url.get("signedUrl")
+
+
+                    if not upload_url:
+                        raise Exception("❌ Failed to get signed upload URL")
+
+
+                    print("📤 Uploading file...")
                     with open(tmp.name, "rb") as audio_file:
-                        upload_error = supabase.storage \
-                            .from_("tts-audio") \
-                            .upload(path, audio_file, {"content-type": "audio/mpeg"}) \
-                            .get("error")
+                        headers = {"Content-Type": "audio/mpeg"}
+                        r = requests.put(upload_url, data=audio_file, headers=headers)
+                        r.raise_for_status()
 
-            if upload_error:
-                raise Exception(upload_error.message)
-
-            update_status("messages", msg["id"], {
-                "tts_path":   path,
+            print("✅ Updating tts_path and tts_status...")
+            supabase_admin.table("messages").update({
+                "tts_path": path,
                 "tts_status": "done"
-            })
+            }).eq("id", msg["id"]).execute()
+
             print(f"✅ TTS succeeded for {msg['id']}")
 
         except Exception as e:
-            # Log the error, but mark done so we don’t retry endlessly
-            print("TTS error:", e)
-            update_status("messages", msg["id"], {"tts_status": "done"})
+            print("❌ TTS error:", e)
+            supabase_admin.table("messages").update({
+                "tts_status": "done"
+            }).eq("id", msg["id"]).execute()
+
             
 # ─── Main Loop ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
@@ -299,7 +330,8 @@ if __name__ == "__main__":
     print("✔️ Supabase connectivity test:", test.data)
 
     no_work_count = 0
-    MAX_IDLE_CYCLES = 3
+    MAX_IDLE_CYCLES = 20
+    close_inactive_conversations()
 
     while True:
         trans_count = len(fetch_pending("messages", sender_role="user", transcription_status="pending"))
