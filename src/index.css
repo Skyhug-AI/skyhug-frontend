@@ -213,17 +213,27 @@
 
 @keyframes morphing-pulse {
   0% {
-    border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+    border-radius: 70% 30% 50% 50%/50% 60% 40% 50%;
     transform: scale(0.97);
     opacity: 0.4;
   }
+  25% {
+    border-radius: 40% 60% 30% 70%/40% 30% 70% 60%;
+    transform: scale(1);
+    opacity: 0.3;
+  }
   50% {
-    border-radius: 30% 60% 70% 40%/50% 60% 30% 60%;
+    border-radius: 30% 70% 70% 30%/60% 40% 60% 40%;
     transform: scale(1);
     opacity: 0.2;
   }
+  75% {
+    border-radius: 60% 40% 40% 60%/30% 70% 30% 70%;
+    transform: scale(0.98);
+    opacity: 0.3;
+  }
   100% {
-    border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+    border-radius: 70% 30% 50% 50%/50% 60% 40% 50%;
     transform: scale(0.97);
     opacity: 0.4;
   }
@@ -254,4 +264,8 @@
 
 .animate-pulse-slow {
   animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.bg-sky-gradient {
+  background: linear-gradient(135deg, #D3E4FD 0%, #33C3F0 50%, #1EAEDB 100%);
 }
