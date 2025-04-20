@@ -11,17 +11,18 @@ interface PulsatingMicButtonProps {
 
 const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButtonProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [volumeLevel, setVolumeLevel] = useState(0);
   const [cleanupFunction, setCleanupFunction] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     
     if (isRecording) {
-      const { initVoiceDetection } = useVoiceDetection((speaking) => {
+      const { initVoiceDetection } = useVoiceDetection((speaking, volume = 0) => {
         setIsSpeaking(speaking);
+        setVolumeLevel(volume);
       });
       
-      // Handle the promise properly
       initVoiceDetection()
         .then(cleanup => {
           if (isMounted && cleanup) {
@@ -33,9 +34,9 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
         });
     } else {
       setIsSpeaking(false);
+      setVolumeLevel(0);
     }
 
-    // Cleanup function
     return () => {
       isMounted = false;
       if (cleanupFunction) {
@@ -43,6 +44,12 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       }
     };
   }, [isRecording]);
+
+  // Calculate ring scales based on volume
+  const getScaleStyle = (baseScale: number) => {
+    const volumeBoost = volumeLevel * 0.5; // Adjust this multiplier to control sensitivity
+    return `${baseScale + volumeBoost}`;
+  };
 
   return (
     <button
@@ -54,16 +61,16 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
         isRecording && isSpeaking ? [
           "after:content-[''] after:absolute after:inset-[-8px]",
           "after:bg-orb-gradient after:opacity-40 after:rounded-full",
-          "after:animate-[pulse-ring_1.2s_ease-out_infinite]",
+          `after:animate-[pulse-ring_1.2s_ease-out_infinite] after:scale-[${getScaleStyle(1.2)}]`,
           "before:content-[''] before:absolute before:inset-[-16px]",
           "before:bg-orb-gradient before:opacity-30 before:rounded-full",
-          "before:animate-[pulse-ring_1.6s_ease-out_infinite]",
+          `before:animate-[pulse-ring_1.6s_ease-out_infinite] before:scale-[${getScaleStyle(1.4)}]`,
           "[&>div:nth-child(1)]:content-[''] [&>div:nth-child(1)]:absolute [&>div:nth-child(1)]:inset-[-24px]",
           "[&>div:nth-child(1)]:bg-orb-gradient [&>div:nth-child(1)]:opacity-20 [&>div:nth-child(1)]:rounded-full",
-          "[&>div:nth-child(1)]:animate-[pulse-ring_2s_ease-out_infinite]",
+          `[&>div:nth-child(1)]:animate-[pulse-ring_2s_ease-out_infinite] [&>div:nth-child(1)]:scale-[${getScaleStyle(1.6)}]`,
           "[&>div:nth-child(2)]:content-[''] [&>div:nth-child(2)]:absolute [&>div:nth-child(2)]:inset-[-32px]",
           "[&>div:nth-child(2)]:bg-orb-gradient [&>div:nth-child(2)]:opacity-10 [&>div:nth-child(2)]:rounded-full",
-          "[&>div:nth-child(2)]:animate-[pulse-ring_2.4s_ease-out_infinite]",
+          `[&>div:nth-child(2)]:animate-[pulse-ring_2.4s_ease-out_infinite] [&>div:nth-child(2)]:scale-[${getScaleStyle(1.8)}]`,
           "shadow-lg shadow-orb-periwinkle/50",
           "scale-110 animate-[soft-pulse_1.5s_ease-out_infinite]",
         ] : isRecording ? [
@@ -84,3 +91,4 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
 };
 
 export default PulsatingMicButton;
+

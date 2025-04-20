@@ -1,6 +1,6 @@
 
 export const useVoiceDetection = (
-  callback: (isSpeaking: boolean) => void,
+  callback: (isSpeaking: boolean, volumeLevel?: number) => void,
   threshold = 0.01
 ) => {
   const init = async () => {
@@ -26,7 +26,7 @@ export const useVoiceDetection = (
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((acc, value) => acc + value, 0) / dataArray.length;
         const normalizedAverage = average / 256; // Convert to 0-1 range
-        callback(normalizedAverage > threshold);
+        callback(normalizedAverage > threshold, normalizedAverage);
         requestAnimationFrame(checkAudioLevel);
       };
 
@@ -43,3 +43,4 @@ export const useVoiceDetection = (
 
   return { initVoiceDetection: init };
 };
+
