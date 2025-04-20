@@ -46,8 +46,8 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
   }, [isRecording]);
 
   const getScaleStyle = (baseScale: number) => {
-    const volumeBoost = volumeLevel * 0.2;
-    const maxScale = baseScale + 0.1;
+    const volumeBoost = volumeLevel * 0.3; // Increased volume boost
+    const maxScale = baseScale + 0.2; // Increased max scale
     const calculatedScale = baseScale + volumeBoost;
     return `${Math.min(calculatedScale, maxScale)}`;
   };
@@ -61,18 +61,18 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
         "bg-orb-gradient shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
         [
           "after:content-[''] after:absolute after:inset-[-3px]",
-          "after:bg-orb-gradient after:opacity-30 after:rounded-full",
-          `after:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2s_ease-out_infinite] after:scale-[${isRecording && isSpeaking ? getScaleStyle(1.04) : '1.04'}]`,
+          "after:bg-sky-100 after:opacity-40 after:rounded-full", // More blue-toned background
+          `after:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2s_ease-out_infinite] after:scale-[${isRecording && isSpeaking ? getScaleStyle(1.06) : '1.04'}]`,
           "before:content-[''] before:absolute before:inset-[-6px]",
-          "before:bg-orb-gradient before:opacity-20 before:rounded-full",
-          `before:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.4s_ease-out_infinite] before:scale-[${isRecording && isSpeaking ? getScaleStyle(1.08) : '1.08'}]`,
+          "before:bg-sky-200 before:opacity-30 before:rounded-full", // More blue-toned background
+          `before:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.4s_ease-out_infinite] before:scale-[${isRecording && isSpeaking ? getScaleStyle(1.1) : '1.08'}]`,
           "[&>div:nth-child(1)]:content-[''] [&>div:nth-child(1)]:absolute [&>div:nth-child(1)]:inset-[-9px]",
-          "[&>div:nth-child(1)]:bg-orb-gradient [&>div:nth-child(1)]:opacity-15 [&>div:nth-child(1)]:rounded-full",
-          `[&>div:nth-child(1)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.8s_ease-out_infinite] [&>div:nth-child(1)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.12) : '1.12'}]`,
+          "[&>div:nth-child(1)]:bg-sky-300 [&>div:nth-child(1)]:opacity-25 [&>div:nth-child(1)]:rounded-full", // More blue-toned background
+          `[&>div:nth-child(1)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.8s_ease-out_infinite] [&>div:nth-child(1)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.14) : '1.12'}]`,
           "[&>div:nth-child(2)]:content-[''] [&>div:nth-child(2)]:absolute [&>div:nth-child(2)]:inset-[-12px]",
-          "[&>div:nth-child(2)]:bg-orb-gradient [&>div:nth-child(2)]:opacity-10 [&>div:nth-child(2)]:rounded-full",
-          `[&>div:nth-child(2)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_3.2s_ease-out_infinite] [&>div:nth-child(2)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.16) : '1.16'}]`,
-          "shadow-lg shadow-orb-periwinkle/50",
+          "[&>div:nth-child(2)]:bg-sky-400 [&>div:nth-child(2)]:opacity-20 [&>div:nth-child(2)]:rounded-full", // More blue-toned background
+          `[&>div:nth-child(2)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_3.2s_ease-out_infinite] [&>div:nth-child(2)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.18) : '1.16'}]`,
+          "shadow-lg shadow-sky-300/50", // More blue-toned shadow
           isRecording && isSpeaking ? "scale-105" : "scale-100",
           "transition-transform duration-300"
         ],
