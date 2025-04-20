@@ -17,7 +17,7 @@ export const useVoiceDetection = (
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.4;
+      analyser.smoothingTimeConstant = 0.6; // Increased to smooth out fluctuations
       source.connect(analyser);
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -26,7 +26,11 @@ export const useVoiceDetection = (
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((acc, value) => acc + value, 0) / dataArray.length;
         const normalizedAverage = average / 256; // Convert to 0-1 range
-        callback(normalizedAverage > threshold, normalizedAverage);
+        
+        // Apply a dampening factor to reduce sensitivity
+        const dampened = normalizedAverage * 0.7;
+        
+        callback(dampened > threshold, dampened);
         requestAnimationFrame(checkAudioLevel);
       };
 
@@ -43,4 +47,3 @@ export const useVoiceDetection = (
 
   return { initVoiceDetection: init };
 };
-
