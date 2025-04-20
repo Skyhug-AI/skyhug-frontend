@@ -67,8 +67,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.warn("⏳ Waiting for user to be ready...");
       return;
     }
-
-    // 1. Check for existing conversation
+  
+    // 1) Resume any open session
     const { data: existing, error: findError } = await supabase
       .from("conversations")
       .select("id")
@@ -77,31 +77,28 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
-
+  
     if (findError && findError.code !== "PGRST116") {
       console.error("❌ Error checking for existing conversation:", findError);
       return;
     }
-
     if (existing) {
       console.log("🔁 Resuming previous conversation:", existing.id);
       setConversationId(existing.id);
       await loadHistory(existing.id);
       return;
     }
-
-    // 2. Ensure patient row exists
+  
+    // 2) Ensure patient row exists
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
       .select("id")
       .eq("id", user.id)
       .single();
-
     if (checkError && checkError.code !== "PGRST116") {
       console.error("❌ Error checking patient:", checkError);
       return;
     }
-
     if (!patientExists) {
       const { error: insertError } = await supabase
         .from("patients")
@@ -111,34 +108,71 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
     }
-
-    // 3. Create a new conversation
+  
+    // 3) Create a brand‑new conversation
     console.log("🟡 Creating new conversation...");
     const { data, error } = await supabase
       .from("conversations")
       .insert({ patient_id: user.id, title: "Therapy Session", ended: false })
       .select()
       .single();
-
     if (error || !data) {
       console.error("❌ Supabase error creating conversation:", error);
       return;
     }
-
-    console.log("✅ New conversation ID:", data.id);
     setConversationId(data.id);
-    setMessages([]);
+  
+    // 4) PRO‑TIP: fetch the *most recently ended* conv by created_at,
+    //           but don’t filter out NULL summaries—use maybeSingle()
+    const {
+      data: prev,
+      error: memErr,
+    }: { data: { memory_summary: string } | null; error: any } = await supabase
+      .from("conversations")
+      .select("memory_summary")
+      .eq("patient_id", user.id)
+      .eq("ended", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();  // <— returns null if no row, instead of an error
+  
+    if (memErr && memErr.code !== "PGRST116") {
+      console.error("❌ Error fetching memory_summary:", memErr);
+    }
+  
+    // 5) Choose greeting based on whether we have a real summary
+    const greeting = prev?.memory_summary
+    ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
+    : "Hi there, I'm Sky. How are you feeling today?";
+  
 
+  
+    // 6) Seed that into messages
     await supabase.from("messages").insert({
       conversation_id: data.id,
       sender_role: "assistant",
-      assistant_text: "Hi there, I'm Sky. How are you feeling today?",
+      assistant_text: greeting,
       ai_status: "done",
       tts_status: "pending",
     });
-
+  
+    // 7) Reflect into UI immediately
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        content: greeting,
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
+    ]);
+  
+    // 8) Load any actual history (should be just that first message)
     await loadHistory(data.id);
   };
+  
 
   const clearMessages = createConversation;
 
@@ -200,25 +234,38 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     if (error) console.error("Error updating voice_enabled:", error);
   };
 
-  const endConversation = async () => {
-    console.log("📕 Attempting to end conversation:", conversationId);
-    if (!conversationId) {
-      console.warn("⚠️ No conversationId set; cannot end.");
-      return;
-    }
-  
-    const { error } = await supabase
-      .from("conversations")
-      .update({ ended: true })
-      .eq("id", conversationId);
-  
-    if (error) {
-      console.error("❌ Supabase error ending conversation:", error);
-    } else {
-      console.log("✅ Conversation ended successfully.");
-    }
-  };
-  
+const endConversation = async () => {
+  console.log("📕 Attempting to end conversation:", conversationId);
+  if (!conversationId) {
+    console.warn("⚠️ No conversationId set; cannot end.");
+    return;
+  }
+
+  // 1) mark ended in Supabase
+  const { error } = await supabase
+    .from("conversations")
+    .update({ ended: true })
+    .eq("id", conversationId);
+
+  if (error) {
+    console.error("❌ Supabase error ending conversation:", error);
+    return;
+  }
+  console.log("✅ Conversation ended successfully.");
+
+  // 2) immediately call your FastAPI summarizer
+  try {
+    await fetch("http://localhost:8000/summarize_conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversation_id: conversationId }),
+    });
+    console.log("🧠 Summarization triggered for conv", conversationId);
+  } catch (e) {
+    console.error("❌ Failed to trigger summarization:", e);
+  }
+};
+
 
   useEffect(() => {
     if (!conversationId) return;
