@@ -49,18 +49,20 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative w-16 h-16 rounded-full overflow-hidden transition-all duration-500",
+        "relative w-16 h-16 rounded-full overflow-visible transition-all duration-500",
         "bg-orb-gradient shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
         isRecording && isSpeaking ? [
           "animate-[morphing_2s_ease-in-out_infinite]",
-          "after:content-[''] after:absolute after:inset-0",
-          "after:bg-orb-gradient after:opacity-50",
-          "after:animate-[pulse_1s_ease-in-out_infinite]",
-          "before:content-[''] before:absolute before:inset-[-2px]",
-          "before:bg-orb-gradient before:opacity-30",
-          "before:animate-[pulse_1.5s_ease-in-out_infinite]",
+          "after:content-[''] after:absolute after:inset-[-8px]",
+          "after:bg-orb-gradient after:opacity-40 after:rounded-full",
+          "after:animate-[pulse-ring_2s_ease-out_infinite]",
+          "before:content-[''] before:absolute before:inset-[-16px]",
+          "before:bg-orb-gradient before:opacity-30 before:rounded-full",
+          "before:animate-[pulse-ring_2.5s_ease-out_infinite]",
           "shadow-lg shadow-orb-periwinkle/50",
-          "scale-110",
+          "scale-110 animate-[radiate_1.5s_ease-out_infinite]",
+          "[&>*:nth-child(1)]:animate-[pulse-ring_3s_ease-out_infinite]",
+          "[&>*:nth-child(2)]:animate-[pulse-ring_3.5s_ease-out_infinite_0.5s]",
         ] : isRecording ? [
           "shadow-md shadow-orb-periwinkle/20",
           "animate-pulse",
