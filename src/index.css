@@ -198,16 +198,31 @@
 
 @keyframes pulse-ring {
   0% {
-    transform: scale(0.8);
-    opacity: 0.5;
+    transform: scale(0.85);
+    opacity: 0.6;
   }
   50% {
     transform: scale(1.2);
-    opacity: 0.3;
+    opacity: 0.2;
   }
   100% {
-    transform: scale(0.8);
-    opacity: 0.5;
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+}
+
+@keyframes soft-pulse {
+  0% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 0 rgba(185, 198, 255, 0.7);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 25px rgba(185, 198, 255, 0.5);
+  }
+  100% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 0 rgba(185, 198, 255, 0.7);
   }
 }
 
