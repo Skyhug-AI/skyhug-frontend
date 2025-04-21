@@ -7,6 +7,7 @@ import SessionRoom from "@/components/session/SessionRoom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import SessionBackgroundEffects from "@/components/session/SessionBackgroundEffects";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -35,8 +36,16 @@ const SessionPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b border-gray-100 bg-white sticky top-0 z-50 shadow-sm">
+    <div
+      className="min-h-screen flex flex-col relative"
+      // A strong, visible, multi-stop blue-purple gradient for clarity
+      style={{
+        background:
+          "linear-gradient(135deg, #D3E4FD 0%, #B5CFFF 30%, #E5DEFF 70%, #FFF 100%)",
+      }}
+    >
+      <SessionBackgroundEffects />
+      <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
