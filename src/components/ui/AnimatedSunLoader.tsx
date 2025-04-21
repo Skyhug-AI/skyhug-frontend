@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Sun, CloudSun } from "lucide-react";
 
@@ -85,8 +85,10 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
   const controls = useAnimation();
   const bgControls = useAnimation();
   const textControls = useAnimation();
+  const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
+    // Start animations
     controls.start({
       y: [120, 0], // Sun rises from lower (120px offset) to final position
       opacity: [0, 1],
@@ -95,24 +97,35 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
         ease: "easeOut"
       },
     });
+    
     bgControls.start({
       background: [BG_START, BG_END],
       transition: { duration: duration / 1000, ease: "easeInOut" },
     });
+    
     textControls.start({
       opacity: [0, 1],
       y: [10, 0],
       transition: { delay: 0.5, duration: 0.8 }
     });
-    const timeout = setTimeout(() => {
-      onComplete();
+    
+    // Set a timeout only once
+    const timeoutId = setTimeout(() => {
+      if (!animationComplete) {
+        setAnimationComplete(true);
+        onComplete();
+      }
     }, duration);
-    return () => clearTimeout(timeout);
-  }, [duration, onComplete, controls, bgControls, textControls]);
+    
+    return () => clearTimeout(timeoutId);
+  }, [duration, onComplete, controls, bgControls, textControls, animationComplete]);
 
   const handleSkip = () => {
-    if (onSkip) onSkip();
-    onComplete();
+    if (!animationComplete) {
+      setAnimationComplete(true);
+      if (onSkip) onSkip();
+      onComplete();
+    }
   };
 
   return (

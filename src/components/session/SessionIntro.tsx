@@ -9,10 +9,9 @@ interface SessionIntroProps {
 }
 
 const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
-  // Removed the useEffect since the loader will handle its own completion
-  
   const handleLoaderComplete = () => {
-    onStartSession(); // Moves to the session view
+    // Call onStartSession only once
+    onStartSession();
   };
 
   return (

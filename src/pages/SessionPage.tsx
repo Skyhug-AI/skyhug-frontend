@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import SessionIntro from "@/components/session/SessionIntro";
@@ -13,14 +13,21 @@ const SessionPage = () => {
   const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
-  // Run only once when component mounts
-  useEffect(() => {
-    clearMessages();
-  }, [clearMessages]); // Added dependency
-
-  const handleStartSession = () => {
+  // Memoize this function to prevent unnecessary rerenders
+  const handleStartSession = useCallback(() => {
     setIsSessionStarted(true);
-  };
+  }, []);
+
+  // Use separate useEffect to handle one-time initialization
+  useEffect(() => {
+    // This will run once when the component mounts
+    const initSession = async () => {
+      await clearMessages();
+    };
+    
+    initSession();
+    // Don't include clearMessages in deps to prevent multiple calls
+  }, []); 
 
   const handleEndSession = async () => {
     await endConversation();
