@@ -20,6 +20,30 @@ const SessionBackgroundEffects: React.FC = () => {
     { left: "40%", top: "74%", w: 230, h: 110, color: "rgba(205,198,255,0.20)", blur: 12 },
   ];
 
+  // Add CSS animations to the document's head
+  React.useEffect(() => {
+    // Create a style element
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      @keyframes float-cloud {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(-10px) translateX(5px); }
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(-50%); }
+        50% { transform: translateY(-15px) translateX(-50%); }
+      }
+    `;
+
+    // Append the style to the document head
+    document.head.appendChild(styleElement);
+
+    // Clean up the style when component unmounts
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       {/* Enhanced sky gradient background - more pronounced colors */}
@@ -104,18 +128,6 @@ const SessionBackgroundEffects: React.FC = () => {
           }}
         />
       ))}
-
-      {/* Add global animation for the floating effect */}
-      <style jsx global>{`
-        @keyframes float-cloud {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          50% { transform: translateY(-10px) translateX(5px); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0) translateX(-50%); }
-          50% { transform: translateY(-15px) translateX(-50%); }
-        }
-      `}</style>
     </div>
   );
 };
