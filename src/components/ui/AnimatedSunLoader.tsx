@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
-import { Sun, CloudSun } from "lucide-react";
+import { CloudSun } from "lucide-react";
 
 interface AnimatedSunLoaderProps {
   duration?: number; // ms
@@ -12,7 +12,6 @@ interface AnimatedSunLoaderProps {
 
 const BG_START = "linear-gradient(to top, #fef6f9 0%, #e5deff 100%)";
 const BG_END = "linear-gradient(to top, #dbeafe 0%, #c7d7fc 100%)";
-const SUN_GRADIENT = "linear-gradient(135deg, #ffd799 0%, #ffb347 100%)";
 
 // Utility: Sparkle
 const Sparkle: React.FC<{ left: string; top: string; delay: number }> = ({ left, top, delay }) => (
@@ -194,35 +193,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
         {/* Sunbeams - replaces the old "circle" */}
         <SunBeams count={11} />
 
-        {/* Sun */}
-        <motion.div
-          className="flex items-center justify-center z-10"
-          style={{
-            width: 90,
-            height: 90,
-            borderRadius: 9999,
-            background: SUN_GRADIENT,
-            boxShadow: "0 0 40px rgba(255, 193, 7, 0.3), 0 0 0 16px #fdecc882",
-            border: "2px solid #fffdf3",
-            overflow: "visible",
-          }}
-          initial={{ scale: 0.97 }}
-          animate={{
-            scale: [0.97, 1.01, 0.97],
-            filter: [
-              "drop-shadow(0px 0px 0px #ffd180bb)",
-              "drop-shadow(0px 0px 13px #ffd180eb)",
-              "drop-shadow(0px 0px 0px #ffd180bb)",
-            ],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <Sun className="text-yellow-500 drop-shadow-lg" size={48} />
-        </motion.div>
+        {/* Removed the inner sun graphic as requested */}
       </motion.div>
 
       {/* Transition Message */}
@@ -247,3 +218,4 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 };
 
 export default AnimatedSunLoader;
+
