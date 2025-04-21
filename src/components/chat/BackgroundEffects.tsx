@@ -42,4 +42,3 @@ const BackgroundEffects: React.FC = () => {
 };
 
 export default BackgroundEffects;
-
