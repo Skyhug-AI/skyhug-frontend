@@ -1,81 +1,62 @@
 
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import React, { useState } from 'react';
+import { BookText, Cloud, Sun, Repeat, Brain, Target } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { BookText, Pencil, Hash } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-// Tag/Feeling config
-const emojiFeelings = [
-  { emoji: "😔", value: "sad", label: "Sad" },
-  { emoji: "😐", value: "neutral", label: "Neutral" },
-  { emoji: "😕", value: "confused", label: "Confused" },
-  { emoji: "😌", value: "relieved", label: "Relieved" },
-  { emoji: "😄", value: "happy", label: "Happy" },
+const prompts = [
+  { icon: <Cloud className="w-4 h-4" />, text: "What felt heavy today?", emoji: "🌥️" },
+  { icon: <Sun className="w-4 h-4" />, text: "What made you smile?", emoji: "🌞" },
+  { icon: <Repeat className="w-4 h-4" />, text: "What's a pattern you're noticing in yourself?", emoji: "🔄" },
+  { icon: <Brain className="w-4 h-4" />, text: "What thought do you want to let go of?", emoji: "🧠" },
+  { icon: <Target className="w-4 h-4" />, text: "What's one thing you're proud of?", emoji: "🎯" },
 ];
 
-const starterTags = [
-  { label: "Lonely", value: "lonely" },
-  { label: "Sad", value: "sad" },
+const moods = [
+  { emoji: "😔", label: "Sad" },
+  { emoji: "😐", label: "Neutral" },
+  { emoji: "🙂", label: "Content" },
+  { emoji: "😄", label: "Happy" },
+  { emoji: "🌟", label: "Excited" }
 ];
 
 const FloatingJournalButton = () => {
   const { toast } = useToast();
+  const [selectedPrompt, setSelectedPrompt] = useState<string>("");
+  const [selectedMood, setSelectedMood] = useState<string>("");
+  const [moodTag, setMoodTag] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
-  const [journalEntry, setJournalEntry] = useState("");
-  const [hashtags, setHashtags] = useState(starterTags);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
-  const [selectedFeeling, setSelectedFeeling] = useState<string | null>(null);
-  const [encouragement, setEncouragement] = useState(false);
+  const [showEncouragement, setShowEncouragement] = useState(false);
 
-  // Add tag logic
-  const handleAddTag = () => {
-    const trimmed = newTagInput.trim();
-    if (
-      trimmed.length > 1 &&
-      !hashtags.some(
-        (tag) => tag.label.toLowerCase() === trimmed.toLowerCase()
-      )
-    ) {
-      const newTag = { label: trimmed, value: trimmed.toLowerCase() };
-      setHashtags([...hashtags, newTag]);
-      setSelectedTags([...selectedTags, newTag.value]);
-      setNewTagInput("");
-    }
+  const handlePromptSelect = (promptText: string) => {
+    setSelectedPrompt(promptText);
   };
 
-  // Tag select/deselect
-  const toggleTag = (value: string) => {
-    setSelectedTags((tags) =>
-      tags.includes(value)
-        ? tags.filter((t) => t !== value)
-        : [...tags, value]
-    );
+  const handleMoodSelect = (mood: string) => {
+    setSelectedMood(mood);
   };
 
-  // Save logic
-  const handleSave = () => {
-    setEncouragement(true);
+  const handleSaveEntry = () => {
+    setShowEncouragement(true);
+    
+    // Show points animation
     toast({
-      title: "Journal saved",
-      description: "Your reflection has been saved.",
+      title: "+30 Calm Points",
+      description: "That was brave. Every word you write is part of your healing.",
       className: "animate-fade-in-up",
     });
+
+    // Delay modal close
     setTimeout(() => {
       setIsOpen(false);
-      setJournalEntry("");
-      setSelectedTags([]);
-      setSelectedFeeling(null);
-      setEncouragement(false);
-    }, 2000);
+      setShowEncouragement(false);
+      setSelectedPrompt("");
+      setSelectedMood("");
+      setMoodTag("");
+    }, 3000);
   };
 
   return (
@@ -89,140 +70,76 @@ const FloatingJournalButton = () => {
           <BookText className="h-6 w-6 text-skyhug-500" />
         </Button>
       </DialogTrigger>
-
-      <DialogContent className="sm:max-w-[420px] bg-transparent border-0 shadow-none p-0">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-semibold text-skyhug-900 mb-2">
-            Add a Journal Entry
-          </DialogTitle>
+          <DialogTitle>Add Journal Entry</DialogTitle>
         </DialogHeader>
-
-        {/* Glass panel for journal card */}
-        <div className="glass-panel relative rounded-2xl px-6 py-7 mt-0 mb-2 shadow-xl border border-skyhug-100 bg-white/80">
-          {/* Journal textarea */}
-          <Textarea
-            placeholder="What's on your mind today?"
-            value={journalEntry}
-            onChange={(e) => setJournalEntry(e.target.value)}
-            className="min-h-[110px] resize-none bg-transparent border-0 focus:ring-0 text-base font-medium text-skyhug-800 placeholder:text-skyhug-400 px-0"
-            style={{
-              boxShadow: "none",
-            }}
-          />
-        </div>
-
-        {/* Hashtag section */}
-        <div className="mb-0">
-          <div className="text-xs font-semibold mb-2 text-skyhug-700 uppercase tracking-widest">
-            Tags
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Not sure what to write? Try one of these prompts:</p>
+            <div className="flex flex-wrap gap-2">
+              {prompts.map((prompt) => (
+                <Button
+                  key={prompt.text}
+                  variant="outline"
+                  size="sm"
+                  className={`flex items-center gap-1.5 ${
+                    selectedPrompt === prompt.text ? 'bg-skyhug-50 border-skyhug-200' : ''
+                  }`}
+                  onClick={() => handlePromptSelect(prompt.text)}
+                >
+                  {prompt.icon}
+                  <span className="mr-1">{prompt.emoji}</span>
+                  {prompt.text}
+                </Button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {hashtags.map((tag) => (
-              <button
-                key={tag.value}
-                type="button"
-                className={`flex items-center px-2.5 py-1 rounded-full border transition-colors text-xs font-medium focus:ring-2 focus:ring-skyhug-200/40 
-                  ${
-                    selectedTags.includes(tag.value)
-                      ? "bg-skyhug-100 border-skyhug-300 text-skyhug-800 shadow"
-                      : "bg-skyhug-50 border-skyhug-100 text-skyhug-600 hover:bg-skyhug-200"
-                  }
-                `}
-                style={{
-                  boxShadow: selectedTags.includes(tag.value)
-                    ? "0 1px 4px #2563eb12"
-                    : undefined,
-                }}
-                onClick={() => toggleTag(tag.value)}
-              >
-                <Hash className="w-3.5 h-3.5 mr-1 text-inherit" />
-                {tag.label}
-              </button>
-            ))}
-            {/* New tag input */}
-            <div className="relative flex items-center">
+          <Textarea
+            placeholder={selectedPrompt || "Write your thoughts here..."}
+            className="min-h-[200px] resize-none"
+          />
+          
+          <div className="space-y-3">
+            <p className="text-sm font-medium">What emotion best describes this entry?</p>
+            <div className="flex gap-2 flex-wrap">
+              {moods.map((mood) => (
+                <Button
+                  key={mood.emoji}
+                  variant="outline"
+                  size="sm"
+                  className={`text-lg ${
+                    selectedMood === mood.emoji ? 'bg-skyhug-50 border-skyhug-200' : ''
+                  }`}
+                  onClick={() => handleMoodSelect(mood.emoji)}
+                >
+                  {mood.emoji}
+                </Button>
+              ))}
+            </div>
+            
+            <div className="pt-2">
               <input
                 type="text"
-                value={newTagInput}
-                onChange={(e) => setNewTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddTag();
-                }}
-                placeholder="+ Tag"
-                className="px-2 py-1 rounded-full border border-skyhug-100 bg-skyhug-50 text-xs w-20 focus:outline-none focus:ring-2 focus:ring-skyhug-200"
-                style={{ minWidth: 70, boxShadow: "none" }}
+                placeholder="Add a mood tag (e.g., overwhelm, connection)"
+                className="w-full px-3 py-2 border rounded-md text-sm"
+                value={moodTag}
+                onChange={(e) => setMoodTag(e.target.value)}
               />
-              <button
-                onClick={handleAddTag}
-                type="button"
-                className="ml-1 text-skyhug-400 hover:text-skyhug-600"
-                tabIndex={-1}
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
             </div>
           </div>
-        </div>
 
-        {/* Feeling selector */}
-        <div className="mt-4 mb-2">
-          <div className="text-xs font-semibold mb-2 text-skyhug-700 uppercase tracking-widest">
-            Mood
-          </div>
-          <div className="flex gap-2 items-center justify-center">
-            {emojiFeelings.map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                className={`rounded-full flex flex-col items-center px-2 py-1 transition-all border-2 ${
-                  selectedFeeling === f.value
-                    ? "bg-skyhug-100 border-skyhug-500 scale-110 shadow"
-                    : "bg-skyhug-50 border-skyhug-100 text-skyhug-600 hover:bg-skyhug-200"
-                }`}
-                onClick={() => setSelectedFeeling(f.value)}
-                aria-label={f.label}
-                style={{
-                  outline: "none",
-                  transition: "all 0.17s cubic-bezier(.45,.7,.4,1.3)",
-                  minWidth: 48,
-                }}
-              >
-                <span className="text-2xl leading-none block">
-                  {f.emoji}
-                </span>
-                <span className="text-[11px] mt-1 font-semibold text-skyhug-600">
-                  {f.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Save/encouragement */}
-        <div className="mt-4">
-          {encouragement ? (
-            <div className="px-2 py-3 text-center transition-all">
-              <div className="font-semibold text-xl text-skyhug-600 pb-1">
-                ✔️ Saved!
-              </div>
-              <div className="text-base text-skyhug-500">
-                Your journal entry was added.
-              </div>
+          {showEncouragement ? (
+            <div className="text-center space-y-4 animate-fade-in py-4">
+              <Badge variant="secondary" className="animate-scale-in">
+                +30 Calm Points
+              </Badge>
+              <p className="text-skyhug-600 font-medium">
+                That was brave. Every word you write is part of your healing.
+              </p>
             </div>
           ) : (
-            <Button
-              type="button"
-              onClick={handleSave}
-              className="w-full bg-skyhug-500 hover:bg-skyhug-600 text-white py-2 mt-2 rounded-full font-semibold text-lg shadow transition-all duration-150"
-              disabled={!journalEntry.trim()}
-              style={{
-                borderRadius: "999px",
-                background: "linear-gradient(90deg, #2563eb 0%, #6379ed 100%)",
-                boxShadow: "0 2px 12px #B9C6FF3b"
-              }}
-            >
-              Save Entry
-            </Button>
+            <Button onClick={handleSaveEntry} className="w-full">Save Entry</Button>
           )}
         </div>
       </DialogContent>
