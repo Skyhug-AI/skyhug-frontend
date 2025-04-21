@@ -1,56 +1,22 @@
 
 import React from 'react';
-import { Smile } from 'lucide-react';
 
 interface CloudBackgroundProps {
   className?: string;
-  showMascot?: boolean;
 }
 
-const CloudBackground: React.FC<CloudBackgroundProps> = ({ 
-  className = '',
-  showMascot = true 
-}) => {
-  const cloudConfigs = [
-    { left: "3%", top: "7%", width: 110, height: 45, opacity: 0.27, blur: 7 },
-    { right: "7%", top: "9%", width: 150, height: 54, opacity: 0.20, blur: 8 },
-    { left: "5%", bottom: "12%", width: 75, height: 38, opacity: 0.15, blur: 8 },
-    { right: "8%", bottom: "14%", width: 100, height: 46, opacity: 0.19, blur: 8 },
-    { left: "40%", top: "3%", width: 90, height: 40, opacity: 0.13, blur: 8 },
-  ];
-
+const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => {
   return (
     <div className={`fixed inset-0 overflow-hidden z-0 ${className}`}>
-      {/* Gradient background */}
-      <div 
-        className="absolute inset-0" 
-        style={{
-          background: "linear-gradient(180deg, #d3e4fd 0%, #ffffff 100%)",
-          zIndex: -20,
-        }}
-      />
+      {/* Softer gradient background - lavender to light blue (no white at the end) */}
+      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF] via-[#F7F8FD] to-[#EEF4FD]"></div>
       
-      {/* Sun orb at bottom for gradient accent */}
-      <div
-        className="fixed pointer-events-none"
-        style={{
-          left: "50%",
-          bottom: "-11%",
-          transform: "translateX(-50%)",
-          width: 330,
-          height: 132,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 48%, rgba(252,242,217,0.14) 100%)",
-          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
-          filter: "blur(8px)",
-          opacity: 0.75,
-          zIndex: -15,
-        }}
-      />
+      {/* Soft accent gradients */}
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-[#FDE1D3] to-transparent opacity-30 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-[#E5DEFF] to-transparent opacity-30 rounded-full blur-3xl"></div>
       
       {/* Subtle noise texture overlay */}
-      <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none z-[-10]">
+      <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none">
         <div
           className="absolute inset-0 w-screen h-screen bg-repeat"
           style={{
@@ -59,90 +25,66 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({
         ></div>
       </div>
       
-      {/* softly drifting clouds around edges */}
-      {cloudConfigs.map((cloud, i) => (
-        <div
-          key={`cloud-${i}`}
-          className="absolute rounded-full"
-          style={{
-            left: cloud.left,
-            right: cloud.right,
-            top: cloud.top,
-            bottom: cloud.bottom,
-            width: cloud.width,
-            height: cloud.height,
-            background: "#fff",
-            opacity: cloud.opacity,
-            filter: `blur(${cloud.blur}px)`,
-            animation: "float-cloud 18s ease-in-out infinite",
-            animationDelay: `${i * 1.4}s`,
-            zIndex: -10,
-          }}
-        />
-      ))}
-
-      {/* Floating sparkles and ambient particles */}
-      {[...Array(22)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute bg-white opacity-40 rounded-full animate-float"
-          style={{
-            width: `${Math.random() * 4 + 2}px`,
-            height: `${Math.random() * 4 + 2}px`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDuration: `${Math.random() * 10 + 8}s`,
-            animationDelay: `${Math.random() * 5}s`,
-            zIndex: -5,
-          }}
-        />
-      ))}
-      
-      {[...Array(8)].map((_, i) => (
-        <div
-          key={`star-${i}`}
-          className="absolute bg-white opacity-25 animate-pulse-slow"
-          style={{
-            width: `${Math.random() * 6 + 4}px`,
-            height: `${Math.random() * 6 + 4}px`,
-            clipPath:
-              "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDuration: `${Math.random() * 4 + 3}s`,
-            animationDelay: `${Math.random() * 3}s`,
-            zIndex: -5,
-          }}
-        />
-      ))}
-      
-      {/* Sky Cloud Mascot */}
-      {showMascot && (
-        <div className="fixed bottom-4 right-4 z-30 select-none pointer-events-none flex flex-col items-center">
-          <span
-            className="block bg-cloud-100 rounded-full shadow-md"
+      {/* Sparkles (Duolingo-style) floating particles */}
+      <div className="particles-container absolute inset-0">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white opacity-70 animate-float"
             style={{
-              width: "62px",
-              height: "40px",
-              filter: "blur(0.7px)",
-              opacity: 0.94,
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              width: `${Math.random() * 6 + 3}px`,
+              height: `${Math.random() * 6 + 3}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDuration: `${Math.random() * 15 + 10}s`,
+              animationDelay: `${Math.random() * 5}s`,
             }}
-          >
-            <Smile
-              className="text-skyhug-400 drop-shadow"
-              size={34}
-              style={{ position: "absolute", left: "14px", top: "6px" }}
-            />
-          </span>
-          <span className="text-xs text-gray-400 mt-[-6px]">sky cloud</span>
-        </div>
-      )}
+          ></div>
+        ))}
+        
+        {/* Star-shaped particles (subtle) */}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={`star-${i}`}
+            className="absolute bg-white opacity-50 animate-pulse-slow"
+            style={{
+              width: `${Math.random() * 8 + 5}px`,
+              height: `${Math.random() * 8 + 5}px`,
+              clipPath:
+                'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDuration: `${Math.random() * 4 + 2}s`,
+              animationDelay: `${Math.random() * 2}s`,
+            }}
+          ></div>
+        ))}
+      </div>
+      
+      {/* Decorative clouds with slower animation */}
+      <div
+        className="cloud w-32 h-20 top-[10%] left-[5%] animate-float-cloud"
+        style={{ animationDuration: '20s', animationDelay: '0s' }}
+      ></div>
+      <div
+        className="cloud w-40 h-24 top-[15%] right-[10%] animate-float-cloud"
+        style={{ animationDuration: '24s', animationDelay: '1.5s' }}
+      ></div>
+      <div
+        className="cloud w-28 h-16 bottom-[30%] left-[15%] animate-float-cloud"
+        style={{ animationDuration: '26s', animationDelay: '3s' }}
+      ></div>
+      <div
+        className="cloud w-36 h-20 bottom-[20%] right-[20%] animate-float-cloud"
+        style={{ animationDuration: '28s', animationDelay: '4.5s' }}
+      ></div>
+      <div
+        className="cloud w-24 h-14 top-[50%] left-[50%] animate-float-cloud"
+        style={{ animationDuration: '22s', animationDelay: '2s' }}
+      ></div>
     </div>
   );
 };
 
 export default CloudBackground;
+
