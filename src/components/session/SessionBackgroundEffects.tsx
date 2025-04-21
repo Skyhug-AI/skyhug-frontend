@@ -22,28 +22,46 @@ const SessionBackgroundEffects: React.FC = () => {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Main sky gradient background */}
+      {/* Enhanced sky gradient background - more pronounced colors */}
       <div 
         className="absolute inset-0 w-full h-full"
         style={{
-          background: "radial-gradient(circle at bottom center, #f8f6ff 0%, #edf0fa 45%, #ffffff 100%)",
+          background: "radial-gradient(circle at bottom center, #eee6ff 0%, #e0eaff 50%, #f8faff 100%)",
+          opacity: 0.9,
         }}
       />
 
-      {/* Subtle colored orb/aurora at bottom center */}
+      {/* Subtle colored orb/aurora at bottom center - enhanced */}
       <div
         className="absolute"
         style={{
           left: "50%",
           bottom: "3.5%",
           transform: "translateX(-50%)",
-          width: 280,
-          height: 180,
+          width: 350,
+          height: 220,
           borderRadius: "90%",
           background:
-            "radial-gradient(circle at 50% 60%, rgba(186,173,255,0.30) 0%, rgba(140,183,255,0.18) 60%, rgba(235,236,251,0) 97%)",
-          filter: "blur(25px)",
+            "radial-gradient(circle at 50% 60%, rgba(186,173,255,0.45) 0%, rgba(140,183,255,0.28) 60%, rgba(235,236,251,0) 97%)",
+          filter: "blur(30px)",
           animation: "float 11s ease-in-out infinite",
+        }}
+      />
+
+      {/* Light secondary orb for more depth */}
+      <div
+        className="absolute"
+        style={{
+          left: "30%",
+          bottom: "10%",
+          width: 200,
+          height: 160,
+          borderRadius: "90%",
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(173,186,255,0.25) 0%, rgba(173,216,255,0.12) 70%, rgba(235,236,251,0) 100%)",
+          filter: "blur(35px)",
+          animation: "float 13s ease-in-out infinite",
+          animationDelay: "2s",
         }}
       />
 
@@ -53,6 +71,7 @@ const SessionBackgroundEffects: React.FC = () => {
           key={`cloud-${i}`}
           className="cloud"
           style={{
+            position: "absolute",
             left: cloud.left,
             top: cloud.top,
             width: cloud.w,
@@ -62,18 +81,19 @@ const SessionBackgroundEffects: React.FC = () => {
             filter: `blur(${cloud.blur}px)`,
             animation: `float-cloud ${(10 + i * 2)}s ease-in-out infinite`,
             zIndex: 1,
+            borderRadius: "50%",
           }}
         />
       ))}
 
       {/* Ultra subtle, sparse sparkles */}
-      {[...Array(8)].map((_, i) => (
+      {[...Array(12)].map((_, i) => (
         <div
           key={`sparkle-${i}`}
-          className="absolute opacity-25 rounded-full animate-float"
+          className="absolute opacity-35 rounded-full animate-float"
           style={{
-            width: `${Math.random() * 8 + 4}px`,
-            height: `${Math.random() * 8 + 4}px`,
+            width: `${Math.random() * 7 + 3}px`,
+            height: `${Math.random() * 7 + 3}px`,
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
             background: "radial-gradient(circle, #bccafa 55%, white 100%)",
@@ -84,6 +104,18 @@ const SessionBackgroundEffects: React.FC = () => {
           }}
         />
       ))}
+
+      {/* Add global animation for the floating effect */}
+      <style jsx global>{`
+        @keyframes float-cloud {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-10px) translateX(5px); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateX(-50%); }
+          50% { transform: translateY(-15px) translateX(-50%); }
+        }
+      `}</style>
     </div>
   );
 };
