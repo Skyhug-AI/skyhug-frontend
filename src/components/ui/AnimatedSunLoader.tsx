@@ -86,32 +86,32 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 
   useEffect(() => {
     controls.start({
-      y: [120, 0],
+      y: [160, 40],
       opacity: [0, 1],
-      transition: { 
+      transition: {
         duration: duration / 750,
-        ease: "easeOut"
+        ease: "easeOut",
       },
     });
-    
+
     bgControls.start({
       background: [BG_START, BG_END],
       transition: { duration: duration / 1000, ease: "easeInOut" },
     });
-    
+
     textControls.start({
       opacity: [0, 1],
       y: [10, 0],
-      transition: { delay: 0.5, duration: 0.8 }
+      transition: { delay: 0.5, duration: 0.8 },
     });
-    
+
     const timeoutId = setTimeout(() => {
       if (!animationComplete) {
         setAnimationComplete(true);
         onComplete();
       }
     }, duration);
-    
+
     return () => clearTimeout(timeoutId);
   }, [duration, onComplete, controls, bgControls, textControls, animationComplete]);
 
@@ -142,6 +142,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       >
         <CloudSun size={36} className="text-blue-200 drop-shadow" />
       </motion.div>
+
       <motion.div
         className="absolute right-10 top-0 z-10"
         initial={{ opacity: 0.45, y: 0 }}
@@ -159,29 +160,9 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       <motion.div
         className="absolute left-1/2 bottom-24"
         animate={controls}
-        initial={{ y: 120, opacity: 0 }}
+        initial={{ y: 160, opacity: 0 }}
         style={{ transform: "translateX(-50%)" }}
       >
-        <motion.div
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            width: 120,
-            height: 120,
-            left: -15,
-            top: -15,
-            background: "radial-gradient(circle, rgba(255,193,7,0.15) 0%, rgba(255,247,237,0) 70%)",
-          }}
-          animate={{
-            scale: [1, 1.16, 1],
-            opacity: [0.45, 0.75, 0.45],
-          }}
-          transition={{
-            duration: 3.4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
         <motion.div
           className="absolute rounded-full pointer-events-none"
           style={{
