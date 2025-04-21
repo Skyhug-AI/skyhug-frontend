@@ -40,15 +40,30 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 }) => {
   const controls = useAnimation();
   const bgControls = useAnimation();
+  const textControls = useAnimation();
 
   useEffect(() => {
+    // Start with sun much lower (40px below final position)
+    // and fade in while it rises over 3-4 seconds
     controls.start({
-      y: [90, 0], // Sun rises from below (90px offset)
-      transition: { duration: duration / 1000, ease: "easeInOut" },
+      y: [120, 0], // Sun rises from lower (120px offset) to final position
+      opacity: [0, 1],
+      transition: { 
+        duration: duration / 750, // Slightly longer animation (4 seconds)
+        ease: "easeOut"
+      },
     });
+    
     bgControls.start({
       background: [BG_START, BG_END],
       transition: { duration: duration / 1000, ease: "easeInOut" },
+    });
+
+    // Delayed text fade-in
+    textControls.start({
+      opacity: [0, 1],
+      y: [10, 0],
+      transition: { delay: 0.5, duration: 0.8 }
     });
 
     const timeout = setTimeout(() => {
@@ -56,7 +71,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
     }, duration);
 
     return () => clearTimeout(timeout);
-  }, [duration, onComplete, controls, bgControls]);
+  }, [duration, onComplete, controls, bgControls, textControls]);
 
   // Give users an option to skip for accessibility
   const handleSkip = () => {
@@ -78,16 +93,16 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       {/* Cloud icons (top left/right, optional floating) */}
       <motion.div
         className="absolute left-8 top-6 z-10"
-        initial={{ opacity: 0.65, y: 0 }}
-        animate={{ opacity: [0.65, 0.7, 0.65], y: [0, 5, 0] }}
+        initial={{ opacity: 0.55, y: 0 }}
+        animate={{ opacity: [0.55, 0.7, 0.55], y: [0, 5, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
         <CloudSun size={36} className="text-blue-200 drop-shadow" />
       </motion.div>
       <motion.div
         className="absolute right-10 top-0 z-10"
-        initial={{ opacity: 0.55, y: 0 }}
-        animate={{ opacity: [0.55, 0.7, 0.55], y: [0, 8, 0] }}
+        initial={{ opacity: 0.45, y: 0 }}
+        animate={{ opacity: [0.45, 0.6, 0.45], y: [0, 8, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
         <CloudSun size={27} className="text-blue-100" />
@@ -101,11 +116,32 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 
       {/* Sun + rays */}
       <motion.div
-        className="absolute left-1/2"
+        className="absolute left-1/2 bottom-24"
         animate={controls}
-        initial={{ y: 90 }}
+        initial={{ y: 120, opacity: 0 }}
         style={{ transform: "translateX(-50%)" }}
       >
+        {/* Outer glow ring (pulsing) */}
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: 120,
+            height: 120,
+            left: -15, // Center it around the sun
+            top: -15,
+            background: "radial-gradient(circle, rgba(255,193,7,0.15) 0%, rgba(255,247,237,0) 70%)",
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.4, 0.7, 0.4],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        
         {/* Rays */}
         <motion.div
           className="absolute inset-0 flex items-center justify-center"
@@ -122,6 +158,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
         >
           <div className="w-32 h-32 rounded-full border-4 border-yellow-100 border-t-yellow-400 border-b-yellow-200 shadow-lg" />
         </motion.div>
+        
         {/* Sun */}
         <motion.div
           className="flex items-center justify-center"
@@ -130,7 +167,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
             height: 90,
             borderRadius: 9999,
             background: SUN_GRADIENT,
-            boxShadow: "0 0 40px 0 #ffeab7, 0 0 0 16px #fdecc882",
+            boxShadow: "0 0 40px rgba(255, 193, 7, 0.3), 0 0 0 16px #fdecc882", // Added warm glow
             zIndex: 1,
             border: "2px solid #fffdf3",
             overflow: "visible",
@@ -156,20 +193,19 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 
       {/* Transition Message */}
       <motion.div
-        className="absolute w-full flex flex-col items-center bottom-2"
+        className="absolute w-full flex flex-col items-center bottom-7"
         initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.8 }}
+        animate={textControls}
       >
-        <div className="text-base md:text-lg font-medium text-skyhug-600 drop-shadow-sm">
+        <div className="text-lg md:text-xl font-medium text-skyhug-600 drop-shadow-sm leading-relaxed">
           Taking a breath before we begin…
         </div>
-        <div className="text-xs text-blue-500 mt-1">{subtext}</div>
+        <div className="text-sm text-blue-500 mt-1">{subtext}</div>
         <button
           onClick={handleSkip}
-          className="mt-3 px-3 py-1 rounded-full bg-white/80 shadow text-gray-400 hover:text-blue-600 text-xs font-medium border border-blue-50 transition"
+          className="mt-4 px-4 py-1.5 rounded-full bg-white/80 shadow-sm text-gray-500 hover:text-blue-600 text-xs font-medium border border-blue-50 transition-colors"
         >
-          Skip
+          Start now
         </button>
       </motion.div>
     </motion.div>
