@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -57,7 +58,7 @@ const HomePage = () => {
   }];
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-gradient-to-b from-[#f8f6fc] to-[#eef4fd]">
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[##eef4fd]">
       <div className="sticky top-0 z-50">
         <Header />
       </div>
@@ -91,3 +92,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
