@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +11,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, User, Mail, Lock, ArrowLeft } from 'lucide-react';
 import Logo from '@/components/Logo';
+import CloudBackground from '@/components/CloudBackground';
+import SunriseGradientBackground from '@/components/SunriseGradientBackground';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -65,8 +68,11 @@ const SignupPage = () => {
     }
   };
 
-  return <div className="min-h-screen bg-gradient-to-b from-[#fef6f9] to-[#eef5fb] flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12">
+  return (
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <SunriseGradientBackground />
+      <CloudBackground className="-z-10" />
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative z-10">
         <div className="w-full max-w-[480px] animate-fade-in">
           <div className="text-center mb-10">
             <Link to="/" className="inline-block mb-6">
@@ -130,7 +136,8 @@ const SignupPage = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default SignupPage;
