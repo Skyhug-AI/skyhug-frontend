@@ -1,15 +1,7 @@
 
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useAnimation, useMotionValue, animate } from "framer-motion";
-import { Sun } from "lucide-react";
-import CloudBackground from "@/components/CloudBackground";
-
-// Use soft sun color and gradient
-const BG_START = "linear-gradient(to top, #fef6f9 0%, #e5deff 100%)";
-const BG_END = "linear-gradient(to top, #dbeafe 0%, #c7d7fc 100%)";
-const SUN_GRADIENT = "linear-gradient(135deg, #ffd799 0%, #ffb347 100%)";
-const PULSE_COLOR = "#ffecd2";
-const CHIME_SOUND_URL = "https://cdn.pixabay.com/audio/2022/10/16/audio_12ad6099c7.mp3"; // royalty-free, soft chime
+import React, { useEffect } from "react";
+import { motion, useAnimation } from "framer-motion";
+import { Sun, CloudSun } from "lucide-react";
 
 interface AnimatedSunLoaderProps {
   duration?: number; // ms
@@ -18,6 +10,11 @@ interface AnimatedSunLoaderProps {
   subtext?: string;
 }
 
+const BG_START = "linear-gradient(to top, #fef6f9 0%, #e5deff 100%)";
+const BG_END = "linear-gradient(to top, #dbeafe 0%, #c7d7fc 100%)";
+const SUN_GRADIENT = "linear-gradient(135deg, #ffd799 0%, #ffb347 100%)";
+
+// Utility: Sparkle
 const Sparkle: React.FC<{ left: string; top: string; delay: number }> = ({ left, top, delay }) => (
   <motion.div
     className="absolute rounded-full bg-white opacity-60"
@@ -43,54 +40,25 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 }) => {
   const controls = useAnimation();
   const bgControls = useAnimation();
-  const [textVisible1, setTextVisible1] = useState(false);
-  const [textVisible2, setTextVisible2] = useState(false);
-  const [sunVisible, setSunVisible] = useState(false);
-  const sunProgress = useMotionValue(0); // for parallax
-  const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Animate sun rise and background
   useEffect(() => {
-    setSunVisible(false);
-    controls.set({ y: 44, opacity: 0 }); // Start further down
     controls.start({
-      y: [44, 0],
-      opacity: [0, 1],
-      transition: { duration: duration / 1000, ease: "easeInOut" }
-    }).then(() => setSunVisible(true));
+      y: [90, 0], // Sun rises from below (90px offset)
+      transition: { duration: duration / 1000, ease: "easeInOut" },
+    });
     bgControls.start({
       background: [BG_START, BG_END],
-      transition: { duration: duration / 1000, ease: "easeInOut" }
-    });
-    // Animate sunProgress 0 → 1
-    const controlsAnim = animate(0, 1, {
-      duration: duration / 1000,
-      onUpdate: v => sunProgress.set(v),
-      ease: [0.42,0,0.58,1]
+      transition: { duration: duration / 1000, ease: "easeInOut" },
     });
 
-    // Fade-in text lines staggered
-    const t1 = setTimeout(() => setTextVisible1(true), 500);
-    const t2 = setTimeout(() => setTextVisible2(true), 800);
-
-    // Auto-complete after duration
     const timeout = setTimeout(() => {
-      // Play chime before completing
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      }
-      setTimeout(onComplete, 600);
+      onComplete();
     }, duration);
 
-    return () => {
-      clearTimeout(timeout);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      controlsAnim.stop();
-    };
-  }, [duration, onComplete, controls, bgControls, sunProgress]);
+    return () => clearTimeout(timeout);
+  }, [duration, onComplete, controls, bgControls]);
 
+  // Give users an option to skip for accessibility
   const handleSkip = () => {
     if (onSkip) onSkip();
     onComplete();
@@ -98,7 +66,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-end min-h-80 h-80 relative w-full select-none"
+      className="flex flex-col items-center justify-end min-h-72 h-72 relative w-full select-none"
       initial={false}
       animate={bgControls}
       style={{
@@ -107,146 +75,103 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* Floating dots/clouds/sparkles in background, with sunProgress for parallax */}
-      <CloudBackground sunProgress={sunProgress.get()} />
-      {/* Sun group (glow + sun + rays) */}
+      {/* Cloud icons (top left/right, optional floating) */}
       <motion.div
-        className="absolute left-1/2 z-20"
-        style={{ transform: "translateX(-50%)" }}
-        animate={controls}
-        initial={{ y: 44, opacity: 0 }}
+        className="absolute left-8 top-6 z-10"
+        initial={{ opacity: 0.65, y: 0 }}
+        animate={{ opacity: [0.65, 0.7, 0.65], y: [0, 5, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
-        {/* Glowing, pulsing ring/beam */}
-        <motion.div
-          className="absolute left-1/2 top-1/2"
-          style={{
-            width: 166,
-            height: 166,
-            borderRadius: "50%",
-            background: `radial-gradient(circle at 50% 50%, #ffefbb 0%, #ffeab750 52%, transparent 97%)`,
-            position: "absolute",
-            zIndex: 2,
-            filter: "blur(7px)",
-            boxShadow: "0 0 40px 0 #ffd18050, 0 0 80px #ffd18044",
-            transform: "translate(-50%, -50%)",
-          }}
-          animate={{
-            scale: [0.94, 1.12, 0.94],
-            opacity: [0.37, 0.77, 0.37]
-          }}
-          transition={{
-            duration: 2.2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        {/* Animated subtle sun rays */}
+        <CloudSun size={36} className="text-blue-200 drop-shadow" />
+      </motion.div>
+      <motion.div
+        className="absolute right-10 top-0 z-10"
+        initial={{ opacity: 0.55, y: 0 }}
+        animate={{ opacity: [0.55, 0.7, 0.55], y: [0, 8, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <CloudSun size={27} className="text-blue-100" />
+      </motion.div>
+
+      {/* Sparkles (optional, subtle) */}
+      <Sparkle left="55%" top="32%" delay={0.3} />
+      <Sparkle left="38%" top="23%" delay={0.7} />
+      <Sparkle left="70%" top="42%" delay={1.6} />
+      <Sparkle left="23%" top="48%" delay={1.1} />
+
+      {/* Sun + rays */}
+      <motion.div
+        className="absolute left-1/2"
+        animate={controls}
+        initial={{ y: 90 }}
+        style={{ transform: "translateX(-50%)" }}
+      >
+        {/* Rays */}
         <motion.div
           className="absolute inset-0 flex items-center justify-center"
           animate={{
-            scale: [0.97, 1.12, 0.97],
-            opacity: [0.7, 0.98, 0.7],
-            rotate: [0, 66, 0],
+            scale: [0.98, 1.12, 0.98],
+            opacity: [0.75, 1, 0.75],
+            rotate: [0, 60, 0],
           }}
           transition={{
-            duration: 2.6,
+            duration: 2.4,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         >
-          <div className="w-32 h-32 rounded-full border-4 border-yellow-50 border-t-yellow-300 border-b-yellow-100 shadow-lg blur-[1.5px]" />
+          <div className="w-32 h-32 rounded-full border-4 border-yellow-100 border-t-yellow-400 border-b-yellow-200 shadow-lg" />
         </motion.div>
-        {/* Sun orb itself */}
+        {/* Sun */}
         <motion.div
           className="flex items-center justify-center"
           style={{
-            width: 92,
-            height: 92,
+            width: 90,
+            height: 90,
             borderRadius: 9999,
             background: SUN_GRADIENT,
-            boxShadow: "0 0 40px 0 #ffeac6, 0 0 0 18px #fdecc883",
-            zIndex: 3,
-            border: "2.5px solid #fffdf3",
+            boxShadow: "0 0 40px 0 #ffeab7, 0 0 0 16px #fdecc882",
+            zIndex: 1,
+            border: "2px solid #fffdf3",
             overflow: "visible",
           }}
-          initial={{ scale: 0.97, opacity: 1 }}
+          initial={{ scale: 0.97 }}
           animate={{
-            scale: [0.978, 1.00, 0.97],
+            scale: [0.97, 1.01, 0.97],
             filter: [
               "drop-shadow(0px 0px 0px #ffd180bb)",
-              "drop-shadow(0px 0px 12px #ffd180e0)",
+              "drop-shadow(0px 0px 13px #ffd180eb)",
               "drop-shadow(0px 0px 0px #ffd180bb)",
             ],
           }}
           transition={{
-            duration: 2.1,
+            duration: 2,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         >
-          <Sun className="text-yellow-400 drop-shadow" size={54} />
+          <Sun className="text-yellow-500 drop-shadow-lg" size={48} />
         </motion.div>
       </motion.div>
 
-      {/* Fade-in animated, larger message text */}
+      {/* Transition Message */}
       <motion.div
-        className="absolute w-full flex flex-col items-center z-30"
-        style={{ bottom: "80px" }}
-        initial={false}
-        animate={{
-          opacity: textVisible1 ? 1 : 0,
-          y: textVisible1 ? 0 : 12
-        }}
-        transition={{ duration: 0.97 }}
+        className="absolute w-full flex flex-col items-center bottom-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 0.8 }}
       >
-        <div className="text-[1.32rem] md:text-[1.37rem] font-semibold text-skyhug-600 drop-shadow-sm mb-1" style={{ lineHeight: 1.32, fontWeight: 600 }}>
+        <div className="text-base md:text-lg font-medium text-skyhug-600 drop-shadow-sm">
           Taking a breath before we begin…
         </div>
-      </motion.div>
-      <motion.div
-        className="absolute w-full flex flex-col items-center z-30"
-        style={{ bottom: "56px" }}
-        initial={false}
-        animate={{
-          opacity: textVisible2 ? 1 : 0,
-          y: textVisible2 ? 0 : 10
-        }}
-        transition={{ duration: 0.78, delay: 0.16 }}
-      >
-        <div className="text-sm text-blue-500 mt-0.5" style={{ lineHeight: 1.33, fontWeight: 500 }}>
-          {subtext}
-        </div>
-      </motion.div>
-
-      {/* Sparkles (decorate, but not overwhelming, as before) */}
-      <Sparkle left="55%" top="32%" delay={0.3} />
-      <Sparkle left="38%" top="23%" delay={0.7} />
-      <Sparkle left="70%" top="45%" delay={1.6} />
-      <Sparkle left="23%" top="44%" delay={1.1} />
-
-      {/* "Skip" Button */}
-      <motion.div
-        className="absolute w-full flex justify-center z-40"
-        style={{ bottom: "20px", pointerEvents: "auto" }}
-        initial={false}
-        animate={{ opacity: textVisible2 ? 1 : 0, y: textVisible2 ? 0 : 12 }}
-        transition={{ duration: 0.55, delay: 0.07 }}
-      >
+        <div className="text-xs text-blue-500 mt-1">{subtext}</div>
         <button
           onClick={handleSkip}
-          className="px-3.5 py-1.5 rounded-full bg-white/85 shadow-md border border-black/5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 text-xs font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
-          style={{
-            boxShadow: "0 1px 7px 0 rgba(0,0,0,0.05)",
-            minWidth: 94,
-            marginInline: "auto"
-          }}
+          className="mt-3 px-3 py-1 rounded-full bg-white/80 shadow text-gray-400 hover:text-blue-600 text-xs font-medium border border-blue-50 transition"
         >
-          Start now
+          Skip
         </button>
       </motion.div>
-
-      {/* Chime audio (hidden) */}
-      <audio ref={audioRef} src={CHIME_SOUND_URL} preload="auto" />
     </motion.div>
   );
 };
