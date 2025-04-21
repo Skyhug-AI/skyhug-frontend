@@ -8,24 +8,26 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-// CloudBackground import for faint, floating clouds
-import CloudBackground from "@/components/CloudBackground";
-
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
+  // Memoize this function to prevent unnecessary rerenders
   const handleStartSession = useCallback(() => {
     setIsSessionStarted(true);
   }, []);
 
+  // Use separate useEffect to handle one-time initialization
   useEffect(() => {
+    // This will run once when the component mounts
     const initSession = async () => {
       await clearMessages();
     };
+    
     initSession();
-  }, []);
+    // Don't include clearMessages in deps to prevent multiple calls
+  }, []); 
 
   const handleEndSession = async () => {
     await endConversation();
@@ -33,11 +35,8 @@ const SessionPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-[#f4f8ff] to-white overflow-hidden">
-      {/* Faint cloud/sparkle illustration, ultra low opacity */}
-      <CloudBackground className="absolute inset-0 opacity-[0.05] z-0 pointer-events-none" />
-
-      <header className="border-b border-gray-100 bg-[rgba(255,255,255,0.8)] sticky top-0 z-40 shadow-sm backdrop-blur-md">
+    <div className="min-h-screen bg-white flex flex-col">
+      <header className="border-b border-gray-100 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -51,26 +50,11 @@ const SessionPage = () => {
             </Button>
 
             {isSessionStarted && (
-              <div className="flex items-center gap-2 text-gray-600 text-sm font-plus-jakarta">
-                <span>You're in a therapy session with Sky — your AI companion</span>
-                {/* Animated Sky cloud mascot for 'live' */}
-                <motion.div
-                  initial={{ scale: 1 }}
-                  animate={{
-                    scale: [1, 1.18, 1],
-                    rotate: [0, 2, -2, 0],
-                  }}
-                  transition={{
-                    duration: 2.3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="ml-1"
-                >
-                  {/* Sky mascot as animated cloud */}
-                  <span className="inline-block animate-fade-in"><svg width="20" height="20" className="drop-shadow" viewBox="0 0 20 20"><g><ellipse cx="10" cy="14" rx="8" ry="4.2" fill="#bdb2ff" /><ellipse cx="13" cy="12" rx="5" ry="3.2" fill="#a0c4ff" /><ellipse cx="8" cy="12.3" rx="5" ry="2.7" fill="#f5f5ff" /></g></svg></span>
-                </motion.div>
-                <div className="flex items-center gap-1 text-skyhug-500 ml-1">
+              <div className="flex items-center gap-2 text-gray-600 text-sm">
+                <span>
+                  You're in a therapy session with Sky — your AI companion 💙
+                </span>
+                <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
                     className="w-2 h-2 rounded-full bg-skyhug-500"
                     animate={{
@@ -93,7 +77,7 @@ const SessionPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-transform duration-150 hover:scale-105"
+              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
               onClick={handleEndSession}
             >
               End Chat & Continue
@@ -102,7 +86,7 @@ const SessionPage = () => {
         </div>
       </header>
 
-      <div className="flex-grow max-w-3xl mx-auto px-4 w-full z-10 relative">
+      <div className="flex-grow max-w-3xl mx-auto px-4 w-full">
         {!isSessionStarted ? (
           <SessionIntro onStartSession={handleStartSession} />
         ) : (
