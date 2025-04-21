@@ -46,16 +46,17 @@ const SessionBackgroundEffects: React.FC = () => {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Enhanced sky gradient background - more pronounced colors */}
+      {/* Visible, soft purple/blue gradient background */}
       <div 
         className="absolute inset-0 w-full h-full"
         style={{
-          background: "radial-gradient(circle at bottom center, #eee6ff 0%, #e0eaff 50%, #f8faff 100%)",
-          opacity: 0.9,
+          background:
+            "linear-gradient(180deg, #e5deff 0%, #d6bcfa 35%, #b7c1ff 85%, #9b87f5 100%)",
+          opacity: 1,
         }}
       />
 
-      {/* Subtle colored orb/aurora at bottom center - enhanced */}
+      {/* Subtle colored orb/aurora at bottom center */}
       <div
         className="absolute"
         style={{
@@ -66,8 +67,8 @@ const SessionBackgroundEffects: React.FC = () => {
           height: 220,
           borderRadius: "90%",
           background:
-            "radial-gradient(circle at 50% 60%, rgba(186,173,255,0.45) 0%, rgba(140,183,255,0.28) 60%, rgba(235,236,251,0) 97%)",
-          filter: "blur(30px)",
+            "radial-gradient(circle at 50% 60%, rgba(186,173,255,0.55) 0%, rgba(140,183,255,0.32) 65%, rgba(235,236,251,0) 97%)",
+          filter: "blur(38px)",
           animation: "float 11s ease-in-out infinite",
         }}
       />
@@ -77,13 +78,13 @@ const SessionBackgroundEffects: React.FC = () => {
         className="absolute"
         style={{
           left: "30%",
-          bottom: "10%",
+          bottom: "12%",
           width: 200,
           height: 160,
           borderRadius: "90%",
           background:
-            "radial-gradient(circle at 50% 50%, rgba(173,186,255,0.25) 0%, rgba(173,216,255,0.12) 70%, rgba(235,236,251,0) 100%)",
-          filter: "blur(35px)",
+            "radial-gradient(circle at 50% 50%, rgba(173,186,255,0.32) 0%, rgba(173,216,255,0.16) 75%, rgba(235,236,251,0) 100%)",
+          filter: "blur(42px)",
           animation: "float 13s ease-in-out infinite",
           animationDelay: "2s",
         }}
@@ -133,3 +134,4 @@ const SessionBackgroundEffects: React.FC = () => {
 };
 
 export default SessionBackgroundEffects;
+
