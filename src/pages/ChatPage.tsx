@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,6 +8,7 @@ import { useTherapist } from "@/context/TherapistContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import BackgroundEffects from "@/components/chat/BackgroundEffects";
 
 const ChatPage = () => {
   const {
@@ -43,7 +43,13 @@ const ChatPage = () => {
   }, [messages, isProcessing]);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(to bottom, #f4f8ff, #ffffff)" }}>
+    <div
+      className="min-h-screen flex flex-col relative"
+      style={{
+        background: "linear-gradient(180deg, #d3e4fd 0%, #ffffff 100%)",
+      }}
+    >
+      <BackgroundEffects />
       <Header />
 
       <main className="flex-grow flex flex-col">
@@ -58,7 +64,7 @@ const ChatPage = () => {
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col bg-gradient-to-b from-white to-serenity-50">
+        <div className="flex-grow flex flex-col bg-gradient-to-b from-white to-serenity-50 relative">
           <div className="max-w-5xl w-full mx-auto flex-grow flex flex-col">
             <div className="p-4 flex justify-end">
               <Button
@@ -109,4 +115,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-
