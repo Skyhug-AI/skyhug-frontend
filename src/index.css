@@ -269,3 +269,25 @@
 .bg-sky-gradient {
   background: linear-gradient(135deg, #D3E4FD 0%, #33C3F0 50%, #1EAEDB 100%);
 }
+
+.bg-gradient-chat-session {
+  background: linear-gradient(to bottom, #f4f8ff, #ffffff);
+}
+
+.cloud-bg {
+  pointer-events: none;
+  z-index: 0;
+}
+.cloud-shape {
+  position: absolute;
+  background: linear-gradient(98deg, #e8edff 50%, #f5f5ff 100%);
+  opacity: 0.08;
+  border-radius: 100vw;
+  box-shadow: 0 40px 90px 0 rgba(134,164,255,0.12);
+  filter: blur(8px);
+}
+.cloud-1 { left:8vw; top:7vh; width:180px; height:90px; }
+.cloud-2 { right:14vw; top:10vh; width:190px; height:80px; }
+.cloud-3 { left:28vw; top:18vh; width:160px; height:70px; }
+.cloud-4 { right:19vw; bottom:8vh; width:120px; height:60px; }
+.cloud-5 { left:17vw; bottom:6vh; width:115px; height:55px; }
