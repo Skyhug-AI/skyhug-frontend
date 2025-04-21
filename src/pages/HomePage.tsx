@@ -66,6 +66,25 @@ const HomePage = () => {
       
       <CloudBackground className="opacity-90" />
       
+      {/* Sun orb gradient as a decorative accent at the bottom */}
+      <div
+        className="fixed pointer-events-none"
+        style={{
+          left: "50%",
+          bottom: "-10%",
+          transform: "translateX(-50%)",
+          width: 300,
+          height: 140,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(5px)",
+          opacity: 0.8,
+          zIndex: 0,
+        }}
+      />
+      
       <main className="flex-grow px-4 pt-20 pb-8 relative z-10 max-w-5xl mx-auto w-full flex flex-col gap-8">
         <div className="text-center mb-4">
           <h1 className="text-3xl md:text-4xl font-medium mb-2 text-foreground">
