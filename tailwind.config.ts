@@ -20,7 +20,6 @@ export default {
     extend: {
       fontFamily: {
         'plus-jakarta': ['Plus Jakarta Sans', 'sans-serif'],
-        'baloo': ['Baloo 2', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

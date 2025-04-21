@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -62,7 +63,10 @@ const HomePage = () => {
         <Header />
       </div>
       <FloatingJournalButton />
+      
       <CloudBackground className="opacity-90" />
+      
+      {/* Sun orb gradient as a decorative accent at the bottom */}
       <div
         className="fixed pointer-events-none"
         style={{
@@ -80,29 +84,31 @@ const HomePage = () => {
           zIndex: 0,
         }}
       />
+      
       <main className="flex-grow px-4 pt-20 pb-8 relative z-10 max-w-5xl mx-auto w-full flex flex-col gap-8">
         <div className="text-center mb-4">
-          <h1 className="text-3xl md:text-4xl font-baloo font-bold mb-2 text-foreground tracking-tight"
-            style={{ letterSpacing: '0.01em', fontWeight: 700 }}>
-            Hi {firstName} <span className="wave">👋</span> <span className="inline">Here's your mind check-in for today</span>
+          <h1 className="text-3xl md:text-4xl font-medium mb-2 text-foreground">
+            Hi {firstName} <span className="wave">👋</span> Here's your mind check-in for today
           </h1>
-          <p className="text-lg text-skyhug-600 font-baloo font-semibold">
-            Small steps make big shifts. Let's take one together.
-          </p>
+          <p className="text-lg text-skyhug-600">Small steps make big shifts. Let's take one together.</p>
         </div>
+        
         <section>
           <EmotionalCheckInReminder />
           <DailyGoalsCard />
           <MoodChart moodData={moodData} />
           <StreakTracker currentStreak={3} longestStreak={7} />
         </section>
+
         <section className="">
           <AffirmationCard />
         </section>
       </main>
+      
       <Footer />
     </div>
   );
 };
 
 export default HomePage;
+
