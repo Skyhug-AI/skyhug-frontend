@@ -1,3 +1,6 @@
+
+// Update the three action buttons with pastel colored backgrounds like in the example (soft green, soft yellow, soft blue).
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -119,32 +122,40 @@ const SessionRoom = () => {
           className="border-t border-gray-100 bg-white/50 backdrop-blur-sm p-4"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Button variant="outline" size="sm" className="text-gray-600">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-900 bg-[#F2FCE2] border-transparent hover:bg-[#DDF7BF]"
+            >
               <HelpCircle className="h-4 w-4 mr-2" />
               Help me answer
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-600">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-900 bg-[#FEF7CD] border-transparent hover:bg-[#FFF9B3]"
+            >
               Skip question
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="text-gray-600"
+              className="text-gray-900 bg-[#D3E4FD] border-transparent hover:bg-[#B4CDFA]"
               onClick={handleEndSession}
             >
               End chat & continue
             </Button>
             <div className="ml-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={async () => {
-                const next = !isVoiceMode;
-                setIsVoiceMode(next);
-                await setVoiceEnabled(next); // ✅ persist voice/chat mode to Supabase
-              }}
-              className="rounded-full w-8 h-8"
-            >
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  const next = !isVoiceMode;
+                  setIsVoiceMode(next);
+                  await setVoiceEnabled(next); // ✅ persist voice/chat mode to Supabase
+                }}
+                className="rounded-full w-8 h-8"
+              >
                 {isVoiceMode ? (
                   <MessageSquare className="h-4 w-4 text-gray-600" />
                 ) : (
@@ -177,3 +188,4 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
+
