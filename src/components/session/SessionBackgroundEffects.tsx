@@ -1,64 +1,78 @@
 
 import React from "react";
 
-// Combination of floating clouds and sparkles, made to be subtle but visible behind session content
+// Subtle, soft clouds and a gentle colored orb/aurora at the bottom.
+// Very light sparkles for interest.
 const SessionBackgroundEffects: React.FC = () => {
-  // Clouds positions and sizes (less random for consistency)
+  // Pre-determined cloud positions/sizes so they're always soft and not distracting
   const clouds = [
-    { left: "5%",    top: "6%",   w: 220, h: 100, opacity: 0.33, anim: 12 },
-    { left: "72%",   top: "12%",  w: 180, h: 90,  opacity: 0.27, anim: 18 },
-    { left: "35%",   top: "70%",  w: 240, h: 120, opacity: 0.35, anim: 13 },
-    { left: "60%",   top: "82%",  w: 150, h: 68,  opacity: 0.22, anim: 19 },
+    // Soft left-top
+    { left: "5%", top: "7%", w: 200, h: 90, color: "rgba(210,227,250,0.47)", blur: 8 },
+    // Large right-top
+    { left: "65%", top: "3%", w: 280, h: 98, color: "rgba(185,198,255,0.30)", blur: 14 },
+    // Center-sky
+    { left: "36%", top: "18%", w: 190, h: 80, color: "rgba(180,200,255,0.25)", blur: 10 },
+    // Mid right
+    { left: "72%", top: "33%", w: 150, h: 60, color: "rgba(219,212,255,0.22)", blur: 10 },
+    // Soft low left
+    { left: "7%", top: "62%", w: 140, h: 65, color: "rgba(194,205,255,0.19)", blur: 10 },
+    // Center low (slightly blue-lavender)
+    { left: "40%", top: "74%", w: 230, h: 110, color: "rgba(205,198,255,0.20)", blur: 12 },
   ];
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Floating clouds */}
-      {clouds.map((c, i) => (
+      {/* Subtle colored orb/aurora at bottom center */}
+      <div
+        className="absolute"
+        style={{
+          left: "50%",
+          bottom: "3.5%",
+          transform: "translateX(-50%)",
+          width: 200,
+          height: 130,
+          borderRadius: "90%",
+          background:
+            "radial-gradient(circle at 50% 60%, rgba(186,173,255,0.22) 0%, rgba(140,183,255,0.13) 60%, rgba(235,236,251,0.04) 97%)",
+          filter: "blur(3.5px)",
+          animation: "float 11s ease-in-out infinite",
+        }}
+      />
+
+      {/* Floating, blurred pastel clouds */}
+      {clouds.map((cloud, i) => (
         <div
           key={`cloud-${i}`}
-          className="cloud animate-float-cloud"
+          className="cloud"
           style={{
-            left: c.left,
-            top: c.top,
-            width: c.w,
-            height: c.h,
-            opacity: c.opacity,
-            filter: "blur(2px)",
-            animationDuration: `${c.anim}s`,
-            background: "linear-gradient(135deg, #e0f3ff 70%, #fff 100%)",
+            left: cloud.left,
+            top: cloud.top,
+            width: cloud.w,
+            height: cloud.h,
+            background: cloud.color,
+            opacity: 1,
+            filter: `blur(${cloud.blur}px)`,
+            animation: `float-cloud ${(10 + i * 2)}s ease-in-out infinite`,
+            zIndex: 1,
           }}
         />
       ))}
-      {/* Subtle sparkles */}
-      {[...Array(10)].map((_, i) => (
+
+      {/* Ultra subtle, sparse sparkles */}
+      {[...Array(5)].map((_, i) => (
         <div
           key={`sparkle-${i}`}
-          className="absolute bg-white opacity-30 rounded-full animate-float"
+          className="absolute opacity-25 rounded-full animate-float"
           style={{
-            width: `${Math.random() * 5 + 3}px`,
-            height: `${Math.random() * 5 + 3}px`,
+            width: `${Math.random() * 8 + 4}px`,
+            height: `${Math.random() * 8 + 4}px`,
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
-            animationDuration: `${Math.random() * 10 + 10}s`,
+            background: "radial-gradient(circle, #bccafa 55%, white 100%)",
+            filter: "blur(0.7px)",
+            animationDuration: `${Math.random() * 9 + 11}s`,
             animationDelay: `${Math.random() * 6}s`,
-            filter: "blur(0.5px)",
-          }}
-        />
-      ))}
-      {[...Array(3)].map((_, i) => (
-        <div
-          key={`star-${i}`}
-          className="absolute bg-white opacity-20 animate-pulse-slow"
-          style={{
-            width: `${Math.random() * 10 + 5}px`,
-            height: `${Math.random() * 10 + 5}px`,
-            clipPath:
-              "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDuration: `${Math.random() * 6 + 5}s`,
-            animationDelay: `${Math.random() * 2}s`,
+            zIndex: 2,
           }}
         />
       ))}
@@ -67,3 +81,4 @@ const SessionBackgroundEffects: React.FC = () => {
 };
 
 export default SessionBackgroundEffects;
+
