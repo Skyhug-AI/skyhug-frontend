@@ -4,15 +4,7 @@ import Logo from './Logo';
 
 const Footer = () => {
   return (
-    <footer 
-      className="w-full border-t border-border py-8 px-4 md:px-8 relative z-10" 
-      style={{
-        backgroundColor: "#ffffff",
-        position: "relative",
-        boxShadow: "0 0 0 100vmax #ffffff",
-        clipPath: "inset(0 -100vmax)"
-      }}
-    >
+    <footer className="w-full bg-white border-t border-border py-8 px-4 md:px-8 relative z-10">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="flex flex-col gap-4">
           <Logo />
@@ -50,3 +42,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
