@@ -1,6 +1,3 @@
-
-// We'll add the subtle horizon sunrise gradient background and soft sun orb directly in SessionPage.
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -38,15 +35,16 @@ const SessionPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Fixed background that doesn't interfere with content */}
-      <div className="fixed inset-0 pointer-events-none" 
-        style={{ 
-          background: "linear-gradient(to top, #fdf6e3, #f6f9ff)", 
-          zIndex: -2 
-        }} 
+      {/* CloudBackground-style gradient (no white at the end) */}
+      <div
+        className="fixed inset-0 pointer-events-none z-[-2]"
+        style={{
+          // Lavender to soft blue, no pure white
+          background: "linear-gradient(135deg, #EEF2FF 0%, #F7F8FD 58%, #EEF4FD 100%)",
+        }}
       />
-      
-      {/* Fixed sun orb that stays in position without affecting layout */}
+
+      {/* Keep the soft sun/orb at the bottom */}
       <div
         className="fixed pointer-events-none"
         style={{
