@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { CloudSun } from "lucide-react";
@@ -13,7 +12,8 @@ interface AnimatedSunLoaderProps {
 const BG_START = "linear-gradient(to top, #fef6f9 0%, #e5deff 100%)";
 const BG_END = "linear-gradient(to top, #dbeafe 0%, #c7d7fc 100%)";
 
-// Utility: Sparkle
+const SUN_CORE_GRADIENT = "radial-gradient(circle, #ffde7a 0%, #f9c846 60%, #fdd83550 80%, transparent 100%)";
+
 const Sparkle: React.FC<{ left: string; top: string; delay: number }> = ({ left, top, delay }) => (
   <motion.div
     className="absolute rounded-full bg-white opacity-60"
@@ -31,9 +31,7 @@ const Sparkle: React.FC<{ left: string; top: string; delay: number }> = ({ left,
   />
 );
 
-// Utility: Beams (fixed count, radiate from center)
 const SunBeams: React.FC<{ count?: number }> = ({ count = 10 }) => {
-  // Creates `count` beams, evenly distributed in a circle.
   const beams = Array.from({ length: count });
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -49,7 +47,7 @@ const SunBeams: React.FC<{ count?: number }> = ({ count = 10 }) => {
               background:
                 "linear-gradient(180deg, #ffe4a9 70%, rgba(255,236,180,0.09) 100%)",
               borderRadius: 4,
-              transform: `rotate(${angle}deg) translate(-50%, -50%)`, // rotate then center
+              transform: `rotate(${angle}deg) translate(-50%, -50%)`,
               boxShadow: "0 2px 14px 0 rgba(255,220,94,0.10)",
             }}
             initial={{ opacity: 0.72, scaleY: 0.92 }}
@@ -87,9 +85,8 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
   const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
-    // Start animations
     controls.start({
-      y: [120, 0], // Sun rises from lower (120px offset) to final position
+      y: [120, 0],
       opacity: [0, 1],
       transition: { 
         duration: duration / 750,
@@ -108,7 +105,6 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       transition: { delay: 0.5, duration: 0.8 }
     });
     
-    // Set a timeout only once
     const timeoutId = setTimeout(() => {
       if (!animationComplete) {
         setAnimationComplete(true);
@@ -138,7 +134,6 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* Cloud icons (top left/right, optional floating) */}
       <motion.div
         className="absolute left-8 top-6 z-10"
         initial={{ opacity: 0.55, y: 0 }}
@@ -156,20 +151,17 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
         <CloudSun size={27} className="text-blue-100" />
       </motion.div>
 
-      {/* Sparkles (optional, subtle) */}
       <Sparkle left="55%" top="32%" delay={0.3} />
       <Sparkle left="38%" top="23%" delay={0.7} />
       <Sparkle left="70%" top="42%" delay={1.6} />
       <Sparkle left="23%" top="48%" delay={1.1} />
 
-      {/* Sun + Beams */}
       <motion.div
         className="absolute left-1/2 bottom-24"
         animate={controls}
         initial={{ y: 120, opacity: 0 }}
         style={{ transform: "translateX(-50%)" }}
       >
-        {/* Outer glow ring (pulsing) */}
         <motion.div
           className="absolute rounded-full pointer-events-none"
           style={{
@@ -190,13 +182,30 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
           }}
         />
 
-        {/* Sunbeams - replaces the old "circle" */}
-        <SunBeams count={11} />
+        <motion.div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: 90,
+            height: 90,
+            left: 0,
+            top: 0,
+            background: SUN_CORE_GRADIENT,
+            filter: "drop-shadow(0 0 15px #f9c846)",
+          }}
+          animate={{
+            scale: [1, 1.08, 1],
+            opacity: [0.8, 1, 0.8],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
 
-        {/* Removed the inner sun graphic as requested */}
+        <SunBeams count={11} />
       </motion.div>
 
-      {/* Transition Message */}
       <motion.div
         className="absolute w-full flex flex-col items-center bottom-7"
         initial={{ opacity: 0, y: 10 }}
@@ -218,4 +227,3 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
 };
 
 export default AnimatedSunLoader;
-
