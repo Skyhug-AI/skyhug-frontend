@@ -39,34 +39,9 @@ const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isProcessing]);
-
   return (
-    <div className="min-h-screen flex flex-col relative" style={{
-      background: "linear-gradient(180deg, #d3e4fd 0%, #ffffff 100%)",
-    }}>
+    <div className="min-h-screen flex flex-col relative">
       <BackgroundEffects />
-      {/* Sun orb at bottom for gradient accent */}
-      <div
-        className="fixed pointer-events-none"
-        style={{
-          left: "50%",
-          bottom: "-11%",
-          transform: "translateX(-50%)",
-          width: 330,
-          height: 132,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 48%, rgba(252,242,217,0.14) 100%)",
-          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
-          filter: "blur(8px)",
-          opacity: 0.75,
-          zIndex: 0,
-        }}
-      />
-
       <Header />
 
       <main className="flex-grow flex flex-col items-center justify-center relative px-2 md:px-0">
@@ -87,7 +62,7 @@ const ChatPage = () => {
               boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
             }}
           >
-            {/* Decorative floating “sky cloud” mascot (bottom right) */}
+            {/* Decorative floating "sky cloud" mascot (bottom right) */}
             <div className="absolute bottom-4 right-4 z-30 select-none pointer-events-none flex flex-col items-center">
               <span
                 className="block bg-cloud-100 rounded-full shadow-md"
@@ -175,4 +150,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-

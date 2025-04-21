@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Cloud, Sparkles } from "lucide-react";
 
 // This component renders subtle floating sparkle particles and floating clouds with slightly higher edge bias.
 const cloudConfigs = [
@@ -13,6 +14,34 @@ const cloudConfigs = [
 const BackgroundEffects: React.FC = () => {
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      {/* Gradient background */}
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: "linear-gradient(180deg, #d3e4fd 0%, #ffffff 100%)",
+          zIndex: -20,
+        }}
+      />
+      
+      {/* Sun orb at bottom for gradient accent */}
+      <div
+        className="fixed pointer-events-none"
+        style={{
+          left: "50%",
+          bottom: "-11%",
+          transform: "translateX(-50%)",
+          width: 330,
+          height: 132,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 48%, rgba(252,242,217,0.14) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(8px)",
+          opacity: 0.75,
+          zIndex: -15,
+        }}
+      />
+
       {/* softly drifting clouds around edges */}
       {cloudConfigs.map((cloud, i) => (
         <div
@@ -30,6 +59,7 @@ const BackgroundEffects: React.FC = () => {
             filter: `blur(${cloud.blur}px)`,
             animation: "float-cloud 18s ease-in-out infinite",
             animationDelay: `${i * 1.4}s`,
+            zIndex: -10,
           }}
         />
       ))}
@@ -45,7 +75,8 @@ const BackgroundEffects: React.FC = () => {
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
             animationDuration: `${Math.random() * 10 + 8}s`,
-            animationDelay: `${Math.random() * 5}s`
+            animationDelay: `${Math.random() * 5}s`,
+            zIndex: -5,
           }}
         />
       ))}
@@ -62,6 +93,7 @@ const BackgroundEffects: React.FC = () => {
             top: `${Math.random() * 100}%`,
             animationDuration: `${Math.random() * 4 + 3}s`,
             animationDelay: `${Math.random() * 3}s`,
+            zIndex: -5,
           }}
         />
       ))}
