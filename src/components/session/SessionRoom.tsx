@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -122,7 +123,8 @@ const SessionRoom = () => {
             <Button
               variant="outline"
               size="sm"
-              className="text-gray-900 bg-[#F2FCE2] border-transparent hover:bg-[#DDF7BF]"
+              // removed custom background color classes here
+              className="text-gray-900"
             >
               <HelpCircle className="h-4 w-4 mr-2" />
               Help me answer
@@ -130,14 +132,16 @@ const SessionRoom = () => {
             <Button
               variant="outline"
               size="sm"
-              className="text-gray-900 bg-[#FEF7CD] border-transparent hover:bg-[#FFF9B3]"
+              className="text-gray-900"
+              // removed custom background color classes here
             >
               Skip question
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="text-gray-900 bg-[#D3E4FD] border-transparent hover:bg-[#B4CDFA]"
+              className="text-gray-900"
+              // removed custom background color classes here
               onClick={handleEndSession}
             >
               End chat & continue
@@ -185,3 +189,4 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
+
