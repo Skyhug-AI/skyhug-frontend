@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import SessionIntro from "@/components/session/SessionIntro";
 import SessionRoom from "@/components/session/SessionRoom";
-import Header from "@/components/Header";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -13,9 +13,10 @@ const SessionPage = () => {
   const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
+  // Run only once when component mounts
   useEffect(() => {
     clearMessages();
-  }, []);
+  }, [clearMessages]); // Added dependency
 
   const handleStartSession = () => {
     setIsSessionStarted(true);

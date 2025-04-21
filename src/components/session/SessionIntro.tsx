@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import CloudBackground from '@/components/CloudBackground';
 import AnimatedSunLoader from '@/components/ui/AnimatedSunLoader';
@@ -9,12 +9,8 @@ interface SessionIntroProps {
 }
 
 const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
-  // We want the intro animation to play automatically and then proceed
-  useEffect(() => {
-    // Nothing else needed here; loader will trigger on mount
-  }, []);
-
-  // Callback for when animation finishes
+  // Removed the useEffect since the loader will handle its own completion
+  
   const handleLoaderComplete = () => {
     onStartSession(); // Moves to the session view
   };
