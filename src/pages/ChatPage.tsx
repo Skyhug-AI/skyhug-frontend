@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -42,7 +43,7 @@ const ChatPage = () => {
   }, [messages, isProcessing]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(to bottom, #f4f8ff, #ffffff)" }}>
       <Header />
 
       <main className="flex-grow flex flex-col">
@@ -108,3 +109,4 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
