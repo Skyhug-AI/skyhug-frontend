@@ -1,6 +1,3 @@
-
-// Update the three action buttons with pastel colored backgrounds like in the example (soft green, soft yellow, soft blue).
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -119,7 +116,7 @@ const SessionRoom = () => {
             marginTop: hasStartedChat ? 0 : "auto",
             marginBottom: hasStartedChat ? 0 : "auto",
           }}
-          className="border-t border-gray-100 bg-white/50 backdrop-blur-sm p-4"
+          className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
           <div className="flex items-center gap-3 mb-4">
             <Button
@@ -188,4 +185,3 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
-
