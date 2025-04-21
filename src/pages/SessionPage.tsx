@@ -37,18 +37,19 @@ const SessionPage = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col relative bg-white"
-      style={{
-        background: "linear-gradient(to top, #fdf6e3, #f6f9ff)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Soft sun/orb "rise" at bottom center - subtle glowing orb */}
+    <div className="min-h-screen flex flex-col relative">
+      {/* Fixed background that doesn't interfere with content */}
+      <div className="fixed inset-0 pointer-events-none" 
+        style={{ 
+          background: "linear-gradient(to top, #fdf6e3, #f6f9ff)", 
+          zIndex: -2 
+        }} 
+      />
+      
+      {/* Fixed sun orb that stays in position without affecting layout */}
       <div
+        className="fixed pointer-events-none"
         style={{
-          position: "absolute",
           left: "50%",
           bottom: "-10%",
           transform: "translateX(-50%)",
@@ -60,13 +61,12 @@ const SessionPage = () => {
           boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
           filter: "blur(5px)",
           opacity: 0.8,
-          pointerEvents: "none",
-          zIndex: 0,
+          zIndex: -1,
         }}
       />
 
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative z-10">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -115,7 +115,7 @@ const SessionPage = () => {
         </div>
       </header>
 
-      <div className="flex-grow max-w-3xl mx-auto px-4 w-full relative z-10">
+      <div className="flex-grow max-w-3xl mx-auto px-4 w-full">
         {!isSessionStarted ? (
           <SessionIntro onStartSession={handleStartSession} />
         ) : (
@@ -127,4 +127,3 @@ const SessionPage = () => {
 };
 
 export default SessionPage;
-
