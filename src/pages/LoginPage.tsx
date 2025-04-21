@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +20,7 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
 type LoginFormValues = z.infer<typeof loginSchema>;
+
 const LoginPage = () => {
   const {
     login,
@@ -43,6 +43,7 @@ const LoginPage = () => {
       password: ''
     }
   });
+
   const handleGoogleSignIn = async () => {
     try {
       const {
@@ -62,6 +63,7 @@ const LoginPage = () => {
       });
     }
   };
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       await login(data.email, data.password);
@@ -78,10 +80,12 @@ const LoginPage = () => {
       });
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <SunriseGradientBackground />
-      <CloudBackground className="-z-10" />
+      <CloudBackground className="opacity-100" />
+      
       <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative z-10">
         <div className="w-full max-w-[480px] animate-fade-in">
           <div className="text-center mb-10">
@@ -139,7 +143,26 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      
+      <div
+        className="fixed pointer-events-none"
+        style={{
+          left: "50%",
+          bottom: "-10%",
+          transform: "translateX(-50%)",
+          width: 300,
+          height: 140,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(5px)",
+          opacity: 0.8,
+          zIndex: 1,
+        }}
+      />
     </div>
   );
 };
+
 export default LoginPage;
