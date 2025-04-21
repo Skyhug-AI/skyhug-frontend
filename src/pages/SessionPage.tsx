@@ -36,14 +36,7 @@ const SessionPage = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col relative"
-      // A strong, visible, multi-stop blue-purple gradient for clarity
-      style={{
-        background:
-          "linear-gradient(135deg, #D3E4FD 0%, #B5CFFF 30%, #E5DEFF 70%, #FFF 100%)",
-      }}
-    >
+    <div className="min-h-screen flex flex-col relative bg-white">
       <SessionBackgroundEffects />
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
