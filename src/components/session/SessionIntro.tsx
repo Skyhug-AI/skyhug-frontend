@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import CloudBackground from '@/components/CloudBackground';
-import SunLoader from '@/components/ui/SunLoader';
+import AnimatedSunLoader from '@/components/ui/AnimatedSunLoader';
 
 interface SessionIntroProps {
   onStartSession: () => void;
@@ -18,21 +18,23 @@ const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
 
   const handleBegin = () => {
     setIsLoading(true);
-    setTimeout(() => {
-      onStartSession();
-    }, 3000);
+  };
+
+  // Callback for when animation finishes or is skipped
+  const handleLoaderComplete = () => {
+    onStartSession();
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       <CloudBackground />
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-xl shadow-sm px-6 py-5 space-y-6 relative z-10"
       >
         {isLoading ? (
-          <SunLoader />
+          <AnimatedSunLoader onComplete={handleLoaderComplete} subtext="Your mind deserves this pause." />
         ) : (
           <div className="space-y-6">
             <div className="space-y-2">
@@ -51,7 +53,7 @@ const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
               </p>
             </div>
             <div className="space-y-4">
-              <Button 
+              <Button
                 onClick={handleBegin}
                 className="w-full bg-[#5F6FFF] hover:bg-[#4F57DD] text-white font-semibold rounded-full shadow-sm transition-all duration-300"
               >
@@ -62,7 +64,7 @@ const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
                 )}
                 Begin Session with Sky
               </Button>
-              <motion.p 
+              <motion.p
                 className="text-xs text-gray-400 italic text-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -79,4 +81,3 @@ const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
 };
 
 export default SessionIntro;
-
