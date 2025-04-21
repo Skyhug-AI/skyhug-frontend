@@ -32,6 +32,50 @@ const Sparkle: React.FC<{ left: string; top: string; delay: number }> = ({ left,
   />
 );
 
+// Utility: Beams (fixed count, radiate from center)
+const SunBeams: React.FC<{ count?: number }> = ({ count = 10 }) => {
+  // Creates `count` beams, evenly distributed in a circle.
+  const beams = Array.from({ length: count });
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {beams.map((_, i) => {
+        const angle = (360 / count) * i;
+        return (
+          <motion.div
+            key={i}
+            className="absolute left-1/2 top-1/2"
+            style={{
+              width: 8,
+              height: 50,
+              background:
+                "linear-gradient(180deg, #ffe4a9 70%, rgba(255,236,180,0.09) 100%)",
+              borderRadius: 4,
+              transform: `rotate(${angle}deg) translate(-50%, -50%)`, // rotate then center
+              boxShadow: "0 2px 14px 0 rgba(255,220,94,0.10)",
+            }}
+            initial={{ opacity: 0.72, scaleY: 0.92 }}
+            animate={{
+              opacity: [0.7, 1, 0.7],
+              scaleY: [0.92, 1.05, 0.92],
+              filter: [
+                "blur(0.6px) brightness(1.1)",
+                "blur(1.2px) brightness(1.19)",
+                "blur(0.5px) brightness(1.1)"
+              ],
+            }}
+            transition={{
+              duration: 2.8 + (i % 2) * 0.25,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.085,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
 const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
   duration = 3000,
   onComplete,
@@ -43,37 +87,29 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
   const textControls = useAnimation();
 
   useEffect(() => {
-    // Start with sun much lower (40px below final position)
-    // and fade in while it rises over 3-4 seconds
     controls.start({
       y: [120, 0], // Sun rises from lower (120px offset) to final position
       opacity: [0, 1],
       transition: { 
-        duration: duration / 750, // Slightly longer animation (4 seconds)
+        duration: duration / 750,
         ease: "easeOut"
       },
     });
-    
     bgControls.start({
       background: [BG_START, BG_END],
       transition: { duration: duration / 1000, ease: "easeInOut" },
     });
-
-    // Delayed text fade-in
     textControls.start({
       opacity: [0, 1],
       y: [10, 0],
       transition: { delay: 0.5, duration: 0.8 }
     });
-
     const timeout = setTimeout(() => {
       onComplete();
     }, duration);
-
     return () => clearTimeout(timeout);
   }, [duration, onComplete, controls, bgControls, textControls]);
 
-  // Give users an option to skip for accessibility
   const handleSkip = () => {
     if (onSkip) onSkip();
     onComplete();
@@ -114,7 +150,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       <Sparkle left="70%" top="42%" delay={1.6} />
       <Sparkle left="23%" top="48%" delay={1.1} />
 
-      {/* Sun + rays */}
+      {/* Sun + Beams */}
       <motion.div
         className="absolute left-1/2 bottom-24"
         animate={controls}
@@ -123,52 +159,37 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       >
         {/* Outer glow ring (pulsing) */}
         <motion.div
-          className="absolute rounded-full"
+          className="absolute rounded-full pointer-events-none"
           style={{
             width: 120,
             height: 120,
-            left: -15, // Center it around the sun
+            left: -15,
             top: -15,
             background: "radial-gradient(circle, rgba(255,193,7,0.15) 0%, rgba(255,247,237,0) 70%)",
           }}
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.4, 0.7, 0.4],
+            scale: [1, 1.16, 1],
+            opacity: [0.45, 0.75, 0.45],
           }}
           transition={{
-            duration: 3,
+            duration: 3.4,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         />
-        
-        {/* Rays */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center"
-          animate={{
-            scale: [0.98, 1.12, 0.98],
-            opacity: [0.75, 1, 0.75],
-            rotate: [0, 60, 0],
-          }}
-          transition={{
-            duration: 2.4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <div className="w-32 h-32 rounded-full border-4 border-yellow-100 border-t-yellow-400 border-b-yellow-200 shadow-lg" />
-        </motion.div>
-        
+
+        {/* Sunbeams - replaces the old "circle" */}
+        <SunBeams count={11} />
+
         {/* Sun */}
         <motion.div
-          className="flex items-center justify-center"
+          className="flex items-center justify-center z-10"
           style={{
             width: 90,
             height: 90,
             borderRadius: 9999,
             background: SUN_GRADIENT,
-            boxShadow: "0 0 40px rgba(255, 193, 7, 0.3), 0 0 0 16px #fdecc882", // Added warm glow
-            zIndex: 1,
+            boxShadow: "0 0 40px rgba(255, 193, 7, 0.3), 0 0 0 16px #fdecc882",
             border: "2px solid #fffdf3",
             overflow: "visible",
           }}
