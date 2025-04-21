@@ -24,10 +24,10 @@ const SessionPage = () => {
     const initSession = async () => {
       await clearMessages();
     };
-    
+
     initSession();
     // Don't include clearMessages in deps to prevent multiple calls
-  }, []); 
+  }, []);
 
   const handleEndSession = async () => {
     await endConversation();
@@ -36,14 +36,32 @@ const SessionPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Fixed background that doesn't interfere with content */}
-      <div className="fixed inset-0 pointer-events-none"
+      {/* Full-page linear background gradient */}
+      <div
+        className="fixed inset-0 pointer-events-none"
         style={{
           background: "linear-gradient(to bottom right, #EEF2FF, #F7F8FD, #EEF4FD)",
-          zIndex: -2
+          zIndex: -3,
         }}
       />
-      {/* Removed the sun orb gradient as requested */}
+      {/* Sun orb gradient as a decorative accent at the bottom */}
+      <div
+        className="fixed pointer-events-none"
+        style={{
+          left: "50%",
+          bottom: "-10%",
+          transform: "translateX(-50%)",
+          width: 300,
+          height: 140,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(5px)",
+          opacity: 0.8,
+          zIndex: -2,
+        }}
+      />
 
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
