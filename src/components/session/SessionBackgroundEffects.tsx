@@ -1,44 +1,32 @@
 
 import React from "react";
 
-// Subtle sky background with soft aurora/gradient effect at the bottom,
-// gentle clouds, and very light sparkles
+// Subtle horizon/sunrise background: warm-to-white gradient with soft sun and clouds
 const SessionBackgroundEffects: React.FC = () => {
-  // Pre-determined cloud positions/sizes for soft, non-distracting clouds
+  // Cloud positions/sizes for soft, non-distracting clouds
   const clouds = [
-    // Soft left-top
-    { left: "5%", top: "7%", w: 200, h: 90, color: "rgba(210,227,250,0.47)", blur: 8 },
-    // Large right-top
-    { left: "65%", top: "3%", w: 280, h: 98, color: "rgba(185,198,255,0.30)", blur: 14 },
-    // Center-sky
-    { left: "36%", top: "18%", w: 190, h: 80, color: "rgba(180,200,255,0.25)", blur: 10 },
-    // Mid right
-    { left: "72%", top: "33%", w: 150, h: 60, color: "rgba(219,212,255,0.22)", blur: 10 },
-    // Soft low left
-    { left: "7%", top: "62%", w: 140, h: 65, color: "rgba(194,205,255,0.19)", blur: 10 },
-    // Center low (slightly blue-lavender)
-    { left: "40%", top: "74%", w: 230, h: 110, color: "rgba(205,198,255,0.20)", blur: 12 },
+    { left: "5%", top: "7%", w: 200, h: 90, color: "rgba(250,238,210,0.36)", blur: 8 },
+    { left: "65%", top: "3%", w: 280, h: 98, color: "rgba(240,230,255,0.30)", blur: 14 },
+    { left: "36%", top: "18%", w: 190, h: 80, color: "rgba(245,240,220,0.20)", blur: 10 },
+    { left: "72%", top: "33%", w: 150, h: 60, color: "rgba(230,232,219,0.18)", blur: 10 },
+    { left: "7%", top: "62%", w: 140, h: 65, color: "rgba(240,220,235,0.16)", blur: 10 },
+    { left: "40%", top: "74%", w: 230, h: 110, color: "rgba(246,237,178,0.15)", blur: 13 },
   ];
 
-  // Add CSS animations to the document's head
+  // Add CSS animations for float effects
   React.useEffect(() => {
-    // Create a style element
     const styleElement = document.createElement('style');
     styleElement.textContent = `
       @keyframes float-cloud {
         0%, 100% { transform: translateY(0) translateX(0); }
-        50% { transform: translateY(-10px) translateX(5px); }
+        50% { transform: translateY(-9px) translateX(5px); }
       }
-      @keyframes float {
-        0%, 100% { transform: translateY(0) translateX(-50%); }
-        50% { transform: translateY(-15px) translateX(-50%); }
+      @keyframes float-sun {
+        0%, 100% { transform: translateY(0) scale(1);}
+        50% { transform: translateY(-8px) scale(1.07);}
       }
     `;
-
-    // Append the style to the document head
     document.head.appendChild(styleElement);
-
-    // Clean up the style when component unmounts
     return () => {
       document.head.removeChild(styleElement);
     };
@@ -46,55 +34,54 @@ const SessionBackgroundEffects: React.FC = () => {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Visible, soft purple/blue gradient background */}
-      <div 
+      {/* Subtle horizon/sunrise gradient background */}
+      <div
         className="absolute inset-0 w-full h-full"
         style={{
-          background:
-            "linear-gradient(180deg, #e5deff 0%, #d6bcfa 35%, #b7c1ff 85%, #9b87f5 100%)",
+          background: "linear-gradient(to top, #fde1d3 0%, #fdf6e3 45%, #f6f9ff 95%)",
           opacity: 1,
         }}
       />
 
-      {/* Subtle colored orb/aurora at bottom center */}
+      {/* Soft sun/orb "rise" at bottom center */}
       <div
         className="absolute"
         style={{
           left: "50%",
-          bottom: "3.5%",
+          bottom: "-18%",
           transform: "translateX(-50%)",
           width: 350,
-          height: 220,
-          borderRadius: "90%",
+          height: 180,
+          borderRadius: "50%",
           background:
-            "radial-gradient(circle at 50% 60%, rgba(186,173,255,0.55) 0%, rgba(140,183,255,0.32) 65%, rgba(235,236,251,0) 97%)",
-          filter: "blur(38px)",
-          animation: "float 11s ease-in-out infinite",
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(4px)",
+          opacity: 0.90,
+          animation: "float-sun 12s ease-in-out infinite",
         }}
       />
 
-      {/* Light secondary orb for more depth */}
+      {/* Optional: faint mirrored glow above "sun" for glow effect */}
       <div
         className="absolute"
         style={{
-          left: "30%",
-          bottom: "12%",
-          width: 200,
-          height: 160,
-          borderRadius: "90%",
-          background:
-            "radial-gradient(circle at 50% 50%, rgba(173,186,255,0.32) 0%, rgba(173,216,255,0.16) 75%, rgba(235,236,251,0) 100%)",
-          filter: "blur(42px)",
-          animation: "float 13s ease-in-out infinite",
-          animationDelay: "2s",
+          left: "50%",
+          bottom: "6%",
+          transform: "translateX(-50%)",
+          width: 180,
+          height: 70,
+          borderRadius: "50%",
+          background: "radial-gradient(ellipse at 50% 38%, #fff7ed33 0%, #fbed9677 95%)",
+          filter: "blur(18px)",
+          opacity: 0.41,
         }}
       />
 
-      {/* Floating, blurred pastel clouds */}
+      {/* Fluffy, blurred pastel clouds */}
       {clouds.map((cloud, i) => (
         <div
           key={`cloud-${i}`}
-          className="cloud"
           style={{
             position: "absolute",
             left: cloud.left,
@@ -104,27 +91,27 @@ const SessionBackgroundEffects: React.FC = () => {
             background: cloud.color,
             opacity: 1,
             filter: `blur(${cloud.blur}px)`,
-            animation: `float-cloud ${(10 + i * 2)}s ease-in-out infinite`,
+            animation: `float-cloud ${10 + i * 3}s ease-in-out infinite`,
             zIndex: 1,
             borderRadius: "50%",
           }}
         />
       ))}
 
-      {/* Ultra subtle, sparse sparkles */}
+      {/* Ultra sparse sparkles */}
       {[...Array(12)].map((_, i) => (
         <div
           key={`sparkle-${i}`}
-          className="absolute opacity-35 rounded-full animate-float"
+          className="absolute opacity-25 rounded-full"
           style={{
             width: `${Math.random() * 7 + 3}px`,
             height: `${Math.random() * 7 + 3}px`,
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
-            background: "radial-gradient(circle, #bccafa 55%, white 100%)",
-            filter: "blur(0.7px)",
-            animationDuration: `${Math.random() * 9 + 11}s`,
-            animationDelay: `${Math.random() * 6}s`,
+            background: "radial-gradient(circle, #fbed96 52%, white 100%)",
+            filter: "blur(1.1px)",
+            animation: `float-cloud ${Math.random() * 9 + 11}s infinite`,
+            animationDelay: `${Math.random() * 8}s`,
             zIndex: 2,
           }}
         />
@@ -134,4 +121,3 @@ const SessionBackgroundEffects: React.FC = () => {
 };
 
 export default SessionBackgroundEffects;
-
