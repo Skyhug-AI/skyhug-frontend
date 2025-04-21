@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -58,14 +57,15 @@ const HomePage = () => {
   }];
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[##eef4fd]">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       <div className="sticky top-0 z-50">
         <Header />
       </div>
       <FloatingJournalButton />
-      
-      <CloudBackground className="opacity-90" />
-      
+
+      {/* Updated CloudBackground for colorful sky and clouds */}
+      <CloudBackground className="opacity-100" />
+
       {/* Sun orb gradient as a decorative accent at the bottom */}
       <div
         className="fixed pointer-events-none"
@@ -111,4 +111,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-

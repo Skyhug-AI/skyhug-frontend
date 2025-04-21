@@ -1,20 +1,33 @@
-
 import React from 'react';
 
 interface CloudBackgroundProps {
   className?: string;
 }
 
+const pastelCloudColors = [
+  "#D3E4FD", // pastel blue
+  "#FDE1D3", // peach
+  "#E5DEFF", // lavender
+  "#FFDEE2", // pink
+];
+
+function getCloudColor(idx: number) {
+  // Rotate through the pastel palette
+  return pastelCloudColors[idx % pastelCloudColors.length];
+}
+
 const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => {
   return (
     <div className={`fixed inset-0 overflow-hidden z-0 ${className}`}>
-      {/* Softer gradient background - lavender to light blue (no white at the end) */}
-      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF] via-[#F7F8FD] to-[#EEF4FD]"></div>
-      
+      {/* Sky gradient background */}
+      <div className="absolute inset-0 w-screen h-screen" style={{
+        background: 'linear-gradient(to right, #ffe9ec 0%, #e0f0ff 100%)'
+      }} />
+
       {/* Soft accent gradients */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-[#FDE1D3] to-transparent opacity-30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-[#E5DEFF] to-transparent opacity-30 rounded-full blur-3xl"></div>
-      
+
       {/* Subtle noise texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none">
         <div
@@ -24,8 +37,8 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
           }}
         ></div>
       </div>
-      
-      {/* Sparkles (Duolingo-style) floating particles */}
+
+      {/* Sparkles (optional, keep white for contrast) */}
       <div className="particles-container absolute inset-0">
         {[...Array(20)].map((_, i) => (
           <div
@@ -41,8 +54,8 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
             }}
           ></div>
         ))}
-        
-        {/* Star-shaped particles (subtle) */}
+
+        {/* Star-shaped particles */}
         {[...Array(8)].map((_, i) => (
           <div
             key={`star-${i}`}
@@ -60,31 +73,51 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
           ></div>
         ))}
       </div>
-      
-      {/* Decorative clouds with slower animation */}
+
+      {/* Colorful (mood) animated clouds */}
+      {/* Largely the same positioning as before, color per mood */}
       <div
         className="cloud w-32 h-20 top-[10%] left-[5%] animate-float-cloud"
-        style={{ animationDuration: '20s', animationDelay: '0s' }}
+        style={{ 
+          background: getCloudColor(0), 
+          animationDuration: '20s', 
+          animationDelay: '0s' 
+        }}
       ></div>
       <div
         className="cloud w-40 h-24 top-[15%] right-[10%] animate-float-cloud"
-        style={{ animationDuration: '24s', animationDelay: '1.5s' }}
+        style={{ 
+          background: getCloudColor(1), 
+          animationDuration: '24s', 
+          animationDelay: '1.5s' 
+        }}
       ></div>
       <div
         className="cloud w-28 h-16 bottom-[30%] left-[15%] animate-float-cloud"
-        style={{ animationDuration: '26s', animationDelay: '3s' }}
+        style={{ 
+          background: getCloudColor(2), 
+          animationDuration: '26s', 
+          animationDelay: '3s' 
+        }}
       ></div>
       <div
         className="cloud w-36 h-20 bottom-[20%] right-[20%] animate-float-cloud"
-        style={{ animationDuration: '28s', animationDelay: '4.5s' }}
+        style={{ 
+          background: getCloudColor(3), 
+          animationDuration: '28s', 
+          animationDelay: '4.5s'
+        }}
       ></div>
       <div
         className="cloud w-24 h-14 top-[50%] left-[50%] animate-float-cloud"
-        style={{ animationDuration: '22s', animationDelay: '2s' }}
+        style={{ 
+          background: getCloudColor(1), 
+          animationDuration: '22s', 
+          animationDelay: '2s' 
+        }}
       ></div>
     </div>
   );
 };
 
 export default CloudBackground;
-
