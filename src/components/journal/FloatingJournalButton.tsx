@@ -76,11 +76,10 @@ const FloatingJournalButton = () => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[420px] bg-transparent shadow-none backdrop-blur-none"
-        style={{ background: "transparent", boxShadow: "none" }}
+        className="sm:max-w-[420px] border-0 shadow-none bg-black/80 backdrop-blur-md"
       >
         <DialogHeader>
-          <DialogTitle className="text-center text-base font-medium text-gray-700 pb-0 mb-1">How was your day?</DialogTitle>
+          <DialogTitle className="text-center text-base font-medium text-white pb-0 mb-1">How was your day?</DialogTitle>
         </DialogHeader>
 
         {/* Notepad card mock - with wavy top and peach bg */}
@@ -122,7 +121,7 @@ const FloatingJournalButton = () => {
 
         {/* Hashtag section */}
         <div className="mb-1">
-          <div className="text-[14px] font-medium mb-2 text-gray-700">Hashtag</div>
+          <div className="text-[14px] font-medium mb-2 text-gray-100">Hashtag</div>
           <div className="flex gap-2 flex-wrap">
             {hashtags.map((tag) => (
               <button
@@ -168,8 +167,8 @@ const FloatingJournalButton = () => {
         </div>
         {/* Feeling selector */}
         <div>
-          <div className="text-[14px] font-medium mb-2 text-gray-700">Feeling</div>
-          <div className="flex gap-3 items-center pb-1">
+          <div className="text-[14px] font-medium mb-2 text-gray-100">Feeling</div>
+          <div className="flex gap-3 items-center justify-center pb-1">
             {emojiFeelings.map((f) => (
               <button
                 key={f.value}
@@ -190,8 +189,8 @@ const FloatingJournalButton = () => {
         {/* Save button & encouragement */}
         {encouragement ? (
           <div className="px-2 py-3 text-center transition-all">
-            <div className="font-semibold text-[18px] text-[#8A6940] pb-2">✔️ Saved!</div>
-            <div className="text-sm text-skyhug-600">Your journal entry was added.</div>
+            <div className="font-semibold text-[18px] text-[#FDE1D3] pb-2">✔️ Saved!</div>
+            <div className="text-sm text-gray-200">Your journal entry was added.</div>
           </div>
         ) : (
           <Button
@@ -215,4 +214,3 @@ const FloatingJournalButton = () => {
 };
 
 export default FloatingJournalButton;
-
