@@ -37,10 +37,6 @@ const SessionRoom = () => {
     }
 
     scrollToBottom();
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
   }, [messages]);
 
   const handleSendMessage = (message: string) => {
