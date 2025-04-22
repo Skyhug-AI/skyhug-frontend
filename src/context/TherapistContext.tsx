@@ -16,6 +16,7 @@ export interface Message {
   isUser: boolean;
   timestamp: string;
   tts_path?: string | null;
+  isAudioReady?: boolean;
 }
 
 interface TherapistContextType {
@@ -55,6 +56,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       minute: "2-digit",
     }),
     tts_path: msg.tts_path,
+    isAudioReady: false,
   });
 
   const loadHistory = async (convId: string) => {
@@ -69,7 +71,58 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Error loading conversation history:", error);
       return;
     }
-    setMessages(rows.map(formatMessage));
+    
+    const formattedMessages = rows.map(formatMessage);
+    setMessages(formattedMessages);
+    
+    for (const msg of formattedMessages) {
+      if (!msg.isUser && msg.tts_path) {
+        prepareAudioForMessage(msg);
+      }
+    }
+  };
+
+  const prepareAudioForMessage = async (message: Message) => {
+    if (!message.tts_path || message.isUser) return;
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from("tts-audio")
+        .createSignedUrl(message.tts_path, 60);
+  
+      if (error || !data?.signedUrl) {
+        console.error("Signed URL error:", error);
+        return;
+      }
+  
+      const audio = new Audio(data.signedUrl);
+      audio.preload = "auto";
+  
+      audio.onloadeddata = () => {
+        console.log(`✅ Audio loaded for message ${message.id}`);
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
+      };
+      
+      audio.onerror = (e) => {
+        console.error(`Audio loading error for message ${message.id}:`, e);
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
+      };
+    } catch (err) {
+      console.error("Audio preparation exception:", err);
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+        )
+      );
+    }
   };
 
   const createConversation = async () => {
@@ -78,7 +131,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // 1) Resume any open session
     const { data: existing, error: findError } = await supabase
       .from("conversations")
       .select("id")
@@ -99,7 +151,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // 2) Ensure patient row exists
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
       .select("id")
@@ -119,8 +170,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
 
-    // 3) Create a brand‑new conversation
-    console.log("🟡 Creating new conversation...");
+    console.log("���� Creating new conversation...");
     const { data, error } = await supabase
       .from("conversations")
       .insert({ patient_id: user.id, title: "Therapy Session", ended: false })
@@ -132,8 +182,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
     setConversationId(data.id);
 
-    // 4) PRO‑TIP: fetch the *most recently ended* conv by created_at,
-    //           but don’t filter out NULL summaries—use maybeSingle()
     const {
       data: prev,
       error: memErr,
@@ -144,18 +192,16 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .eq("ended", true)
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle(); // <— returns null if no row, instead of an error
+      .maybeSingle();
 
     if (memErr && memErr.code !== "PGRST116") {
       console.error("❌ Error fetching memory_summary:", memErr);
     }
 
-    // 5) Choose greeting based on whether we have a real summary
     const greeting = prev?.memory_summary
       ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
       : "Hi there, I'm Sky. How are you feeling today?";
 
-    // 6) Seed that into messages
     await supabase.from("messages").insert({
       conversation_id: data.id,
       sender_role: "assistant",
@@ -164,7 +210,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       tts_status: "pending",
     });
 
-    // 7) Reflect into UI immediately
     setMessages([
       {
         id: crypto.randomUUID(),
@@ -177,7 +222,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       },
     ]);
 
-    // 8) Load any actual history (should be just that first message)
     await loadHistory(data.id);
   };
 
@@ -247,7 +291,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // 1) mark ended in Supabase
     const { error } = await supabase
       .from("conversations")
       .update({ ended: true })
@@ -259,7 +302,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
     console.log("✅ Conversation ended successfully.");
 
-    // 2) immediately call your FastAPI summarizer
     try {
       await fetch("http://localhost:8000/summarize_conversation", {
         method: "POST",
@@ -275,14 +317,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const playMessageAudio = async (tts_path: string) => {
     if (!tts_path) return;
   
-    // If the same audio is already playing → pause it
     if (currentAudio?.src.includes(tts_path) && !currentAudio.paused) {
       currentAudio.pause();
       console.log("⏸️ Audio paused");
       return;
     }
   
-    // Otherwise, stop any previous audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -337,8 +377,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
   
-  
-
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
@@ -354,15 +392,17 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         (payload) => {
           const msg = payload.new;
           if (msg.sender_role === "assistant") {
-            setMessages((prev) => [...prev, formatMessage(msg)]);
-            setIsProcessing(false);
-
-            // Auto-play audio if available
-            if (msg.tts_path && msg.tts_status === "done") {
-              setTimeout(() => {
-                playMessageAudio(msg.tts_path);
-              }, 500); // Small delay to ensure message is added
+            const formattedMsg = formatMessage(msg);
+            
+            if (formattedMsg.tts_path) {
+              setMessages((prev) => [...prev, formattedMsg]);
+              
+              prepareAudioForMessage(formattedMsg);
+            } else {
+              setMessages((prev) => [...prev, { ...formattedMsg, isAudioReady: true }]);
             }
+            
+            setIsProcessing(false);
           }
         }
       )

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -49,7 +50,7 @@ const SessionRoom = () => {
 
   useEffect(() => {
     const latestMessage = messages[messages.length - 1];
-    if (latestMessage?.tts_path && !latestMessage.isUser) {
+    if (latestMessage?.tts_path && !latestMessage.isUser && latestMessage.isAudioReady) {
       playMessageAudio(latestMessage.tts_path);
     }
   }, [messages]);
@@ -88,6 +89,9 @@ const SessionRoom = () => {
     }
   };
 
+  // Filter messages to only show those that are ready (user messages or messages with audio loaded)
+  const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
@@ -115,7 +119,7 @@ const SessionRoom = () => {
       >
         <div className="space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
-          {messages.map((message, index) => (
+          {visibleMessages.map((message, index) => (
             <div key={index} className="relative group">
               <ChatBubble
                 key={index}
