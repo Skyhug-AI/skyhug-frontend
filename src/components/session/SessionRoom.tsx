@@ -33,13 +33,11 @@ const SessionRoom = () => {
     }
   };
 
-  // Scroll to bottom when component mounts
   useEffect(() => {
     if (messages.length > 0) {
       setHasStartedChat(true);
     }
 
-    // Use setTimeout to ensure DOM is fully rendered
     setTimeout(() => {
       scrollToBottom();
     }, 100);
@@ -47,6 +45,13 @@ const SessionRoom = () => {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    const latestMessage = messages[messages.length - 1];
+    if (latestMessage?.tts_path && !latestMessage.isUser) {
+      playMessageAudio(latestMessage.tts_path);
+    }
   }, [messages]);
 
   const handleSendMessage = (message: string) => {
