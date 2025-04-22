@@ -8,7 +8,7 @@ import TypingIndicator from "@/components/chat/TypingIndicator";
 import { useTherapist } from "@/context/TherapistContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Play, Pause } from "lucide-react";
 import BackgroundEffects from "@/components/chat/BackgroundEffects";
 
 const ChatPage = () => {
@@ -16,9 +16,11 @@ const ChatPage = () => {
     messages,
     isProcessing,
     sendMessage,
-    sendAudioMessage,
     clearMessages,
     endConversation,
+    playMessageAudio,
+    isAudioPlaying,
+    currentPlayingPath,
   } = useTherapist();
 
   const { patientReady } = useAuth();
@@ -38,10 +40,12 @@ const ChatPage = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isProcessing]);
+  
+  const handlePlayAudio = (tts_path?: string | null) => {
+    if (tts_path) {
+      playMessageAudio(tts_path);
+    }
+  };
 
   return (
     <div
@@ -88,13 +92,28 @@ const ChatPage = () => {
 
             <div className="flex-grow overflow-y-auto px-4 md:px-8 py-4">
               <div className="space-y-6">
-                {messages.map((message) => (
-                  <ChatBubble
-                    key={message.id}
-                    message={message.content}
-                    isUser={message.isUser}
-                    timestamp={message.timestamp}
-                  />
+                {messages.map((message, index) => (
+                  <div key={index} className="relative group">
+                    <ChatBubble
+                      key={index}
+                      message={message.content}
+                      isUser={message.isUser}
+                    />
+                    {!message.isUser && message.tts_path && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handlePlayAudio(message.tts_path)}
+                      >
+                        {currentPlayingPath === message.tts_path && isAudioPlaying ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 ))}
                 {isProcessing && <TypingIndicator />}
                 <div ref={messagesEndRef} />
@@ -103,8 +122,7 @@ const ChatPage = () => {
 
             <ChatInput
               onSendMessage={sendMessage}
-              onStartVoice={sendAudioMessage}
-              isVoiceEnabled={true}
+              isVoiceEnabled={false}
             />
           </div>
         </div>

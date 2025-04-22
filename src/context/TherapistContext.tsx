@@ -4,19 +4,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
+  id?: string;
   content: string;
   isUser: boolean;
   tts_path?: string | null;
+  timestamp?: string;
 }
 
 interface TherapistContextType {
   messages: Message[];
   isProcessing: boolean;
   sendMessage: (message: string) => Promise<void>;
+  sendAudioMessage?: (blob: Blob) => Promise<void>;
   clearMessages: () => Promise<void>;
   endConversation: () => Promise<void>;
   playMessageAudio: (tts_path: string) => Promise<void>;
   pauseMessageAudio: () => void;
+  setVoiceEnabled?: (enabled: boolean) => Promise<void>;
   isAudioPlaying: boolean;
   audioRef: React.RefObject<HTMLAudioElement>;
   currentPlayingPath: string | null;
@@ -29,6 +33,7 @@ export const TherapistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [currentPlayingPath, setCurrentPlayingPath] = useState<string | null>(null);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const { toast } = useToast();
@@ -56,9 +61,11 @@ export const TherapistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       
       // Add AI response to messages
       setMessages(prev => [...prev, {
+        id: `ai-${Date.now()}`,
         content: aiResponse,
         isUser: false,
-        tts_path: tts_path
+        tts_path: tts_path,
+        timestamp: new Date().toISOString(),
       }]);
     } catch (error) {
       console.error('Error processing AI response:', error);
@@ -94,10 +101,56 @@ export const TherapistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Send message function
   const sendMessage = async (message: string) => {
     // Add user message to messages
-    setMessages(prev => [...prev, { content: message, isUser: true }]);
+    setMessages(prev => [...prev, { 
+      id: `user-${Date.now()}`,
+      content: message, 
+      isUser: true,
+      timestamp: new Date().toISOString(),
+    }]);
     
     // Process AI response
     await processAIResponse(message);
+  };
+
+  // Send audio message function (placeholder for audio processing)
+  const sendAudioMessage = async (blob: Blob) => {
+    setIsProcessing(true);
+    try {
+      // In a real app, you'd send this blob to your backend for processing
+      console.log("Audio blob received, processing...");
+      
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock transcription (in a real app, this would come from a speech-to-text service)
+      const transcription = "This is a simulated transcription of your audio message.";
+      
+      // Add user message with transcription
+      setMessages(prev => [...prev, { 
+        id: `user-audio-${Date.now()}`,
+        content: transcription, 
+        isUser: true,
+        timestamp: new Date().toISOString(),
+      }]);
+      
+      // Process AI response to the transcription
+      await processAIResponse(transcription);
+    } catch (error) {
+      console.error('Error processing audio message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process your audio message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Enable/disable voice functionality
+  const setVoiceEnabled = async (enabled: boolean) => {
+    setIsVoiceEnabled(enabled);
+    return Promise.resolve();
   };
 
   // Clear all messages function
@@ -222,10 +275,12 @@ export const TherapistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     messages,
     isProcessing,
     sendMessage,
+    sendAudioMessage,
     clearMessages,
     endConversation,
     playMessageAudio,
     pauseMessageAudio,
+    setVoiceEnabled,
     isAudioPlaying,
     audioRef,
     currentPlayingPath,

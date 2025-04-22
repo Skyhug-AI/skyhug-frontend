@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -5,7 +6,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,6 +21,8 @@ const SessionRoom = () => {
     setVoiceEnabled,
     endConversation,
     playMessageAudio,
+    isAudioPlaying,
+    currentPlayingPath,
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
@@ -83,6 +86,14 @@ const SessionRoom = () => {
     }
   };
 
+  const toggleVoiceMode = async () => {
+    const next = !isVoiceMode;
+    setIsVoiceMode(next);
+    if (setVoiceEnabled) {
+      await setVoiceEnabled(next);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
@@ -116,7 +127,6 @@ const SessionRoom = () => {
                 key={index}
                 message={message.content}
                 isUser={message.isUser}
-                timestamp={message.timestamp}
               />
               {!message.isUser && message.tts_path && (
                 <Button
@@ -125,8 +135,16 @@ const SessionRoom = () => {
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handlePlayAudio(message.tts_path)}
                 >
-                  <Play className="h-4 w-4" />
-                  <span className="sr-only">Play audio</span>
+                  {currentPlayingPath === message.tts_path && isAudioPlaying ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">
+                    {currentPlayingPath === message.tts_path && isAudioPlaying
+                      ? "Pause audio"
+                      : "Play audio"}
+                  </span>
                 </Button>
               )}
             </div>
@@ -185,11 +203,7 @@ const SessionRoom = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={async () => {
-                  const next = !isVoiceMode;
-                  setIsVoiceMode(next);
-                  await setVoiceEnabled(next);
-                }}
+                onClick={toggleVoiceMode}
                 className="rounded-full w-8 h-8"
               >
                 {isVoiceMode ? (
