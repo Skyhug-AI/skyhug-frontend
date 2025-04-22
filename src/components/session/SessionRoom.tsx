@@ -6,7 +6,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,6 +27,7 @@ const SessionRoom = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -49,9 +50,11 @@ const SessionRoom = () => {
   }, [messages]);
 
   useEffect(() => {
-    const latestMessage = messages[messages.length - 1];
+    const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
+    const latestMessage = visibleMessages[visibleMessages.length - 1];
     if (latestMessage?.tts_path && !latestMessage.isUser && latestMessage.isAudioReady) {
       playMessageAudio(latestMessage.tts_path);
+      setCurrentlyPlayingId(latestMessage.id);
     }
   }, [messages]);
 
@@ -77,9 +80,16 @@ const SessionRoom = () => {
     sendMessage(transcript);
   };
 
-  const handlePlayAudio = (tts_path?: string | null) => {
+  const handlePlayAudio = (id: string, tts_path?: string | null) => {
     if (tts_path) {
-      playMessageAudio(tts_path);
+      if (currentlyPlayingId === id) {
+        // Stop playing
+        setCurrentlyPlayingId(null);
+      } else {
+        // Start playing
+        playMessageAudio(tts_path);
+        setCurrentlyPlayingId(id);
+      }
     } else {
       toast({
         title: "No audio available",
@@ -132,10 +142,16 @@ const SessionRoom = () => {
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handlePlayAudio(message.tts_path)}
+                  onClick={() => handlePlayAudio(message.id, message.tts_path)}
                 >
-                  <Play className="h-4 w-4" />
-                  <span className="sr-only">Play audio</span>
+                  {currentlyPlayingId === message.id ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">
+                    {currentlyPlayingId === message.id ? "Pause" : "Play"} audio
+                  </span>
                 </Button>
               )}
             </div>

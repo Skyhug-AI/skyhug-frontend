@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useContext,
@@ -78,6 +79,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     for (const msg of formattedMessages) {
       if (!msg.isUser && msg.tts_path) {
         prepareAudioForMessage(msg);
+      } else if (msg.isUser) {
+        // Mark user messages as ready immediately
+        setMessages(prev => 
+          prev.map(m => 
+            m.id === msg.id ? { ...m, isAudioReady: true } : m
+          )
+        );
       }
     }
   };
