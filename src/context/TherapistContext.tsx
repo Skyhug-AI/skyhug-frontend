@@ -125,7 +125,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const DEFAULT_GREETING_AUDIO = "https://bborzcdfxrangvewmpfo.supabase.co/storage/v1/object/sign/tts-audio/867abb59-f20b-4a53-a716-f166758917b9/0350861c-124f-4d86-9150-8a8f8ef62f2e.mp3";
+  const DEFAULT_GREETING_AUDIO = "https://bborzcdfxrangvewmpfo.supabase.co/storage/v1/object/sign/tts-audio/6dd33f13-2eb3-4218-ba97-f148bca7aeb3/0ceed09a-bddf-4443-a22a-c2f21b9a3094.mp3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzcxODA5ZWE4LTlmOGItNGE0OS1iNWU0LWI2NzVlNDYxMDIxNCJ9.eyJ1cmwiOiJ0dHMtYXVkaW8vNmRkMzNmMTMtMmViMy00MjE4LWJhOTctZjE0OGJjYTdhZWIzLzBjZWVkMDlhLWJkZGYtNDQ0My1hMjJhLWMyZjIxYjlhMzA5NC5tcDMiLCJpYXQiOjE3NDUzMDUyNTMsImV4cCI6NDg5ODkwNTI1M30.HG15VPv1RDmkZkhJqiXW189p2HsJcujHUeu5TuGJyyo";
 
   const createConversation = async () => {
     if (!user) {
