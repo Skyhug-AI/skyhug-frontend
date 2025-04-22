@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -38,12 +39,13 @@ const SessionRoom = () => {
   useEffect(() => {
     if (messages.length > 0) {
       setHasStartedChat(true);
+      console.log("Messages length:", messages.length, messages);
     }
 
     setTimeout(() => {
       scrollToBottom();
     }, 100);
-  }, []);
+  }, [messages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -51,8 +53,11 @@ const SessionRoom = () => {
 
   useEffect(() => {
     const latestMessage = messages[messages.length - 1];
-    if (latestMessage?.tts_path && !latestMessage.isUser) {
+    if (latestMessage?.tts_path && !latestMessage.isUser && latestMessage.isAudioReady) {
+      console.log("Playing latest message audio:", latestMessage);
       playMessageAudio(latestMessage.tts_path);
+      setCurrentlyPlayingPath(latestMessage.tts_path);
+      setIsPaused(false);
     }
   }, [messages]);
 
@@ -100,7 +105,8 @@ const SessionRoom = () => {
     }
   };
 
-  const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
+  // Show all messages immediately and filter out ones with missing audio only for non-user messages
+  const visibleMessages = messages.filter(msg => msg.isUser || (msg.isAudioReady !== false));
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">

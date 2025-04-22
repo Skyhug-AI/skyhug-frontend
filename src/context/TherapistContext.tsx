@@ -85,6 +85,31 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const prepareAudioForMessage = async (message: Message) => {
     if (!message.tts_path || message.isUser) return;
     
+    if (message.tts_path.startsWith('https://')) {
+      console.log(`Using direct URL for message ${message.id}`);
+      const audio = new Audio(message.tts_path);
+      audio.preload = "auto";
+  
+      audio.onloadeddata = () => {
+        console.log(`✅ Audio loaded for message ${message.id}`);
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
+      };
+      
+      audio.onerror = (e) => {
+        console.error(`Audio loading error for message ${message.id}:`, e);
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
+      };
+      return;
+    }
+    
     try {
       const { data, error } = await supabase.storage
         .from("tts-audio")
@@ -204,6 +229,19 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
       : "Hi there, I'm Sky. How are you feeling today?";
 
+    const messageId = crypto.randomUUID();
+    const defaultMessage: Message = {
+      id: messageId,
+      content: greeting,
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      tts_path: DEFAULT_GREETING_AUDIO,
+      isAudioReady: true,
+    };
+
     await supabase.from("messages").insert({
       conversation_id: data.id,
       sender_role: "assistant",
@@ -213,19 +251,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       tts_status: "done",
     });
 
-    setMessages([{
-      id: crypto.randomUUID(),
-      content: greeting,
-      isUser: false,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      tts_path: DEFAULT_GREETING_AUDIO,
-      isAudioReady: true,
-    }]);
-
-    await loadHistory(data.id);
+    setMessages([defaultMessage]);
+    console.log("✅ Default greeting message set:", defaultMessage);
   };
 
   const clearMessages = createConversation;
@@ -338,6 +365,30 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   
     try {
+      if (tts_path.startsWith('https://')) {
+        console.log("Using direct audio URL");
+        const audio = new Audio(tts_path);
+        audio.onplay = () => {
+          toast({
+            title: "🎧 Playing audio",
+            description: "Sky's response is playing now",
+          });
+        };
+        
+        audio.onerror = (e) => {
+          console.error("Audio playback error:", e);
+          toast({
+            title: "Audio error",
+            description: "Could not play the audio",
+            variant: "destructive",
+          });
+        };
+        
+        setCurrentAudio(audio);
+        await audio.play();
+        return;
+      }
+      
       const { data, error } = await supabase.storage
         .from("tts-audio")
         .createSignedUrl(tts_path, 60);
@@ -362,7 +413,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       audio.onplay = () => {
         toast({
           title: "🎧 Playing audio",
-          description: "Serenity's response is playing now",
+          description: "Sky's response is playing now",
         });
       };
       
