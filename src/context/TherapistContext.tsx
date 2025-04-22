@@ -125,6 +125,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const DEFAULT_GREETING_AUDIO = "https://bborzcdfxrangvewmpfo.supabase.co/storage/v1/object/sign/tts-audio/867abb59-f20b-4a53-a716-f166758917b9/0350861c-124f-4d86-9150-8a8f8ef62f2e.mp3";
+
   const createConversation = async () => {
     if (!user) {
       console.warn("⏳ Waiting for user to be ready...");
@@ -170,7 +172,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
 
-    console.log("���� Creating new conversation...");
+    console.log("Creating new conversation...");
     const { data, error } = await supabase
       .from("conversations")
       .insert({ patient_id: user.id, title: "Therapy Session", ended: false })
@@ -207,20 +209,21 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       sender_role: "assistant",
       assistant_text: greeting,
       ai_status: "done",
-      tts_status: "pending",
+      tts_path: DEFAULT_GREETING_AUDIO,
+      tts_status: "done",
     });
 
-    setMessages([
-      {
-        id: crypto.randomUUID(),
-        content: greeting,
-        isUser: false,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      },
-    ]);
+    setMessages([{
+      id: crypto.randomUUID(),
+      content: greeting,
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      tts_path: DEFAULT_GREETING_AUDIO,
+      isAudioReady: true,
+    }]);
 
     await loadHistory(data.id);
   };

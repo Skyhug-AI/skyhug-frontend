@@ -51,7 +51,7 @@ const SessionRoom = () => {
 
   useEffect(() => {
     const latestMessage = messages[messages.length - 1];
-    if (latestMessage?.tts_path && !latestMessage.isUser && latestMessage.isAudioReady) {
+    if (latestMessage?.tts_path && !latestMessage.isUser) {
       playMessageAudio(latestMessage.tts_path);
     }
   }, [messages]);
