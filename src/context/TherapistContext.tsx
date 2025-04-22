@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useContext,
@@ -46,6 +45,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
+  const [isAudioPaused, setIsAudioPaused] = useState(false);
 
   const formatMessage = (msg: any): Message => ({
     id: msg.id,
@@ -291,10 +291,22 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     if (!tts_path) return;
   
     // If the same audio is already playing → pause it
-    if (currentAudio?.src.includes(tts_path) && !currentAudio.paused) {
-      currentAudio.pause();
-      console.log("⏸️ Audio paused");
-      return;
+    if (currentAudio?.src.includes(tts_path)) {
+      if (!currentAudio.paused) {
+        currentAudio.pause();
+        setIsAudioPaused(true);
+        console.log("⏸️ Audio paused");
+        return;
+      } else {
+        // Resume playing the same audio
+        setIsAudioPaused(false);
+        try {
+          await currentAudio.play();
+          return;
+        } catch (err) {
+          console.error("Error resuming audio:", err);
+        }
+      }
     }
   
     // Otherwise, stop any previous audio
@@ -325,10 +337,14 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         console.log("✅ Audio loaded successfully");
       };
       audio.onplay = () => {
+        setIsAudioPaused(false);
         toast({
           title: "🎧 Playing audio",
           description: "Serenity's response is playing now",
         });
+      };
+      audio.onended = () => {
+        setIsAudioPaused(true);
       };
       audio.onerror = (e) => {
         console.error("Audio playback error:", e);
@@ -340,6 +356,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       };
   
       setCurrentAudio(audio);
+      setIsAudioPaused(false);
       await audio.play();
   
     } catch (err) {
@@ -351,8 +368,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       });
     }
   };
-  
-  
 
   useEffect(() => {
     if (!conversationId) return;

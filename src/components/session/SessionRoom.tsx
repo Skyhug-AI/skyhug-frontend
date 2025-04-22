@@ -24,7 +24,7 @@ const SessionRoom = () => {
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const [audioStates, setAudioStates] = useState<{[key: string]: boolean}>({});
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -80,17 +80,16 @@ const SessionRoom = () => {
 
   const handlePlayAudio = (tts_path?: string | null) => {
     if (tts_path) {
-      if (currentlyPlayingPath === tts_path && !isPaused) {
-        playMessageAudio(tts_path);
-        setIsPaused(true);
-      } else if (currentlyPlayingPath === tts_path && isPaused) {
-        playMessageAudio(tts_path);
-        setIsPaused(false);
-      } else {
-        setCurrentlyPlayingPath(tts_path);
-        setIsPaused(false);
-        playMessageAudio(tts_path);
-      }
+      playMessageAudio(tts_path);
+      
+      // Toggle the playing state for this specific audio
+      setCurrentlyPlayingPath(tts_path);
+      setAudioStates(prev => {
+        const newState = {...prev};
+        // If it's already playing (true), we're pausing it; otherwise, we're playing it
+        newState[tts_path] = !prev[tts_path];
+        return newState;
+      });
     } else {
       toast({
         title: "No audio available",
@@ -142,15 +141,13 @@ const SessionRoom = () => {
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handlePlayAudio(message.tts_path)}
                 >
-                  {currentlyPlayingPath === message.tts_path && !isPaused ? (
+                  {audioStates[message.tts_path || ""] ? (
                     <Pause className="h-4 w-4" />
                   ) : (
                     <Play className="h-4 w-4" />
                   )}
                   <span className="sr-only">
-                    {currentlyPlayingPath === message.tts_path && !isPaused
-                      ? "Pause audio"
-                      : "Play audio"}
+                    {audioStates[message.tts_path || ""] ? "Pause audio" : "Play audio"}
                   </span>
                 </Button>
               )}
