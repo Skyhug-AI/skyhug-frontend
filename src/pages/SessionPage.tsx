@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -15,6 +14,7 @@ const SessionPage = () => {
 
   // Memoize this function to prevent unnecessary rerenders
   const handleStartSession = useCallback(() => {
+    console.log("🚀 Starting new therapy session");
     setIsSessionStarted(true);
   }, []);
 
@@ -22,6 +22,7 @@ const SessionPage = () => {
   useEffect(() => {
     // This will run once when the component mounts
     const initSession = async () => {
+      console.log("✨ Initializing session - clearing messages");
       await clearMessages();
     };
 

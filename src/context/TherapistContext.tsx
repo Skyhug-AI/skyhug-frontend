@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useContext,
@@ -133,7 +134,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     setConversationId(data.id);
 
     // 4) PRO‑TIP: fetch the *most recently ended* conv by created_at,
-    //           but don’t filter out NULL summaries—use maybeSingle()
+    //           but don't filter out NULL summaries—use maybeSingle()
     const {
       data: prev,
       error: memErr,
@@ -146,6 +147,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .limit(1)
       .maybeSingle(); // <— returns null if no row, instead of an error
 
+    console.log("🔍 Previous conversation summary check:", { 
+      found: !!prev, 
+      summary: prev?.memory_summary,
+      error: memErr 
+    });
+
     if (memErr && memErr.code !== "PGRST116") {
       console.error("❌ Error fetching memory_summary:", memErr);
     }
@@ -155,14 +162,22 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
       : "Hi there, I'm Sky. How are you feeling today?";
 
+    console.log("👋 Selected greeting:", greeting);
+
     // 6) Seed that into messages
-    await supabase.from("messages").insert({
+    const { data: messageData, error: messageError } = await supabase.from("messages").insert({
       conversation_id: data.id,
       sender_role: "assistant",
       assistant_text: greeting,
       ai_status: "done",
       tts_status: "pending",
-    });
+    }).select().single();
+
+    if (messageError) {
+      console.error("❌ Error inserting greeting message:", messageError);
+    } else {
+      console.log("✅ Greeting message inserted:", messageData);
+    }
 
     // 7) Reflect into UI immediately
     setMessages([
