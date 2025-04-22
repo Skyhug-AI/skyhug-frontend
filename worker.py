@@ -26,20 +26,23 @@ supabase_admin = create_client(
 print("🔑 Supabase token prefix:", os.getenv("SUPABASE_SERVICE_ROLE_KEY")[:10])
 
 
-# info = supabase.rpc("auth_role").execute()
-# print("🔐 Auth role seen by Supabase:", info)
+info = supabase.rpc("auth_role").execute()
+print("🔐 Auth role seen by Supabase:", info)
+
+
+
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
 SYSTEM_PROMPT = """
-You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care.
-Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language.
+You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care. 
+Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language. 
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
 
-Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms.
-If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind
+Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms. 
+If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind 
 them that you're an AI and not a substitute for professional care.
 
 Your structure for each response should be:
@@ -89,6 +92,8 @@ FUNCTION_DEFS = [
 # Record the time when the worker started, as an ISO timestamp string
 START_TS = datetime.now(timezone.utc).isoformat()
 
+#Cutoff for "Only keep the last X messages in full detail — and summarize the rest.
+MAX_HISTORY = 10
 
 def fetch_pending(table, **conds):
     """
@@ -111,64 +116,151 @@ def download_audio(path, bucket="raw-audio"):
 def upload_audio(path, data, bucket="tts-audio"):
     supabase.storage.from_(bucket).upload(path, io.BytesIO(data), {"content-type":"audio/mpeg"})
 
+def summarize_and_store(conv_id):
+    """
+    Summarize a conversation only if there are at least 4 assistant replies,
+    then store a very brief, noun‑phrase style summary (≤12 words).
+    """
+    # 1) fetch full history
+    history = (
+        supabase
+        .table("messages")
+        .select("sender_role,transcription,assistant_text")
+        .eq("conversation_id", conv_id)
+        .order("created_at")
+        .execute()
+        .data
+        or []
+    )
+
+    # 2) require at least 4 assistant replies
+    assistant_count = sum(1 for m in history if m["sender_role"] == "assistant")
+    if assistant_count < 4:
+        print(f"🛑 Skipping summary for conv {conv_id} — only {assistant_count} assistant replies")
+        return
+
+    # 3) build messages for GPT
+    msgs = []
+    for m in history:
+        role = "user" if m["sender_role"] == "user" else "assistant"
+        content = m["transcription"] if role == "user" else m["assistant_text"]
+        msgs.append({"role": role, "content": content})
+
+    # 4) ask GPT for a very brief topic phrase
+    prompt = """
+You are a concise summarizer. Extract the single main theme of the conversation
+as a noun or gerund phrase (no more than 12 words). Do NOT include any suggestions
+or extra punctuation. Examples:
+  • political issues and feeling like nobody cares
+  • basketball strategies and team dynamics
+  • anxiety about work deadlines
+"""
+    resp = client.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[{"role":"system", "content": prompt.strip()}] + msgs,
+        temperature=0.5,
+        max_tokens=30,
+    )
+    raw = resp.choices[0].message.content.strip()
+    # strip trailing period if any
+    summary = raw.rstrip(".").strip()
+
+    # 5) store it
+    supabase.table("conversations") \
+        .update({"memory_summary": summary}) \
+        .eq("id", conv_id) \
+        .execute()
+    print(f"🧠 Stored memory for conv {conv_id}: {summary}")
+
 def close_inactive_conversations():
-    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    """
+    Auto‑end any conversation idle >1h, summarizing it just before marking it ended.
+    """
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=1)
     print("⏰ Checking for inactive conversations...")
 
-    response = supabase.table("conversations") \
-        .select("id") \
-        .eq("ended", False) \
-        .lt("updated_at", cutoff_time.isoformat()) \
+    # 1) find only active convs that have gone quiet for >1h
+    stale = (
+        supabase
+        .table("conversations")
+        .select("id")
+        .eq("ended", False)
+        .lt("updated_at", cutoff.isoformat())
         .execute()
+        .data
+        or []
+    )
 
-    for conv in response.data or []:
+    for record in stale:
+        conv_id = record["id"]
+
+        # 2) generate & store summary (only if ≥4 assistant replies)
+        summarize_and_store(conv_id)
+
+        # 3) now mark it ended
         supabase.table("conversations") \
             .update({"ended": True}) \
-            .eq("id", conv["id"]) \
+            .eq("id", conv_id) \
             .execute()
-        print(f"✅ Auto-ended conversation {conv['id']}")
+        print(f"✅ Auto-ended and summarized conversation {conv_id}")
 
 # ─── Summarization to Keep Context Small ─────────────────────────────────────
 def build_chat_payload(conv_id):
-    # fetch full history
-    history = supabase.table("messages") \
-    .select("sender_role,transcription,assistant_text,created_at") \
-    .eq("conversation_id", conv_id) \
-    .order("created_at") \
-    .execute().data or []
+    # — fetch any prior memory —
+    conv_meta = supabase.table("conversations") \
+        .select("memory_summary") \
+        .eq("id", conv_id) \
+        .single() \
+        .execute().data or {}
+    memory = conv_meta.get("memory_summary")
 
-    # Map to OpenAI format
-    messages = []
+    # — now fetch in‑progress history —
+    history = supabase.table("messages") \
+        .select("sender_role,transcription,assistant_text,created_at") \
+        .eq("conversation_id", conv_id) \
+        .order("created_at") \
+        .execute().data or []
+
+    # — build the standard messages list —
+    # Start with system + examples
+    messages = [{"role":"system","content":SYSTEM_PROMPT}] + EXAMPLE_DIALOG
+
+    # — if brand‑new session and we have a memory, inject it —
+    if memory and len(history) == 0:
+        messages.append({
+            "role": "assistant",
+            "content": f"Last time we spoke, we talked about: {memory} Would you like to pick up where we left off?"
+        })
+
+    # — map actual turns —
+    user_msgs = []
     for m in history:
         if m["sender_role"] == "user":
-            messages.append({"role":"user","content": m["transcription"]})
+            user_msgs.append({"role":"user","content": m["transcription"]})
         else:
-            messages.append({"role":"assistant","content": m["assistant_text"]})
+            user_msgs.append({"role":"assistant","content": m["assistant_text"]})
 
-    # If too many, summarize the oldest
-    MAX_HISTORY = 10
-    if len(messages) > MAX_HISTORY:
-        # prepare summarization call
-        to_summarize = messages[:-MAX_HISTORY]
+    # — summarization of old turns if needed —
+    if len(user_msgs) > MAX_HISTORY:
+        to_summarize = user_msgs[:-MAX_HISTORY]
         summary_resp = client.chat.completions.create(
             model="gpt-4-turbo",
-            messages=[{"role":"system","content":SYSTEM_PROMPT}] +
-                     EXAMPLE_DIALOG +
-                     [{"role":"assistant","content":"Please provide a concise summary of the conversation so far."}] +
-                     to_summarize,
+            messages=messages + [
+                {"role":"assistant","content":"Please summarize the earlier conversation in a brief sentence."}
+            ] + to_summarize,
             temperature=0.3,
             max_tokens=200
         )
         summary = summary_resp.choices[0].message.content
-        # rebuild with summary + recent
-        return (
-            [{"role":"system","content":SYSTEM_PROMPT}] +
-            EXAMPLE_DIALOG +
-            [{"role":"assistant","content":f"Summary of earlier conversation: {summary}"}] +
-            messages[-MAX_HISTORY:]
-        )
+        messages += [
+            {"role":"assistant","content": f"Summary of earlier conversation: {summary}"}
+        ] + user_msgs[-MAX_HISTORY:]
     else:
-        return [{"role":"system","content":SYSTEM_PROMPT}] + EXAMPLE_DIALOG + messages
+        messages += user_msgs
+
+    return messages
+
 
 # ─── 1) Transcription Pass ──────────────────────────────────────────────────
 def process_transcriptions():
@@ -191,7 +283,6 @@ def process_transcriptions():
             print("Transcribe error:", e)
 
 
-# ─── 2) AI Response Pass ────────────────────────────────────────────────────
 # ─── 2) AI Response Pass ────────────────────────────────────────────────────
 def process_ai():
     pending = fetch_pending(
@@ -273,7 +364,7 @@ def process_tts():
             # Generate ElevenLabs TTS
             print("🎤 Sending TTS request to ElevenLabs...")
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{os.getenv('ELEVENLABS_VOICE_ID')}"
-            headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY")}
+            headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY"), "Content-Type": "application/json"}
             body = {
                 "text": msg["assistant_text"],
                 "voice_settings": {"stability": 0.75, "similarity_boost": 0.75}
@@ -290,22 +381,39 @@ def process_tts():
                     path = f"{msg['conversation_id']}/{msg['id']}.mp3"
 
                     # Upload to Supabase
-                    print("📤 Getting signed upload URL...")
-                    signed_upload_url = supabase_admin.storage.from_("tts-audio").create_signed_upload_url(path)
-                    print("🔍 Supabase signed URL response:", signed_upload_url)
-                    upload_url = signed_upload_url.get("signed_url") or signed_upload_url.get("signedUrl")
+                    # Step 1: Generate path to use for storage (must match exactly)
+                    path = f"{msg['conversation_id']}/{msg['id']}.mp3"
 
+                    # Step 2: Create signed upload URL
+                    print("📤 Getting signed upload URL...")
+                    signed_upload = supabase_admin.storage.from_("tts-audio").create_signed_upload_url(path)
+                    upload_url = signed_upload.get("signed_url") or signed_upload.get("signedUrl")
+                    print(f"🔍 Upload URL: {upload_url}")
 
                     if not upload_url:
                         raise Exception("❌ Failed to get signed upload URL")
 
-
-                    print("📤 Uploading file...")
+                    # Step 3: Upload file using PUT
+                    print("📤 Uploading MP3 to Supabase...")
                     with open(tmp.name, "rb") as audio_file:
-                        headers = {"Content-Type": "audio/mpeg"}
-                        r = requests.put(upload_url, data=audio_file, headers=headers)
-                        r.raise_for_status()
+                        put_response = requests.put(
+                            upload_url,
+                            data=audio_file,
+                            headers={"Content-Type": "audio/mpeg"}
+                        )
+                        put_response.raise_for_status()
+                    print("✅ Upload succeeded")
 
+                    # Step 4 (optional): Debug playback URL
+                    signed_playback = supabase_admin.storage.from_("tts-audio").create_signed_url(path, 60)
+                    print("🔊 Signed playback URL:", signed_playback.get("signed_url") or signed_playback.get("signedUrl"))
+
+
+            # ✅ Create a signed playback URL (optional but useful for debugging)
+            signed_playback = supabase_admin.storage.from_("tts-audio").create_signed_url(path, 60)
+            print("🔊 Signed playback URL (for debug):", signed_playback.get("signed_url") or signed_playback.get("signedUrl"))
+
+            # ✅ Update the DB record
             print("✅ Updating tts_path and tts_status...")
             supabase_admin.table("messages").update({
                 "tts_path": path,
@@ -314,13 +422,14 @@ def process_tts():
 
             print(f"✅ TTS succeeded for {msg['id']}")
 
+
         except Exception as e:
             print("❌ TTS error:", e)
             supabase_admin.table("messages").update({
                 "tts_status": "done"
             }).eq("id", msg["id"]).execute()
 
-
+            
 # ─── Main Loop ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     test = supabase.table("messages").select("id").limit(1).execute()
@@ -348,3 +457,4 @@ if __name__ == "__main__":
             close_inactive_conversations()
 
         time.sleep(1)
+

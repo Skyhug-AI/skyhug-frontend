@@ -273,59 +273,65 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const playMessageAudio = async (tts_path: string) => {
-    if (!tts_path) {
-      toast({
-        title: "No audio available",
-        description: "This message doesn't have audio",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    if (!tts_path) return;
+  
     // Stop any currently playing audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
     }
-
+  
     try {
-      // Create public URL to the audio file
-      const audioUrl = `${
-        import.meta.env.VITE_SUPABASE_URL ||
-        "https://bborzcdfxrangvewmpfo.supabase.co"
-      }/storage/v1/object/public/tts-audio/${tts_path}`;
+      // 🎯 Step 1: Request a signed playback URL (not a public one!)
+      const { data, error } = await supabase.storage
+        .from("tts-audio")
+        .createSignedUrl(tts_path, 60); // URL expires in 60 sec
+  
+      if (error || !data?.signedUrl) {
+        toast({
+          title: "Could not play audio",
+          description: "Unable to generate signed URL",
+          variant: "destructive",
+        });
+        console.error("Signed URL error:", error);
+        return;
+      }
+  
+      // 🎧 Step 2: Create and play audio
+      const audio = new Audio(data.signedUrl);
 
-      // Create and play the audio
-      const audio = new Audio(audioUrl);
-
+      audio.preload = "auto"; // Helps load the audio faster
+      audio.onloadeddata = () => {
+        console.log("✅ Audio loaded successfully");
+      };
       audio.onplay = () => {
         toast({
-          title: "Playing audio",
-          description: "Text-to-speech audio is playing",
+          title: "🎧 Playing audio",
+          description: "Serenity's response is playing now",
         });
       };
-
       audio.onerror = (e) => {
-        console.error("Audio error:", e);
+        console.error("Audio playback error:", e);
         toast({
           title: "Audio error",
-          description:
-            "Could not play audio message. Check console for details.",
+          description: "Could not play the audio",
           variant: "destructive",
         });
       };
-
+  
       setCurrentAudio(audio);
       await audio.play();
-    } catch (error) {
-      console.error("Error playing audio:", error);
+  
+    } catch (err) {
+      console.error("TTS playback exception:", err);
       toast({
-        title: "Error playing audio",
-        description: "Could not play the audio message",
+        title: "Playback error",
+        description: "An error occurred while playing audio",
         variant: "destructive",
       });
     }
   };
+  
 
   useEffect(() => {
     if (!conversationId) return;
