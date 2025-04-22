@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -5,7 +6,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,8 +27,6 @@ const SessionRoom = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
-  const [autoPlayedInitialMessage, setAutoPlayedInitialMessage] = useState(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -50,18 +49,11 @@ const SessionRoom = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (!autoPlayedInitialMessage && messages.length > 0) {
-      const firstAssistantMessage = messages.find(
-        msg => !msg.isUser && msg.tts_path && msg.isAudioReady
-      );
-      
-      if (firstAssistantMessage?.tts_path) {
-        playMessageAudio(firstAssistantMessage.tts_path);
-        setCurrentlyPlayingId(firstAssistantMessage.id);
-        setAutoPlayedInitialMessage(true);
-      }
+    const latestMessage = messages[messages.length - 1];
+    if (latestMessage?.tts_path && !latestMessage.isUser && latestMessage.isAudioReady) {
+      playMessageAudio(latestMessage.tts_path);
     }
-  }, [messages, autoPlayedInitialMessage, playMessageAudio]);
+  }, [messages]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -85,14 +77,9 @@ const SessionRoom = () => {
     sendMessage(transcript);
   };
 
-  const handlePlayAudio = (id: string, tts_path?: string | null) => {
+  const handlePlayAudio = (tts_path?: string | null) => {
     if (tts_path) {
-      if (currentlyPlayingId === id) {
-        setCurrentlyPlayingId(null);
-      } else {
-        playMessageAudio(tts_path);
-        setCurrentlyPlayingId(id);
-      }
+      playMessageAudio(tts_path);
     } else {
       toast({
         title: "No audio available",
@@ -101,6 +88,9 @@ const SessionRoom = () => {
       });
     }
   };
+
+  // Filter messages to only show those that are ready (user messages or messages with audio loaded)
+  const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
@@ -129,8 +119,8 @@ const SessionRoom = () => {
       >
         <div className="space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
-          {messages.map((message, index) => (
-            <div key={message.id || index} className="relative group">
+          {visibleMessages.map((message, index) => (
+            <div key={index} className="relative group">
               <ChatBubble
                 key={index}
                 message={message.content}
@@ -142,16 +132,10 @@ const SessionRoom = () => {
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handlePlayAudio(message.id, message.tts_path)}
+                  onClick={() => handlePlayAudio(message.tts_path)}
                 >
-                  {currentlyPlayingId === message.id ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {currentlyPlayingId === message.id ? "Pause" : "Play"} audio
-                  </span>
+                  <Play className="h-4 w-4" />
+                  <span className="sr-only">Play audio</span>
                 </Button>
               )}
             </div>
