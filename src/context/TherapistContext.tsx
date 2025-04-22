@@ -1,293 +1,391 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./AuthContext";
+import { v4 as uuidv4 } from "uuid";
+import { useToast } from "@/hooks/use-toast";
 
-import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-interface Message {
-  id?: string;
+export interface Message {
+  id: string;
   content: string;
   isUser: boolean;
+  timestamp: string;
   tts_path?: string | null;
-  timestamp?: string;
 }
 
 interface TherapistContextType {
+  conversationId: string | null;
   messages: Message[];
   isProcessing: boolean;
   sendMessage: (message: string) => Promise<void>;
-  sendAudioMessage?: (blob: Blob) => Promise<void>;
+  sendAudioMessage: (blob: Blob) => Promise<void>;
   clearMessages: () => Promise<void>;
+  setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
   playMessageAudio: (tts_path: string) => Promise<void>;
-  pauseMessageAudio: () => void;
-  setVoiceEnabled?: (enabled: boolean) => Promise<void>;
-  isAudioPlaying: boolean;
-  audioRef: React.RefObject<HTMLAudioElement>;
-  currentPlayingPath: string | null;
 }
 
-const TherapistContext = createContext<TherapistContextType | undefined>(undefined);
+const TherapistContext = createContext<TherapistContextType | undefined>(
+  undefined
+);
 
-export const TherapistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [currentPlayingPath, setCurrentPlayingPath] = useState<string | null>(null);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const { toast } = useToast();
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
+    null
+  );
 
-  // Only create AudioContext when needed to avoid autoplay policy issues
-  const getAudioContext = () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new AudioContext();
+  const formatMessage = (msg: any): Message => ({
+    id: msg.id,
+    content: msg.transcription ?? msg.assistant_text ?? "[No content]",
+    isUser: msg.sender_role === "user",
+    timestamp: new Date(msg.created_at).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    tts_path: msg.tts_path,
+  });
+
+  const loadHistory = async (convId: string) => {
+    const { data: rows, error } = await supabase
+      .from("messages")
+      .select(
+        "id, sender_role, transcription, assistant_text, created_at, tts_path"
+      )
+      .eq("conversation_id", convId)
+      .order("created_at");
+    if (error) {
+      console.error("Error loading conversation history:", error);
+      return;
     }
-    return audioContextRef.current;
+    setMessages(rows.map(formatMessage));
   };
 
-  // Function to process AI response
-  const processAIResponse = async (userMessage: string) => {
-    setIsProcessing(true);
-    try {
-      // Simulate AI response delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Generate AI response (this would connect to your actual AI service)
-      const aiResponse = generateResponse(userMessage);
-      
-      // Sample TTS path (in a real app, this would be generated or fetched)
-      const tts_path = `sample-response-${Date.now()}.mp3`;
-      
-      // Add AI response to messages
-      setMessages(prev => [...prev, {
-        id: `ai-${Date.now()}`,
-        content: aiResponse,
-        isUser: false,
-        tts_path: tts_path,
-        timestamp: new Date().toISOString(),
-      }]);
-    } catch (error) {
-      console.error('Error processing AI response:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
+  const createConversation = async () => {
+    if (!user) {
+      console.warn("⏳ Waiting for user to be ready...");
+      return;
     }
-  };
 
-  // Simple response generator for demo purposes
-  const generateResponse = (message: string): string => {
-    const lowercaseMessage = message.toLowerCase();
-    
-    if (lowercaseMessage.includes('hello') || lowercaseMessage.includes('hi')) {
-      return "Hello there! How are you feeling today?";
-    } else if (lowercaseMessage.includes('feeling') || lowercaseMessage.includes('mood')) {
-      return "It's important to acknowledge your feelings. Can you tell me more about what's going on?";
-    } else if (lowercaseMessage.includes('anxious') || lowercaseMessage.includes('anxiety')) {
-      return "I understand anxiety can be difficult. Let's try a breathing exercise together. Take a deep breath in for 4 counts, hold for 2, and exhale for 6.";
-    } else if (lowercaseMessage.includes('sad') || lowercaseMessage.includes('depressed')) {
-      return "I'm sorry to hear you're feeling down. Remember that it's okay to not be okay sometimes. What's one small thing that brought you joy recently?";
-    } else if (lowercaseMessage.includes('thank')) {
-      return "You're welcome. I'm here to support you whenever you need someone to talk to.";
-    } else {
-      return "I appreciate you sharing that with me. How does that make you feel?";
+    // 1) Resume any open session
+    const { data: existing, error: findError } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("patient_id", user.id)
+      .eq("ended", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (findError && findError.code !== "PGRST116") {
+      console.error("❌ Error checking for existing conversation:", findError);
+      return;
     }
-  };
-
-  // Send message function
-  const sendMessage = async (message: string) => {
-    // Add user message to messages
-    setMessages(prev => [...prev, { 
-      id: `user-${Date.now()}`,
-      content: message, 
-      isUser: true,
-      timestamp: new Date().toISOString(),
-    }]);
-    
-    // Process AI response
-    await processAIResponse(message);
-  };
-
-  // Send audio message function (placeholder for audio processing)
-  const sendAudioMessage = async (blob: Blob) => {
-    setIsProcessing(true);
-    try {
-      // In a real app, you'd send this blob to your backend for processing
-      console.log("Audio blob received, processing...");
-      
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock transcription (in a real app, this would come from a speech-to-text service)
-      const transcription = "This is a simulated transcription of your audio message.";
-      
-      // Add user message with transcription
-      setMessages(prev => [...prev, { 
-        id: `user-audio-${Date.now()}`,
-        content: transcription, 
-        isUser: true,
-        timestamp: new Date().toISOString(),
-      }]);
-      
-      // Process AI response to the transcription
-      await processAIResponse(transcription);
-    } catch (error) {
-      console.error('Error processing audio message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process your audio message. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
+    if (existing) {
+      console.log("🔁 Resuming previous conversation:", existing.id);
+      setConversationId(existing.id);
+      await loadHistory(existing.id);
+      return;
     }
-  };
 
-  // Enable/disable voice functionality
-  const setVoiceEnabled = async (enabled: boolean) => {
-    setIsVoiceEnabled(enabled);
-    return Promise.resolve();
-  };
-
-  // Clear all messages function
-  const clearMessages = async () => {
-    setMessages([]);
-    // If audio is playing, stop it
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsAudioPlaying(false);
-      setCurrentPlayingPath(null);
+    // 2) Ensure patient row exists
+    const { data: patientExists, error: checkError } = await supabase
+      .from("patients")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+    if (checkError && checkError.code !== "PGRST116") {
+      console.error("❌ Error checking patient:", checkError);
+      return;
     }
-    return Promise.resolve();
-  };
-
-  // End conversation function
-  const endConversation = async () => {
-    // In a real app, you might want to save the conversation to a database
-    console.log('Ending conversation');
-    // For now, just return a resolved promise
-    return Promise.resolve();
-  };
-
-  // Play message audio function with pause capability
-  const playMessageAudio = async (tts_path: string) => {
-    try {
-      // If something is already playing
-      if (audioRef.current && isAudioPlaying) {
-        // If it's the same audio
-        if (currentPlayingPath === tts_path) {
-          // Pause it
-          pauseMessageAudio();
-          return;
-        } else {
-          // Stop current audio
-          audioRef.current.pause();
-          setIsAudioPlaying(false);
-        }
+    if (!patientExists) {
+      const { error: insertError } = await supabase
+        .from("patients")
+        .insert({ id: user.id, full_name: user.name });
+      if (insertError) {
+        console.error("❌ Error inserting patient:", insertError);
+        return;
       }
-      
-      // Get signed URL for the audio file
+    }
+
+    // 3) Create a brand‑new conversation
+    console.log("🟡 Creating new conversation...");
+    const { data, error } = await supabase
+      .from("conversations")
+      .insert({ patient_id: user.id, title: "Therapy Session", ended: false })
+      .select()
+      .single();
+    if (error || !data) {
+      console.error("❌ Supabase error creating conversation:", error);
+      return;
+    }
+    setConversationId(data.id);
+
+    // 4) PRO‑TIP: fetch the *most recently ended* conv by created_at,
+    //           but don’t filter out NULL summaries—use maybeSingle()
+    const {
+      data: prev,
+      error: memErr,
+    }: { data: { memory_summary: string } | null; error: any } = await supabase
+      .from("conversations")
+      .select("memory_summary")
+      .eq("patient_id", user.id)
+      .eq("ended", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(); // <— returns null if no row, instead of an error
+
+    if (memErr && memErr.code !== "PGRST116") {
+      console.error("❌ Error fetching memory_summary:", memErr);
+    }
+
+    // 5) Choose greeting based on whether we have a real summary
+    const greeting = prev?.memory_summary
+      ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
+      : "Hi there, I'm Sky. How are you feeling today?";
+
+    // 6) Seed that into messages
+    await supabase.from("messages").insert({
+      conversation_id: data.id,
+      sender_role: "assistant",
+      assistant_text: greeting,
+      ai_status: "done",
+      tts_status: "pending",
+    });
+
+    // 7) Reflect into UI immediately
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        content: greeting,
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
+    ]);
+
+    // 8) Load any actual history (should be just that first message)
+    await loadHistory(data.id);
+  };
+
+  const clearMessages = createConversation;
+
+  const sendMessage = async (content: string) => {
+    if (!conversationId || !content.trim()) return;
+    console.log("📤 Sending message to Supabase...");
+    setIsProcessing(true);
+
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_role: "user",
+      transcription: content,
+      transcription_status: "done",
+      ai_status: "pending",
+      tts_status: "pending",
+    });
+
+    if (error) console.error("Error sending message:", error);
+    await loadHistory(conversationId);
+  };
+
+  const sendAudioMessage = async (blob: Blob) => {
+    if (!conversationId || !user) return;
+    setIsProcessing(true);
+    const key = `${user.id}/${uuidv4()}.webm`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("raw-audio")
+      .upload(key, blob, { contentType: "audio/webm" });
+
+    if (uploadError) {
+      console.error("Error uploading audio:", uploadError);
+      setIsProcessing(false);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_role: "user",
+      audio_path: key,
+      transcription_status: "pending",
+      ai_status: "pending",
+      tts_status: "pending",
+    });
+
+    if (insertError)
+      console.error("Error inserting audio message:", insertError);
+    await loadHistory(conversationId);
+    setIsProcessing(false);
+  };
+
+  const setVoiceEnabled = async (on: boolean) => {
+    if (!conversationId) return;
+    const { error } = await supabase
+      .from("conversations")
+      .update({ voice_enabled: on })
+      .eq("id", conversationId);
+    if (error) console.error("Error updating voice_enabled:", error);
+  };
+
+  const endConversation = async () => {
+    console.log("📕 Attempting to end conversation:", conversationId);
+    if (!conversationId) {
+      console.warn("⚠️ No conversationId set; cannot end.");
+      return;
+    }
+
+    // 1) mark ended in Supabase
+    const { error } = await supabase
+      .from("conversations")
+      .update({ ended: true })
+      .eq("id", conversationId);
+
+    if (error) {
+      console.error("❌ Supabase error ending conversation:", error);
+      return;
+    }
+    console.log("✅ Conversation ended successfully.");
+
+    // 2) immediately call your FastAPI summarizer
+    try {
+      await fetch("http://localhost:8000/summarize_conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: conversationId }),
+      });
+      console.log("🧠 Summarization triggered for conv", conversationId);
+    } catch (e) {
+      console.error("❌ Failed to trigger summarization:", e);
+    }
+  };
+
+  const playMessageAudio = async (tts_path: string) => {
+    if (!tts_path) return;
+  
+    // If the same audio is already playing → pause it
+    if (currentAudio?.src.includes(tts_path) && !currentAudio.paused) {
+      currentAudio.pause();
+      console.log("⏸️ Audio paused");
+      return;
+    }
+  
+    // Otherwise, stop any previous audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+  
+    try {
       const { data, error } = await supabase.storage
         .from("tts-audio")
         .createSignedUrl(tts_path, 60);
-        
+  
       if (error || !data?.signedUrl) {
-        throw new Error("Could not get signed URL");
+        toast({
+          title: "Could not play audio",
+          description: "Unable to generate signed URL",
+          variant: "destructive",
+        });
+        console.error("Signed URL error:", error);
+        return;
       }
-      
-      console.log("✅ Audio URL obtained:", data.signedUrl);
-      
-      // Create a new audio element if not exists
-      if (!audioRef.current) {
-        const audio = new Audio();
-        audioRef.current = audio;
-      }
-      
-      // Set up audio element
-      audioRef.current.src = data.signedUrl;
-      audioRef.current.onended = () => {
-        console.log("🔚 Audio playback ended");
-        setIsAudioPlaying(false);
-        setCurrentPlayingPath(null);
-      };
-      
-      audioRef.current.onloadeddata = () => {
+  
+      const audio = new Audio(data.signedUrl);
+      audio.preload = "auto";
+  
+      audio.onloadeddata = () => {
         console.log("✅ Audio loaded successfully");
       };
-      
-      audioRef.current.onerror = (e) => {
-        console.error("❌ Audio error:", e);
-        setIsAudioPlaying(false);
-        setCurrentPlayingPath(null);
+      audio.onplay = () => {
         toast({
-          title: "Audio Error",
-          description: "Could not play audio",
+          title: "🎧 Playing audio",
+          description: "Serenity's response is playing now",
+        });
+      };
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
+        toast({
+          title: "Audio error",
+          description: "Could not play the audio",
           variant: "destructive",
         });
       };
-      
-      // Play the audio
-      try {
-        await audioRef.current.play();
-        console.log("▶️ Audio playing");
-        setIsAudioPlaying(true);
-        setCurrentPlayingPath(tts_path);
-      } catch (playError) {
-        console.error("TTS playback exception:", playError);
-        setIsAudioPlaying(false);
-        setCurrentPlayingPath(null);
-        
-        // If it's not an abort error (which happens when pause is called), show a toast
-        if (playError instanceof Error && playError.name !== "AbortError") {
-          toast({
-            title: "Audio Error",
-            description: "Could not play audio",
-            variant: "destructive",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error getting audio URL:", error);
+  
+      setCurrentAudio(audio);
+      await audio.play();
+  
+    } catch (err) {
+      console.error("TTS playback exception:", err);
       toast({
-        title: "Audio Error",
-        description: "Could not load audio",
+        title: "Playback error",
+        description: "An error occurred while playing audio",
         variant: "destructive",
       });
-      setIsAudioPlaying(false);
-      setCurrentPlayingPath(null);
     }
   };
   
-  // Pause message audio function
-  const pauseMessageAudio = () => {
-    if (audioRef.current && isAudioPlaying) {
-      audioRef.current.pause();
-      console.log("⏸️ Audio paused");
-      setIsAudioPlaying(false);
-    }
-  };
+  
 
-  const value = {
-    messages,
-    isProcessing,
-    sendMessage,
-    sendAudioMessage,
-    clearMessages,
-    endConversation,
-    playMessageAudio,
-    pauseMessageAudio,
-    setVoiceEnabled,
-    isAudioPlaying,
-    audioRef,
-    currentPlayingPath,
-  };
+  useEffect(() => {
+    if (!conversationId) return;
+    const channel = supabase
+      .channel(`messages-updates-${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const msg = payload.new;
+          if (msg.sender_role === "assistant") {
+            setMessages((prev) => [...prev, formatMessage(msg)]);
+            setIsProcessing(false);
+
+            // Auto-play audio if available
+            if (msg.tts_path && msg.tts_status === "done") {
+              setTimeout(() => {
+                playMessageAudio(msg.tts_path);
+              }, 500); // Small delay to ensure message is added
+            }
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId]);
 
   return (
-    <TherapistContext.Provider value={value}>
+    <TherapistContext.Provider
+      value={{
+        conversationId,
+        messages,
+        isProcessing,
+        sendMessage,
+        sendAudioMessage,
+        clearMessages,
+        setVoiceEnabled,
+        endConversation,
+        playMessageAudio,
+      }}
+    >
       {children}
     </TherapistContext.Provider>
   );
@@ -295,8 +393,8 @@ export const TherapistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 export const useTherapist = (): TherapistContextType => {
   const context = useContext(TherapistContext);
-  if (context === undefined) {
-    throw new Error('useTherapist must be used within a TherapistProvider');
+  if (!context) {
+    throw new Error("useTherapist must be used within a TherapistProvider");
   }
   return context;
 };
