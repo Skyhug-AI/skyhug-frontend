@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -20,6 +21,7 @@ const SessionRoom = () => {
     setVoiceEnabled,
     endConversation,
     playMessageAudio,
+    prepareDefaultAudio,
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
@@ -36,6 +38,8 @@ const SessionRoom = () => {
   };
 
   useEffect(() => {
+    prepareDefaultAudio();
+    
     if (messages.length > 0) {
       setHasStartedChat(true);
     }
