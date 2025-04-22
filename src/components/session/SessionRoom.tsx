@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SessionRoom = () => {
   const { toast } = useToast();
@@ -24,6 +25,7 @@ const SessionRoom = () => {
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -31,11 +33,19 @@ const SessionRoom = () => {
     }
   };
 
+  // Scroll to bottom when component mounts
   useEffect(() => {
     if (messages.length > 0) {
       setHasStartedChat(true);
     }
 
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -93,8 +103,13 @@ const SessionRoom = () => {
         </div>
       )}
 
-      <div className="flex-grow overflow-y-auto py-6">
-        <div className="space-y-6">
+      <div
+        className="flex-grow overflow-y-auto py-6 scroll-smooth"
+        ref={chatContainerRef}
+        style={{ maxHeight: "calc(100vh - 12rem)" }}
+      >
+        <div className="space-y-6 flex flex-col min-h-full">
+          <div className="flex-grow" />
           {messages.map((message, index) => (
             <div key={index} className="relative group">
               <ChatBubble
@@ -147,8 +162,6 @@ const SessionRoom = () => {
           animate={{
             y: hasStartedChat ? 0 : -200,
             position: hasStartedChat ? "sticky" : "relative",
-            marginTop: hasStartedChat ? 0 : "auto",
-            marginBottom: hasStartedChat ? 0 : "auto",
           }}
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >

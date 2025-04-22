@@ -42,7 +42,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
+    null
+  );
 
   const formatMessage = (msg: any): Message => ({
     id: msg.id,
@@ -58,7 +60,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
       .from("messages")
-      .select("id, sender_role, transcription, assistant_text, created_at, tts_path")
+      .select(
+        "id, sender_role, transcription, assistant_text, created_at, tts_path"
+      )
       .eq("conversation_id", convId)
       .order("created_at");
     if (error) {
@@ -73,7 +77,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.warn("⏳ Waiting for user to be ready...");
       return;
     }
-  
+
     // 1) Resume any open session
     const { data: existing, error: findError } = await supabase
       .from("conversations")
@@ -83,7 +87,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
-  
+
     if (findError && findError.code !== "PGRST116") {
       console.error("❌ Error checking for existing conversation:", findError);
       return;
@@ -94,7 +98,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       await loadHistory(existing.id);
       return;
     }
-  
+
     // 2) Ensure patient row exists
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
@@ -114,7 +118,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
     }
-  
+
     // 3) Create a brand‑new conversation
     console.log("🟡 Creating new conversation...");
     const { data, error } = await supabase
@@ -127,7 +131,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
     setConversationId(data.id);
-  
+
     // 4) PRO‑TIP: fetch the *most recently ended* conv by created_at,
     //           but don’t filter out NULL summaries—use maybeSingle()
     const {
@@ -140,19 +144,17 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .eq("ended", true)
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle();  // <— returns null if no row, instead of an error
-  
+      .maybeSingle(); // <— returns null if no row, instead of an error
+
     if (memErr && memErr.code !== "PGRST116") {
       console.error("❌ Error fetching memory_summary:", memErr);
     }
-  
+
     // 5) Choose greeting based on whether we have a real summary
     const greeting = prev?.memory_summary
-    ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
-    : "Hi there, I'm Sky. How are you feeling today?";
-  
+      ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
+      : "Hi there, I'm Sky. How are you feeling today?";
 
-  
     // 6) Seed that into messages
     await supabase.from("messages").insert({
       conversation_id: data.id,
@@ -161,7 +163,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       ai_status: "done",
       tts_status: "pending",
     });
-  
+
     // 7) Reflect into UI immediately
     setMessages([
       {
@@ -174,7 +176,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         }),
       },
     ]);
-  
+
     // 8) Load any actual history (should be just that first message)
     await loadHistory(data.id);
   };
@@ -197,7 +199,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     if (error) console.error("Error sending message:", error);
     await loadHistory(conversationId);
-    setIsProcessing(false);
+    // setIsProcessing(false);
   };
 
   const sendAudioMessage = async (blob: Blob) => {
@@ -289,27 +291,31 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     try {
       // Create public URL to the audio file
-      const audioUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://bborzcdfxrangvewmpfo.supabase.co'}/storage/v1/object/public/tts-audio/${tts_path}`;
-      
+      const audioUrl = `${
+        import.meta.env.VITE_SUPABASE_URL ||
+        "https://bborzcdfxrangvewmpfo.supabase.co"
+      }/storage/v1/object/public/tts-audio/${tts_path}`;
+
       // Create and play the audio
       const audio = new Audio(audioUrl);
-      
+
       audio.onplay = () => {
         toast({
           title: "Playing audio",
           description: "Text-to-speech audio is playing",
         });
       };
-      
+
       audio.onerror = (e) => {
         console.error("Audio error:", e);
         toast({
           title: "Audio error",
-          description: "Could not play audio message. Check console for details.",
+          description:
+            "Could not play audio message. Check console for details.",
           variant: "destructive",
         });
       };
-      
+
       setCurrentAudio(audio);
       await audio.play();
     } catch (error) {
@@ -338,7 +344,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           const msg = payload.new;
           if (msg.sender_role === "assistant") {
             setMessages((prev) => [...prev, formatMessage(msg)]);
-            
+            setIsProcessing(false);
+
             // Auto-play audio if available
             if (msg.tts_path && msg.tts_status === "done") {
               setTimeout(() => {
