@@ -199,7 +199,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     if (error) console.error("Error sending message:", error);
     await loadHistory(conversationId);
-    // setIsProcessing(false);
   };
 
   const sendAudioMessage = async (blob: Blob) => {
