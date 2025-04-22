@@ -29,14 +29,11 @@ interface TherapistContextType {
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
   playMessageAudio: (tts_path: string, shouldPause?: boolean) => Promise<void>;
-  prepareDefaultAudio: () => void;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
   undefined
 );
-
-const DEFAULT_GREETING_AUDIO_URL = "https://bborzcdfxrangvewmpfo.supabase.co/storage/v1/object/sign/tts-audio/867abb59-f20b-4a53-a716-f166758917b9/0350861c-124f-4d86-9150-8a8f8ef62f2e.mp3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzcxODA5ZWE4LTlmOGItNGE0OS1iNWU0LWI2NzVlNDYxMDIxNCJ9.eyJ1cmwiOiJ0dHMtYXVkaW8vODY3YWJiNTktZjIwYi00YTUzLWE3MTYtZjE2Njc1ODkxN2I5LzAzNTA4NjFjLTEyNGYtNGQ4Ni05MTUwLThhOGY4ZWY2MmYyZS5tcDMiLCJpYXQiOjE3NDUzMDQ1NjAsImV4cCI6MTc0NTMwNDYyMH0.u7PYcq6z7QCiuYEYU7Br2mKQS5yGwGuF1o9FeiBZ9zo";
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -49,7 +46,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
-  const [defaultGreetingAudio, setDefaultGreetingAudio] = useState<HTMLAudioElement | null>(null);
 
   const formatMessage = (msg: any): Message => ({
     id: msg.id,
@@ -60,19 +56,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       minute: "2-digit",
     }),
     tts_path: msg.tts_path,
-    isAudioReady: msg.sender_role === "user" ? true : false,
+    isAudioReady: false,
   });
-
-  const prepareDefaultAudio = () => {
-    try {
-      const audio = new Audio(DEFAULT_GREETING_AUDIO_URL);
-      audio.preload = "auto";
-      setDefaultGreetingAudio(audio);
-      console.log("Default greeting audio pre-loaded");
-    } catch (err) {
-      console.error("Failed to pre-load default greeting audio:", err);
-    }
-  };
 
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
@@ -88,20 +73,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
     
     const formattedMessages = rows.map(formatMessage);
-    
-    setMessages(formattedMessages.filter(msg => msg.isUser));
-    
-    const firstAssistantMessage = formattedMessages.find(msg => !msg.isUser);
-    if (firstAssistantMessage && firstAssistantMessage.content.includes("Hi there, I'm Sky")) {
-      firstAssistantMessage.isAudioReady = true;
-      if (!firstAssistantMessage.tts_path) {
-        firstAssistantMessage.tts_path = "default_greeting";
-      }
-      setMessages(prev => [...prev, firstAssistantMessage]);
-    }
+    setMessages(formattedMessages);
     
     for (const msg of formattedMessages) {
-      if (!msg.isUser && msg.tts_path && !msg.isAudioReady) {
+      if (!msg.isUser && msg.tts_path) {
         prepareAudioForMessage(msg);
       }
     }
@@ -110,16 +85,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const prepareAudioForMessage = async (message: Message) => {
     if (!message.tts_path || message.isUser) return;
     
-    if (message.tts_path === "default_greeting" || 
-        message.content.includes("Hi there, I'm Sky")) {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === message.id ? { ...msg, isAudioReady: true, tts_path: "default_greeting" } : msg
-        )
-      );
-      return;
-    }
-    
     try {
       const { data, error } = await supabase.storage
         .from("tts-audio")
@@ -127,86 +92,36 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   
       if (error || !data?.signedUrl) {
         console.error("Signed URL error:", error);
-        
-        setMessages(prev => {
-          const msgExists = prev.some(m => m.id === message.id);
-          
-          if (msgExists) {
-            return prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            );
-          } else {
-            return [...prev, { ...message, isAudioReady: true }];
-          }
-        });
         return;
       }
   
       const audio = new Audio(data.signedUrl);
       audio.preload = "auto";
   
-      const timeoutId = setTimeout(() => {
-        console.log(`⏱️ Audio load timeout for message ${message.id}, showing anyway`);
-        setMessages(prev => {
-          const msgExists = prev.some(m => m.id === message.id);
-          
-          if (msgExists) {
-            return prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            );
-          } else {
-            return [...prev, { ...message, isAudioReady: true }];
-          }
-        });
-      }, 3000);
-  
       audio.onloadeddata = () => {
-        clearTimeout(timeoutId);
         console.log(`✅ Audio loaded for message ${message.id}`);
-        
-        setMessages(prev => {
-          const msgExists = prev.some(m => m.id === message.id);
-          
-          if (msgExists) {
-            return prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            );
-          } else {
-            return [...prev, { ...message, isAudioReady: true }];
-          }
-        });
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
       };
       
       audio.onerror = (e) => {
-        clearTimeout(timeoutId);
         console.error(`Audio loading error for message ${message.id}:`, e);
-        
-        setMessages(prev => {
-          const msgExists = prev.some(m => m.id === message.id);
-          
-          if (msgExists) {
-            return prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            );
-          } else {
-            return [...prev, { ...message, isAudioReady: true }];
-          }
-        });
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
       };
     } catch (err) {
       console.error("Audio preparation exception:", err);
-      
-      setMessages(prev => {
-        const msgExists = prev.some(m => m.id === message.id);
-        
-        if (msgExists) {
-          return prev.map(msg => 
-            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-          );
-        } else {
-          return [...prev, { ...message, isAudioReady: true }];
-        }
-      });
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+        )
+      );
     }
   };
 
@@ -401,32 +316,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
   const playMessageAudio = async (tts_path: string, shouldPause: boolean = false) => {
     if (!tts_path) return;
-    
-    if (tts_path === "default_greeting") {
-      if (defaultGreetingAudio) {
-        if (shouldPause) {
-          defaultGreetingAudio.pause();
-          console.log("⏸️ Default greeting audio paused");
-          return;
-        } else if (defaultGreetingAudio.paused) {
-          defaultGreetingAudio.play();
-          console.log("▶️ Default greeting audio resumed");
-          return;
-        } else {
-          return;
-        }
-      } else {
-        try {
-          const audio = new Audio(DEFAULT_GREETING_AUDIO_URL);
-          audio.play();
-          setDefaultGreetingAudio(audio);
-          return;
-        } catch (err) {
-          console.error("Error playing default greeting:", err);
-          return;
-        }
-      }
-    }
   
     if (currentAudio?.src.includes(tts_path)) {
       if (shouldPause) {
@@ -513,23 +402,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           if (msg.sender_role === "assistant") {
             const formattedMsg = formatMessage(msg);
             
-            if (formattedMsg.isUser) {
-              setMessages((prev) => [...prev, { ...formattedMsg, isAudioReady: true }]);
-              setIsProcessing(false);
-              return;
-            }
-            
-            if (formattedMsg.content.includes("Hi there, I'm Sky")) {
-              setMessages((prev) => [...prev, { 
-                ...formattedMsg, 
-                isAudioReady: true,
-                tts_path: "default_greeting"
-              }]);
-              setIsProcessing(false);
-              return;
-            }
-            
             if (formattedMsg.tts_path) {
+              setMessages((prev) => [...prev, formattedMsg]);
+              
               prepareAudioForMessage(formattedMsg);
             } else {
               setMessages((prev) => [...prev, { ...formattedMsg, isAudioReady: true }]);
@@ -557,7 +432,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         setVoiceEnabled,
         endConversation,
         playMessageAudio,
-        prepareDefaultAudio,
       }}
     >
       {children}
