@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -6,7 +5,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,6 +23,8 @@ const SessionRoom = () => {
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
+  const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +80,17 @@ const SessionRoom = () => {
 
   const handlePlayAudio = (tts_path?: string | null) => {
     if (tts_path) {
-      playMessageAudio(tts_path);
+      if (currentlyPlayingPath === tts_path && !isPaused) {
+        playMessageAudio(tts_path, true);
+        setIsPaused(true);
+      } else if (currentlyPlayingPath === tts_path && isPaused) {
+        playMessageAudio(tts_path, false);
+        setIsPaused(false);
+      } else {
+        playMessageAudio(tts_path);
+        setCurrentlyPlayingPath(tts_path);
+        setIsPaused(false);
+      }
     } else {
       toast({
         title: "No audio available",
@@ -89,7 +100,6 @@ const SessionRoom = () => {
     }
   };
 
-  // Filter messages to only show those that are ready (user messages or messages with audio loaded)
   const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
 
   return (
@@ -134,8 +144,16 @@ const SessionRoom = () => {
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handlePlayAudio(message.tts_path)}
                 >
-                  <Play className="h-4 w-4" />
-                  <span className="sr-only">Play audio</span>
+                  {currentlyPlayingPath === message.tts_path && !isPaused ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">
+                    {currentlyPlayingPath === message.tts_path && !isPaused
+                      ? "Pause audio"
+                      : "Play audio"}
+                  </span>
                 </Button>
               )}
             </div>

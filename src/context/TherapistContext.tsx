@@ -28,7 +28,7 @@ interface TherapistContextType {
   clearMessages: () => Promise<void>;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
-  playMessageAudio: (tts_path: string) => Promise<void>;
+  playMessageAudio: (tts_path: string, shouldPause?: boolean) => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -314,13 +314,19 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = async (tts_path: string) => {
+  const playMessageAudio = async (tts_path: string, shouldPause: boolean = false) => {
     if (!tts_path) return;
   
-    if (currentAudio?.src.includes(tts_path) && !currentAudio.paused) {
-      currentAudio.pause();
-      console.log("⏸️ Audio paused");
-      return;
+    if (currentAudio?.src.includes(tts_path)) {
+      if (shouldPause) {
+        currentAudio.pause();
+        console.log("⏸️ Audio paused");
+        return;
+      } else if (currentAudio.paused) {
+        currentAudio.play();
+        console.log("▶️ Audio resumed");
+        return;
+      }
     }
   
     if (currentAudio) {
@@ -349,12 +355,14 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       audio.onloadeddata = () => {
         console.log("✅ Audio loaded successfully");
       };
+      
       audio.onplay = () => {
         toast({
           title: "🎧 Playing audio",
           description: "Serenity's response is playing now",
         });
       };
+      
       audio.onerror = (e) => {
         console.error("Audio playback error:", e);
         toast({
@@ -376,7 +384,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       });
     }
   };
-  
+
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
