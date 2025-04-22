@@ -1,6 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PulsatingMicButton from './PulsatingMicButton';
+import { useVoiceDetection } from '@/hooks/useVoiceDetection';
+import { useToast } from '@/hooks/use-toast';
 
 type VoiceRecorderProps = {
   onVoiceRecorded: (transcript: string) => void;
@@ -11,6 +13,34 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recognitionInstance, setRecognitionInstance] = useState<SpeechRecognition | null>(null);
+  const [lastSpeechTime, setLastSpeechTime] = useState<number>(0);
+  const { toast } = useToast();
+  
+  // Handle voice activity detection
+  const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
+    if (isSpeaking) {
+      setLastSpeechTime(Date.now());
+    }
+  }, []);
+
+  const { initVoiceDetection } = useVoiceDetection(handleVoiceActivity, 0.1);
+
+  useEffect(() => {
+    let silenceTimeout: NodeJS.Timeout;
+
+    if (isRecording && lastSpeechTime > 0) {
+      // Check for 2 seconds of silence
+      silenceTimeout = setTimeout(() => {
+        if (Date.now() - lastSpeechTime > 2000) {
+          stopRecording();
+        }
+      }, 2000);
+    }
+
+    return () => {
+      clearTimeout(silenceTimeout);
+    };
+  }, [lastSpeechTime, isRecording]);
 
   const startRecording = () => {
     if (isDisabled) return;
@@ -30,6 +60,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
       recognition.onstart = () => {
         setIsRecording(true);
         setTranscript('');
+        setLastSpeechTime(Date.now());
+        initVoiceDetection();
+        toast({
+          title: "Recording started",
+          description: "Speak naturally. Recording will stop automatically after you finish.",
+          duration: 3000,
+        });
       };
       
       recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -38,11 +75,17 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
           currentTranscript = event.results[i][0].transcript;
         }
         setTranscript(currentTranscript);
+        setLastSpeechTime(Date.now());
       };
       
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error', event.error);
         setIsRecording(false);
+        toast({
+          title: "Recording error",
+          description: "There was an error with the voice recording",
+          variant: "destructive",
+        });
       };
       
       recognition.onend = () => {
@@ -56,7 +99,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
       recognition.start();
       setRecognitionInstance(recognition);
     } else {
-      alert('Speech recognition is not supported in your browser.');
+      toast({
+        title: "Not supported",
+        description: "Speech recognition is not supported in your browser",
+        variant: "destructive",
+      });
     }
   };
 
