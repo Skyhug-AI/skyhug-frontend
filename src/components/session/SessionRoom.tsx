@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -28,6 +27,7 @@ const SessionRoom = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
+  const [autoPlayedInitialMessage, setAutoPlayedInitialMessage] = useState(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -50,13 +50,18 @@ const SessionRoom = () => {
   }, [messages]);
 
   useEffect(() => {
-    const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
-    const latestMessage = visibleMessages[visibleMessages.length - 1];
-    if (latestMessage?.tts_path && !latestMessage.isUser && latestMessage.isAudioReady) {
-      playMessageAudio(latestMessage.tts_path);
-      setCurrentlyPlayingId(latestMessage.id);
+    if (!autoPlayedInitialMessage && messages.length > 0) {
+      const firstAssistantMessage = messages.find(
+        msg => !msg.isUser && msg.tts_path && msg.isAudioReady
+      );
+      
+      if (firstAssistantMessage?.tts_path) {
+        playMessageAudio(firstAssistantMessage.tts_path);
+        setCurrentlyPlayingId(firstAssistantMessage.id);
+        setAutoPlayedInitialMessage(true);
+      }
     }
-  }, [messages]);
+  }, [messages, autoPlayedInitialMessage, playMessageAudio]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -83,10 +88,8 @@ const SessionRoom = () => {
   const handlePlayAudio = (id: string, tts_path?: string | null) => {
     if (tts_path) {
       if (currentlyPlayingId === id) {
-        // Stop playing
         setCurrentlyPlayingId(null);
       } else {
-        // Start playing
         playMessageAudio(tts_path);
         setCurrentlyPlayingId(id);
       }
@@ -98,9 +101,6 @@ const SessionRoom = () => {
       });
     }
   };
-
-  // Filter messages to only show those that are ready (user messages or messages with audio loaded)
-  const visibleMessages = messages.filter(msg => msg.isUser || msg.isAudioReady);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
@@ -129,8 +129,8 @@ const SessionRoom = () => {
       >
         <div className="space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
-          {visibleMessages.map((message, index) => (
-            <div key={index} className="relative group">
+          {messages.map((message, index) => (
+            <div key={message.id || index} className="relative group">
               <ChatBubble
                 key={index}
                 message={message.content}

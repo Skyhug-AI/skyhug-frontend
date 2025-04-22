@@ -72,12 +72,23 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
     
+    setMessages([]);
+    
     const formattedMessages = rows.map(formatMessage);
-    setMessages(formattedMessages);
+    
+    const userMessages = formattedMessages.filter(msg => msg.isUser);
+    if (userMessages.length > 0) {
+      setMessages(userMessages);
+    }
     
     for (const msg of formattedMessages) {
-      if (!msg.isUser && msg.tts_path) {
-        await prepareAudioForMessage(msg);
+      if (!msg.isUser) {
+        if (msg.tts_path) {
+          await prepareAudioForMessage(msg);
+        } else {
+          const readyMsg = {...msg, isAudioReady: true};
+          setMessages(prev => [...prev, readyMsg]);
+        }
       }
     }
   };
@@ -93,11 +104,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   
       if (error || !data?.signedUrl) {
         console.error("Signed URL error:", error);
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-          )
-        );
+        const readyMsg = {...message, isAudioReady: true};
+        setMessages(prev => [...prev, readyMsg]);
         return;
       }
   
@@ -108,41 +116,29 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return new Promise<void>((resolve) => {
         audio.oncanplaythrough = () => {
           console.log(`✅ Audio loaded and ready for message ${message.id}`);
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            )
-          );
+          const readyMsg = {...message, isAudioReady: true};
+          setMessages(prev => [...prev, readyMsg]);
           resolve();
         };
         
         audio.onerror = (e) => {
           console.error(`Audio loading error for message ${message.id}:`, e);
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            )
-          );
+          const readyMsg = {...message, isAudioReady: true};
+          setMessages(prev => [...prev, readyMsg]);
           resolve();
         };
         
         setTimeout(() => {
           console.warn(`⚠️ Audio load timeout for message ${message.id}`);
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-            )
-          );
+          const readyMsg = {...message, isAudioReady: true};
+          setMessages(prev => [...prev, readyMsg]);
           resolve();
         }, 5000);
       });
     } catch (err) {
       console.error("Audio preparation exception:", err);
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-        )
-      );
+      const readyMsg = {...message, isAudioReady: true};
+      setMessages(prev => [...prev, readyMsg]);
     }
   };
 
@@ -415,16 +411,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           if (msg.sender_role === "assistant") {
             const formattedMsg = formatMessage(msg);
             
-            setMessages((prev) => [...prev, formattedMsg]);
-            
             if (formattedMsg.tts_path) {
               await prepareAudioForMessage(formattedMsg);
             } else {
-              setMessages((prev) => 
-                prev.map(m => 
-                  m.id === formattedMsg.id ? { ...m, isAudioReady: true } : m
-                )
-              );
+              const readyMsg = {...formattedMsg, isAudioReady: true};
+              setMessages(prev => [...prev, readyMsg]);
             }
             
             setIsProcessing(false);
