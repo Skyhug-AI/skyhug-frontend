@@ -26,7 +26,9 @@ const SessionRoom = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "instant" });
+    }
   };
 
   useEffect(() => {
@@ -34,6 +36,10 @@ const SessionRoom = () => {
       setHasStartedChat(true);
     }
 
+    scrollToBottom();
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -92,49 +98,51 @@ const SessionRoom = () => {
       )}
 
       <div className="flex-grow overflow-y-auto py-6">
-        {messages.map((message, index) => (
-          <div key={index} className="relative group">
-            <ChatBubble
-              key={index}
-              message={message.content}
-              isUser={message.isUser}
-              timestamp={message.timestamp}
-            />
-            {!message.isUser && message.tts_path && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handlePlayAudio(message.tts_path)}
+        <div className="space-y-6">
+          {messages.map((message, index) => (
+            <div key={index} className="relative group">
+              <ChatBubble
+                key={index}
+                message={message.content}
+                isUser={message.isUser}
+                timestamp={message.timestamp}
+              />
+              {!message.isUser && message.tts_path && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handlePlayAudio(message.tts_path)}
+                >
+                  <Play className="h-4 w-4" />
+                  <span className="sr-only">Play audio</span>
+                </Button>
+              )}
+            </div>
+          ))}
+          {isProcessing && (
+            <div className="flex items-center gap-2 px-4 py-2">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
               >
-                <Play className="h-4 w-4" />
-                <span className="sr-only">Play audio</span>
-              </Button>
-            )}
-          </div>
-        ))}
-        {isProcessing && (
-          <div className="flex items-center gap-2 px-4 py-2">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            >
-              <Loader className="h-4 w-4 text-skyhug-500" />
-            </motion.div>
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-gray-600"
-            >
-              Sky is thinking...
-            </motion.span>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+                <Loader className="h-4 w-4 text-skyhug-500" />
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-sm text-gray-600"
+              >
+                Sky is thinking...
+              </motion.span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       <AnimatePresence>
