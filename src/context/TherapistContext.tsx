@@ -275,53 +275,68 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const playMessageAudio = async (tts_path: string) => {
     if (!tts_path) return;
   
-    // Stop any currently playing audio
+    // Stop currently playing audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
     }
   
     try {
-      // 🎯 Step 1: Request a signed playback URL (not a public one!)
       const { data, error } = await supabase.storage
         .from("tts-audio")
-        .createSignedUrl(tts_path, 60); // URL expires in 60 sec
+        .createSignedUrl(tts_path, 60);
   
       if (error || !data?.signedUrl) {
         toast({
-          title: "Could not play audio",
-          description: "Unable to generate signed URL",
+          title: "Audio not available",
+          description: "Couldn't fetch signed playback URL",
           variant: "destructive",
         });
         console.error("Signed URL error:", error);
         return;
       }
   
-      // 🎧 Step 2: Create and play audio
       const audio = new Audio(data.signedUrl);
-
-      audio.preload = "auto"; // Helps load the audio faster
+      audio.preload = "auto";
+  
       audio.onloadeddata = () => {
         console.log("✅ Audio loaded successfully");
       };
+  
       audio.onplay = () => {
         toast({
-          title: "🎧 Playing audio",
-          description: "Serenity's response is playing now",
+          title: "🔊 Playing Serenity's voice",
+          duration: 2000,
         });
       };
+  
       audio.onerror = (e) => {
-        console.error("Audio playback error:", e);
+        console.error("❌ Audio error:", e);
         toast({
           title: "Audio error",
-          description: "Could not play the audio",
+          description: "Could not play the message audio.",
           variant: "destructive",
         });
       };
   
       setCurrentAudio(audio);
-      await audio.play();
   
+      const playPromise = audio.play();
+  
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("🔊 Audio playback started");
+          })
+          .catch((err) => {
+            console.warn("⚠️ Audio blocked (maybe autoplay policy):", err);
+            toast({
+              title: "⚠️ Audio blocked by browser",
+              description: "Click the play icon to manually trigger sound.",
+              variant: "default",
+            });
+          });
+      }
     } catch (err) {
       console.error("TTS playback exception:", err);
       toast({
@@ -331,6 +346,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       });
     }
   };
+  
   
 
   useEffect(() => {
