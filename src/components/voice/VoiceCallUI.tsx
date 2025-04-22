@@ -1,7 +1,6 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2 } from 'lucide-react';
+import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2, Pause } from 'lucide-react';
 import ChatBubble from '@/components/chat/ChatBubble';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import { useToast } from '@/hooks/use-toast';
@@ -89,39 +88,16 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const handlePlayAudio = async (tts_path?: string | null) => {
     if (!tts_path) return;
   
-    if (currentlyPlayingPath === tts_path && !isPaused) {
-      // Pause current playback
-      const audioEl = document.querySelector(`audio[data-path="${tts_path}"]`) as HTMLAudioElement;
-      audioEl?.pause();
-      setIsPaused(true);
-      return;
-    }
-  
-    if (currentlyPlayingPath === tts_path && isPaused) {
-      // Resume current playback
-      const audioEl = document.querySelector(`audio[data-path="${tts_path}"]`) as HTMLAudioElement;
-      audioEl?.play();
+    if (currentlyPlayingPath === tts_path) {
+      // Same audio - toggle pause/play
+      await playMessageAudio(tts_path);
+      setIsPaused(!isPaused);
+    } else {
+      // New audio - start playing
+      await playMessageAudio(tts_path);
+      setCurrentlyPlayingPath(tts_path);
       setIsPaused(false);
-      return;
     }
-  
-    // New audio: stop any existing
-    document.querySelectorAll("audio[data-path]").forEach((el) => {
-      (el as HTMLAudioElement).pause();
-      (el as HTMLAudioElement).currentTime = 0;
-    });
-  
-    const audio = new Audio();
-    audio.src = await getSignedURL(tts_path); // fetch signed URL
-    audio.setAttribute("data-path", tts_path);
-    audio.onended = () => {
-      setCurrentlyPlayingPath(null);
-      setIsPaused(false);
-    };
-  
-    audio.play();
-    setCurrentlyPlayingPath(tts_path);
-    setIsPaused(false);
   };
   
   
@@ -178,7 +154,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
                   onClick={() => handlePlayAudio(message.tts_path)}
                 >
                   {(currentlyPlayingPath === message.tts_path && !isPaused) ? (
-                    <VolumeX className="h-4 w-4" /> // use Pause icon if you have one
+                    <Pause className="h-4 w-4" />
                   ) : (
                     <Play className="h-4 w-4" />
                   )}
