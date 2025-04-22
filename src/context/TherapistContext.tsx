@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useContext,
@@ -57,7 +56,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       minute: "2-digit",
     }),
     tts_path: msg.tts_path,
-    isAudioReady: false,
+    isAudioReady: msg.sender_role === "user",
   });
 
   const loadHistory = async (convId: string) => {
@@ -78,14 +77,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     
     for (const msg of formattedMessages) {
       if (!msg.isUser && msg.tts_path) {
-        prepareAudioForMessage(msg);
-      } else if (msg.isUser) {
-        // Mark user messages as ready immediately
-        setMessages(prev => 
-          prev.map(m => 
-            m.id === msg.id ? { ...m, isAudioReady: true } : m
-          )
-        );
+        await prepareAudioForMessage(msg);
       }
     }
   };
@@ -94,35 +86,56 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     if (!message.tts_path || message.isUser) return;
     
     try {
+      console.log(`🎵 Preparing audio for message ${message.id}`);
       const { data, error } = await supabase.storage
         .from("tts-audio")
         .createSignedUrl(message.tts_path, 60);
   
       if (error || !data?.signedUrl) {
         console.error("Signed URL error:", error);
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+          )
+        );
         return;
       }
   
-      const audio = new Audio(data.signedUrl);
+      const audio = new Audio();
+      audio.src = data.signedUrl;
       audio.preload = "auto";
   
-      audio.onloadeddata = () => {
-        console.log(`✅ Audio loaded for message ${message.id}`);
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-          )
-        );
-      };
-      
-      audio.onerror = (e) => {
-        console.error(`Audio loading error for message ${message.id}:`, e);
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === message.id ? { ...msg, isAudioReady: true } : msg
-          )
-        );
-      };
+      return new Promise<void>((resolve) => {
+        audio.oncanplaythrough = () => {
+          console.log(`✅ Audio loaded and ready for message ${message.id}`);
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+            )
+          );
+          resolve();
+        };
+        
+        audio.onerror = (e) => {
+          console.error(`Audio loading error for message ${message.id}:`, e);
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+            )
+          );
+          resolve();
+        };
+        
+        setTimeout(() => {
+          console.warn(`⚠️ Audio load timeout for message ${message.id}`);
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === message.id ? { ...msg, isAudioReady: true } : msg
+            )
+          );
+          resolve();
+        }, 5000);
+      });
     } catch (err) {
       console.error("Audio preparation exception:", err);
       setMessages(prev => 
@@ -397,17 +410,21 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        async (payload) => {
           const msg = payload.new;
           if (msg.sender_role === "assistant") {
             const formattedMsg = formatMessage(msg);
             
+            setMessages((prev) => [...prev, formattedMsg]);
+            
             if (formattedMsg.tts_path) {
-              setMessages((prev) => [...prev, formattedMsg]);
-              
-              prepareAudioForMessage(formattedMsg);
+              await prepareAudioForMessage(formattedMsg);
             } else {
-              setMessages((prev) => [...prev, { ...formattedMsg, isAudioReady: true }]);
+              setMessages((prev) => 
+                prev.map(m => 
+                  m.id === formattedMsg.id ? { ...m, isAudioReady: true } : m
+                )
+              );
             }
             
             setIsProcessing(false);
