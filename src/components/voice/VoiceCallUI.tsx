@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2, Pause } from 'lucide-react';
@@ -34,13 +35,10 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { playMessageAudio } = useTherapist();
+  const { playMessageAudio, isAudioPlaying, currentPlayingPath } = useTherapist();
   const [showReminder, setShowReminder] = useState(false);
   const [ambientSound, setAmbientSound] = useState<string | null>(null);
   const reminderTimeoutRef = useRef<number | null>(null);
-  const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
-
 
   useEffect(() => {
     scrollToBottom();
@@ -73,33 +71,10 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
     navigate('/schedule');
   };
 
-  const getSignedURL = async (tts_path: string) => {
-    const { data, error } = await supabase.storage
-      .from("tts-audio")
-      .createSignedUrl(tts_path, 60);
-    if (error || !data?.signedUrl) {
-      toast({ title: "Audio Error", description: "Could not get signed URL", variant: "destructive" });
-      return "";
-    }
-    return data.signedUrl;
-  };
-  
-
   const handlePlayAudio = async (tts_path?: string | null) => {
     if (!tts_path) return;
-  
-    if (currentlyPlayingPath === tts_path) {
-      // Same audio - toggle pause/play
-      await playMessageAudio(tts_path);
-      setIsPaused(!isPaused);
-    } else {
-      // New audio - start playing
-      await playMessageAudio(tts_path);
-      setCurrentlyPlayingPath(tts_path);
-      setIsPaused(false);
-    }
+    await playMessageAudio(tts_path);
   };
-  
   
   const handleAmbientSound = (sound: string) => {
     if (ambientSound === sound) {
@@ -153,7 +128,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handlePlayAudio(message.tts_path)}
                 >
-                  {(currentlyPlayingPath === message.tts_path && !isPaused) ? (
+                  {(currentPlayingPath === message.tts_path && isAudioPlaying) ? (
                     <Pause className="h-4 w-4" />
                   ) : (
                     <Play className="h-4 w-4" />
