@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SessionRoom = () => {
   const { toast } = useToast();
@@ -29,18 +30,16 @@ const SessionRoom = () => {
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current.scrollIntoView({ behavior: "instant" });
     }
   };
 
   // Scroll to bottom when component mounts
   useEffect(() => {
-    // Use a longer timeout to ensure DOM is fully rendered and calculations are complete
-    const timer = setTimeout(() => {
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
       scrollToBottom();
-    }, 300);
-    
-    return () => clearTimeout(timer);
+    }, 100);
   }, []);
 
   // Scroll to bottom when messages change
@@ -83,7 +82,7 @@ const SessionRoom = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)]">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
         <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
           <motion.div
@@ -103,13 +102,14 @@ const SessionRoom = () => {
       )}
 
       <div 
+        className="flex-grow overflow-y-auto py-6 scroll-smooth" 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto"
-        style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end" }}
+        style={{ maxHeight: "calc(100vh - 12rem)" }}
       >
-        <div className="w-full">
+        <div className="space-y-6 flex flex-col min-h-full">
+          <div className="flex-grow" />
           {messages.map((message, index) => (
-            <div key={index} className="relative group mb-6">
+            <div key={index} className="relative group">
               <ChatBubble
                 key={index}
                 message={message.content}
@@ -130,7 +130,7 @@ const SessionRoom = () => {
             </div>
           ))}
           {isProcessing && (
-            <div className="flex items-center gap-2 px-4 py-2 mb-6">
+            <div className="flex items-center gap-2 px-4 py-2">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
