@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -31,6 +30,10 @@ const SessionRoom = () => {
   };
 
   useEffect(() => {
+    if (messages.length > 0) {
+      setHasStartedChat(true);
+    }
+
     scrollToBottom();
   }, [messages]);
 
@@ -146,19 +149,11 @@ const SessionRoom = () => {
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900"
-            >
+            <Button variant="outline" size="sm" className="text-gray-900">
               <HelpCircle className="h-4 w-4 mr-2" />
               Help me answer
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900"
-            >
+            <Button variant="outline" size="sm" className="text-gray-900">
               Skip question
             </Button>
             <Button
