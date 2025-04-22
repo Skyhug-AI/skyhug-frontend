@@ -49,7 +49,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
-  const [defaultGreetingAudio, setDefaultGreetingAudio] = useState<Audio | null>(null);
+  const [defaultGreetingAudio, setDefaultGreetingAudio] = useState<HTMLAudioElement | null>(null);
 
   const formatMessage = (msg: any): Message => ({
     id: msg.id,
