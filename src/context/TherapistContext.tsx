@@ -289,7 +289,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     try {
       // Create public URL to the audio file
-      const audioUrl = `${supabase.supabaseUrl}/storage/v1/object/public/tts-audio/${tts_path}`;
+      const audioUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://bborzcdfxrangvewmpfo.supabase.co'}/storage/v1/object/public/tts-audio/${tts_path}`;
       
       // Create and play the audio
       const audio = new Audio(audioUrl);
