@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -30,7 +31,8 @@ const VoicePage = () => {
 
   const formattedMessages = therapistMessages.map(message => ({
     text: message.content,
-    isUser: message.isUser
+    isUser: message.isUser,
+    tts_path: message.tts_path
   }));
 
   useEffect(() => {

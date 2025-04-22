@@ -8,12 +8,14 @@ import React, {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { v4 as uuidv4 } from "uuid";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Message {
   id: string;
   content: string;
   isUser: boolean;
   timestamp: string;
+  tts_path?: string | null;
 }
 
 interface TherapistContextType {
@@ -25,6 +27,7 @@ interface TherapistContextType {
   clearMessages: () => Promise<void>;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
+  playMessageAudio: (tts_path: string) => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -35,9 +38,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
   const formatMessage = (msg: any): Message => ({
     id: msg.id,
@@ -47,12 +52,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       hour: "2-digit",
       minute: "2-digit",
     }),
+    tts_path: msg.tts_path,
   });
 
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
       .from("messages")
-      .select("id, sender_role, transcription, assistant_text, created_at")
+      .select("id, sender_role, transcription, assistant_text, created_at, tts_path")
       .eq("conversation_id", convId)
       .order("created_at");
     if (error) {
@@ -172,7 +178,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     // 8) Load any actual history (should be just that first message)
     await loadHistory(data.id);
   };
-  
 
   const clearMessages = createConversation;
 
@@ -234,38 +239,88 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     if (error) console.error("Error updating voice_enabled:", error);
   };
 
-const endConversation = async () => {
-  console.log("📕 Attempting to end conversation:", conversationId);
-  if (!conversationId) {
-    console.warn("⚠️ No conversationId set; cannot end.");
-    return;
-  }
+  const endConversation = async () => {
+    console.log("📕 Attempting to end conversation:", conversationId);
+    if (!conversationId) {
+      console.warn("⚠️ No conversationId set; cannot end.");
+      return;
+    }
 
-  // 1) mark ended in Supabase
-  const { error } = await supabase
-    .from("conversations")
-    .update({ ended: true })
-    .eq("id", conversationId);
+    // 1) mark ended in Supabase
+    const { error } = await supabase
+      .from("conversations")
+      .update({ ended: true })
+      .eq("id", conversationId);
 
-  if (error) {
-    console.error("❌ Supabase error ending conversation:", error);
-    return;
-  }
-  console.log("✅ Conversation ended successfully.");
+    if (error) {
+      console.error("❌ Supabase error ending conversation:", error);
+      return;
+    }
+    console.log("✅ Conversation ended successfully.");
 
-  // 2) immediately call your FastAPI summarizer
-  try {
-    await fetch("http://localhost:8000/summarize_conversation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversation_id: conversationId }),
-    });
-    console.log("🧠 Summarization triggered for conv", conversationId);
-  } catch (e) {
-    console.error("❌ Failed to trigger summarization:", e);
-  }
-};
+    // 2) immediately call your FastAPI summarizer
+    try {
+      await fetch("http://localhost:8000/summarize_conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: conversationId }),
+      });
+      console.log("🧠 Summarization triggered for conv", conversationId);
+    } catch (e) {
+      console.error("❌ Failed to trigger summarization:", e);
+    }
+  };
 
+  const playMessageAudio = async (tts_path: string) => {
+    if (!tts_path) {
+      toast({
+        title: "No audio available",
+        description: "This message doesn't have audio",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+
+    try {
+      // Create public URL to the audio file
+      const audioUrl = `${supabase.supabaseUrl}/storage/v1/object/public/tts-audio/${tts_path}`;
+      
+      // Create and play the audio
+      const audio = new Audio(audioUrl);
+      
+      audio.onplay = () => {
+        toast({
+          title: "Playing audio",
+          description: "Text-to-speech audio is playing",
+        });
+      };
+      
+      audio.onerror = (e) => {
+        console.error("Audio error:", e);
+        toast({
+          title: "Audio error",
+          description: "Could not play audio message. Check console for details.",
+          variant: "destructive",
+        });
+      };
+      
+      setCurrentAudio(audio);
+      await audio.play();
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      toast({
+        title: "Error playing audio",
+        description: "Could not play the audio message",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     if (!conversationId) return;
@@ -283,6 +338,13 @@ const endConversation = async () => {
           const msg = payload.new;
           if (msg.sender_role === "assistant") {
             setMessages((prev) => [...prev, formatMessage(msg)]);
+            
+            // Auto-play audio if available
+            if (msg.tts_path && msg.tts_status === "done") {
+              setTimeout(() => {
+                playMessageAudio(msg.tts_path);
+              }, 500); // Small delay to ensure message is added
+            }
           }
         }
       )
@@ -303,6 +365,7 @@ const endConversation = async () => {
         clearMessages,
         setVoiceEnabled,
         endConversation,
+        playMessageAudio,
       }}
     >
       {children}

@@ -6,7 +6,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,6 +19,7 @@ const SessionRoom = () => {
     clearMessages,
     setVoiceEnabled,
     endConversation,
+    playMessageAudio,
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
@@ -55,6 +56,18 @@ const SessionRoom = () => {
     sendMessage(transcript);
   };
 
+  const handlePlayAudio = (tts_path?: string | null) => {
+    if (tts_path) {
+      playMessageAudio(tts_path);
+    } else {
+      toast({
+        title: "No audio available",
+        description: "This message doesn't have audio",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
@@ -77,12 +90,25 @@ const SessionRoom = () => {
 
       <div className="flex-grow overflow-y-auto py-6">
         {messages.map((message, index) => (
-          <ChatBubble
-            key={index}
-            message={message.content}
-            isUser={message.isUser}
-            timestamp={message.timestamp}
-          />
+          <div key={index} className="relative group">
+            <ChatBubble
+              key={index}
+              message={message.content}
+              isUser={message.isUser}
+              timestamp={message.timestamp}
+            />
+            {!message.isUser && message.tts_path && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handlePlayAudio(message.tts_path)}
+              >
+                <Play className="h-4 w-4" />
+                <span className="sr-only">Play audio</span>
+              </Button>
+            )}
+          </div>
         ))}
         {isProcessing && (
           <div className="flex items-center gap-2 px-4 py-2">
@@ -123,7 +149,6 @@ const SessionRoom = () => {
             <Button
               variant="outline"
               size="sm"
-              // removed custom background color classes here
               className="text-gray-900"
             >
               <HelpCircle className="h-4 w-4 mr-2" />
@@ -133,7 +158,6 @@ const SessionRoom = () => {
               variant="outline"
               size="sm"
               className="text-gray-900"
-              // removed custom background color classes here
             >
               Skip question
             </Button>
@@ -141,7 +165,6 @@ const SessionRoom = () => {
               variant="outline"
               size="sm"
               className="text-gray-900"
-              // removed custom background color classes here
               onClick={handleEndSession}
             >
               End chat & continue
@@ -153,7 +176,7 @@ const SessionRoom = () => {
                 onClick={async () => {
                   const next = !isVoiceMode;
                   setIsVoiceMode(next);
-                  await setVoiceEnabled(next); // ✅ persist voice/chat mode to Supabase
+                  await setVoiceEnabled(next);
                 }}
                 className="rounded-full w-8 h-8"
               >
@@ -189,4 +212,3 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
-

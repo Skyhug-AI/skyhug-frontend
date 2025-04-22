@@ -1,16 +1,17 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, ClipboardList, ArrowLeft, Music2 } from 'lucide-react';
+import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2 } from 'lucide-react';
 import ChatBubble from '@/components/chat/ChatBubble';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import CloudBackground from '@/components/CloudBackground';
+import { useTherapist } from '@/context/TherapistContext';
 
 interface VoiceCallUIProps {
-  messages: { text: string; isUser: boolean }[];
+  messages: { text: string; isUser: boolean; tts_path?: string | null }[];
   isProcessing: boolean;
   onVoiceRecorded: (transcript: string) => void;
   onEndCall: () => void;
@@ -33,6 +34,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { playMessageAudio } = useTherapist();
   const [showReminder, setShowReminder] = useState(false);
   const [ambientSound, setAmbientSound] = useState<string | null>(null);
   const reminderTimeoutRef = useRef<number | null>(null);
@@ -68,8 +70,16 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
     navigate('/schedule');
   };
 
-  const handleViewSessions = () => {
-    navigate('/sessions');
+  const handlePlayAudio = (tts_path?: string | null) => {
+    if (tts_path) {
+      playMessageAudio(tts_path);
+    } else {
+      toast({
+        title: "No audio available",
+        description: "This message doesn't have audio",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleAmbientSound = (sound: string) => {
@@ -112,7 +122,23 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
         <div className="max-w-3xl mx-auto flex-grow flex flex-col p-4">
           <div className="space-y-4 flex-grow overflow-y-auto">
             {messages.map((message, index) => (
-              <ChatBubble key={index} message={message.text} isUser={message.isUser} />
+              <div key={index} className="relative group">
+                <ChatBubble 
+                  message={message.text} 
+                  isUser={message.isUser} 
+                />
+                {!message.isUser && message.tts_path && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handlePlayAudio(message.tts_path)}
+                  >
+                    <Play className="h-4 w-4" />
+                    <span className="sr-only">Play audio</span>
+                  </Button>
+                )}
+              </div>
             ))}
             {isProcessing && <TypingIndicator />}
             {showReminder && (
