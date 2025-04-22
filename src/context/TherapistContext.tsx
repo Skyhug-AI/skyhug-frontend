@@ -275,7 +275,14 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const playMessageAudio = async (tts_path: string) => {
     if (!tts_path) return;
   
-    // Stop currently playing audio
+    // If the same audio is already playing → pause it
+    if (currentAudio?.src.includes(tts_path) && !currentAudio.paused) {
+      currentAudio.pause();
+      console.log("⏸️ Audio paused");
+      return;
+    }
+  
+    // Otherwise, stop any previous audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -288,8 +295,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   
       if (error || !data?.signedUrl) {
         toast({
-          title: "Audio not available",
-          description: "Couldn't fetch signed playback URL",
+          title: "Could not play audio",
+          description: "Unable to generate signed URL",
           variant: "destructive",
         });
         console.error("Signed URL error:", error);
@@ -302,41 +309,24 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       audio.onloadeddata = () => {
         console.log("✅ Audio loaded successfully");
       };
-  
       audio.onplay = () => {
         toast({
-          title: "🔊 Playing Serenity's voice",
-          duration: 2000,
+          title: "🎧 Playing audio",
+          description: "Serenity's response is playing now",
         });
       };
-  
       audio.onerror = (e) => {
-        console.error("❌ Audio error:", e);
+        console.error("Audio playback error:", e);
         toast({
           title: "Audio error",
-          description: "Could not play the message audio.",
+          description: "Could not play the audio",
           variant: "destructive",
         });
       };
   
       setCurrentAudio(audio);
+      await audio.play();
   
-      const playPromise = audio.play();
-  
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log("🔊 Audio playback started");
-          })
-          .catch((err) => {
-            console.warn("⚠️ Audio blocked (maybe autoplay policy):", err);
-            toast({
-              title: "⚠️ Audio blocked by browser",
-              description: "Click the play icon to manually trigger sound.",
-              variant: "default",
-            });
-          });
-      }
     } catch (err) {
       console.error("TTS playback exception:", err);
       toast({
