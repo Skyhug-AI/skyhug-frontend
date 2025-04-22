@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -24,17 +25,25 @@ const SessionRoom = () => {
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "instant" });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
+  // Scroll to bottom when component mounts
   useEffect(() => {
-    scrollToBottom();
+    // Use a longer timeout to ensure DOM is fully rendered and calculations are complete
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, []);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -74,7 +83,7 @@ const SessionRoom = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+    <div className="flex flex-col h-[calc(100vh-12rem)]">
       {isVoiceMode && (
         <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
           <motion.div
@@ -93,10 +102,14 @@ const SessionRoom = () => {
         </div>
       )}
 
-      <div className="flex-grow overflow-y-auto py-6">
-        <div className="space-y-6">
+      <div 
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto"
+        style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end" }}
+      >
+        <div className="w-full">
           {messages.map((message, index) => (
-            <div key={index} className="relative group">
+            <div key={index} className="relative group mb-6">
               <ChatBubble
                 key={index}
                 message={message.content}
@@ -117,7 +130,7 @@ const SessionRoom = () => {
             </div>
           ))}
           {isProcessing && (
-            <div className="flex items-center gap-2 px-4 py-2">
+            <div className="flex items-center gap-2 px-4 py-2 mb-6">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
@@ -147,8 +160,6 @@ const SessionRoom = () => {
           animate={{
             y: hasStartedChat ? 0 : -200,
             position: hasStartedChat ? "sticky" : "relative",
-            marginTop: hasStartedChat ? 0 : "auto",
-            marginBottom: hasStartedChat ? 0 : "auto",
           }}
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
