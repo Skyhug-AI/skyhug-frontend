@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -25,6 +26,7 @@ const SessionRoom = () => {
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [audioStates, setAudioStates] = useState<{[key: string]: boolean}>({});
+  const [isMicLocked, setIsMicLocked] = useState(false); // NEW STATE
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -49,6 +51,13 @@ const SessionRoom = () => {
     scrollToBottom();
   }, [messages]);
 
+  // NEW: unlock mic when playback stops
+  useEffect(() => {
+    if (!currentlyPlayingPath) {
+      setIsMicLocked(false);
+    }
+  }, [currentlyPlayingPath]);
+
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
       setHasStartedChat(true);
@@ -71,18 +80,32 @@ const SessionRoom = () => {
     sendMessage(transcript);
   };
 
-  const handlePlayAudio = (tts_path?: string | null) => {
+  // PATCH: lock/unlock microphone while audio is playing
+  const handlePlayAudio = async (tts_path?: string | null) => {
     if (tts_path) {
-      playMessageAudio(tts_path);
-      
-      // Toggle the playing state for this specific audio
+      setIsMicLocked(true); // Lock mic before playback starts
       setCurrentlyPlayingPath(tts_path);
+
+      // Toggle the playing state for this specific audio
       setAudioStates(prev => {
         const newState = {...prev};
-        // If it's already playing (true), we're pausing it; otherwise, we're playing it
         newState[tts_path] = !prev[tts_path];
         return newState;
       });
+
+      // Play and listen for end of audio to unlock
+      try {
+        await playMessageAudio(tts_path);
+      } finally {
+        setTimeout(() => {
+          setIsMicLocked(false);
+          setCurrentlyPlayingPath(null);
+          setAudioStates(prev => ({
+            ...prev,
+            [tts_path]: false,
+          }));
+        }, 250); // Delay to ensure audio has ended
+      }
     } else {
       toast({
         title: "No audio available",
@@ -133,6 +156,7 @@ const SessionRoom = () => {
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handlePlayAudio(message.tts_path)}
+                  disabled={isMicLocked}
                 >
                   {audioStates[message.tts_path || ""] ? (
                     <Pause className="h-4 w-4" />
@@ -220,7 +244,7 @@ const SessionRoom = () => {
             {isVoiceMode ? (
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing}
+                isDisabled={isProcessing || isMicLocked}
               />
             ) : (
               <div className="flex-grow">
