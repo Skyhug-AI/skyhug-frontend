@@ -34,6 +34,7 @@ const SessionRoom = () => {
   const lastPlayedRef = useRef<string | null>(null);
   const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
   const lastTranscriptRef = useRef<string | null>(null);
+  const lastSendRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -98,16 +99,24 @@ const SessionRoom = () => {
 
   const handleVoiceRecorded = (transcript: string) => {
     const trimmed = transcript.trim();
-    // 1) ignore empty
     if (!trimmed) return;
-    // 2) ignore exact duplicates
-    if (lastTranscriptRef.current === trimmed) return;
   
-    // 3) mark it as sent, then call sendMessage
-    lastTranscriptRef.current = trimmed;
+    const now = Date.now();
+    const { text: lastText, time: lastTime } = lastSendRef.current;
+  
+    // 1) If it’s literally the same as last time and within 3s, ignore
+    if (trimmed === lastText && now - lastTime < 3000) {
+      console.log("⏭️ Duplicate transcript ignored:", trimmed);
+      return;
+    }
+    // 2) Otherwise update our guard
+    lastSendRef.current = { text: trimmed, time: now };
+  
+    // 3) Dispatch it exactly once
     setHasStartedChat(true);
     sendMessage(trimmed);
   };
+  
 
   const handlePlayAudio = async (tts_path?: string | null) => {
     // 1️⃣ Guard against missing path

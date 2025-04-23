@@ -30,6 +30,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const { toast } = useToast();
   const lastSentRef = useRef<string>('')
   const [pausedByUser, setPausedByUser] = useState(false);
+  const silenceSentRef = useRef(false);
 
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
@@ -45,17 +46,18 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     let silenceTimeout: NodeJS.Timeout;
     if (isRecording && hasSpeechStarted && lastSpeechTime > 0) {
       silenceTimeout = setTimeout(() => {
-        // 1) If it’s been 2s since last speech…
-        if (Date.now() - lastSpeechTime > 2000) {
+        if (Date.now() - lastSpeechTime > 2000 && !silenceSentRef.current) {
           const trimmed = transcript.trim();
-          // 2) And we’ve actually got words…
           if (trimmed) {
-            // 3) Fire exactly one callback
+            // mark that we've sent for this turn
+            silenceSentRef.current = true;
+  
+            // fire once
             onVoiceRecorded(trimmed);
-            // 4) Reset so we don’t send again
+  
+            // clear transcript & stop listening
             setTranscript('');
             setHasSpeechStarted(false);
-            // 5) **Immediately stop listening** to prevent duplicates
             pauseRecognition();
           }
         }
@@ -63,6 +65,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
     return () => clearTimeout(silenceTimeout);
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
+  
   
 
   useEffect(() => {
@@ -144,6 +147,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const startRecording = async () => {
+    // before you request the mic…
+    silenceSentRef.current = false;
     if (isDisabled || shouldPauseRecognition) return;
     try {
       if (!mediaStreamRef.current) {
@@ -190,6 +195,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const resumeRecognition = () => {
+    silenceSentRef.current = false;
     if (recognitionInstance && !isRecording) {
       recognitionInstance.onend = null;
       recognitionInstance.stop();
