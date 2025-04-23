@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
-import VoiceRecorder from "@/components/voice/VoiceRecorder";
+import VoiceRecorder, { VoiceRecorderHandle } from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,9 +27,16 @@ const SessionRoom = () => {
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [audioStates, setAudioStates] = useState<{[key: string]: boolean}>({});
   const [isMicLocked, setIsMicLocked] = useState(false);
+
+  // For bottom-left indicator
+  const [micOn, setMicOn] = useState(false);
+  const [recognitionOn, setRecognitionOn] = useState(false);
+
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const recorderRef = useRef<VoiceRecorderHandle>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -41,7 +48,6 @@ const SessionRoom = () => {
     if (messages.length > 0) {
       setHasStartedChat(true);
     }
-
     setTimeout(() => {
       scrollToBottom();
     }, 100);
@@ -80,22 +86,24 @@ const SessionRoom = () => {
     sendMessage(transcript);
   };
 
+  // Called after audio finishes playing - resume listening!
+  const tryResumeRecognition = () => {
+    if (recorderRef.current && typeof recorderRef.current.resumeRecognition === "function") {
+      recorderRef.current.resumeRecognition();
+    }
+  };
+
   const handlePlayAudio = async (tts_path?: string | null) => {
     if (tts_path) {
       // If we're already playing audio, stop it first
       if (currentlyPlayingPath) {
-        // Update audio state for the currently playing track
         setAudioStates(prev => ({
           ...prev,
           [currentlyPlayingPath]: false
         }));
       }
-      
-      // Lock mic before playback starts
       setIsMicLocked(true);
       setCurrentlyPlayingPath(tts_path);
-
-      // Set this audio as playing
       setAudioStates(prev => ({
         ...prev,
         [tts_path]: true
@@ -111,7 +119,9 @@ const SessionRoom = () => {
             ...prev,
             [tts_path]: false,
           }));
-        }, 250); // Delay to ensure audio has ended
+          // Resume voice recognition right after playback
+          tryResumeRecognition();
+        }, 250);
       }
     } else {
       toast({
@@ -122,23 +132,40 @@ const SessionRoom = () => {
     }
   };
 
+  // Indicator string based on state
+  function listeningIndicator() {
+    if (!micOn) return "Microphone is off";
+    if (recognitionOn) return "Sky is listening...";
+    return "Sky is paused";
+  }
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
-        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
+        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600 z-40">
           <motion.div
-            className="w-2 h-2 rounded-full bg-skyhug-500"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
+            className={`w-2 h-2 rounded-full ${
+              !micOn
+                ? "bg-gray-300"
+                : recognitionOn
+                ? "bg-skyhug-500"
+                : "bg-yellow-500"
+            }`}
+            animate={
+              micOn && recognitionOn
+                ? {
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }
+                : { scale: 1, opacity: 0.6 }
+            }
             transition={{
               duration: 2,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           />
-          <span>Sky is listening...</span>
+          <span>{listeningIndicator()}</span>
         </div>
       )}
 
@@ -250,8 +277,11 @@ const SessionRoom = () => {
           <div className="flex gap-2">
             {isVoiceMode ? (
               <VoiceRecorder
+                ref={recorderRef}
                 onVoiceRecorded={handleVoiceRecorded}
                 isDisabled={isProcessing || isMicLocked}
+                onMicStateChange={setMicOn}
+                onRecognitionStateChange={setRecognitionOn}
               />
             ) : (
               <div className="flex-grow">
@@ -270,3 +300,4 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
+

@@ -1,4 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useImperativeHandle,
+  forwardRef
+} from 'react';
 import PulsatingMicButton from './PulsatingMicButton';
 import { useVoiceDetection } from '@/hooks/useVoiceDetection';
 import { useToast } from '@/hooks/use-toast';
@@ -9,23 +17,45 @@ type VoiceRecorderProps = {
   shouldPauseRecognition?: boolean;
   onRecognitionPaused?: () => void;
   onRecognitionResumed?: () => void;
+  onMicStateChange?: (micOn: boolean) => void;
+  onRecognitionStateChange?: (recognizing: boolean) => void;
 };
 
-const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
+export type VoiceRecorderHandle = {
+  resumeRecognition: () => void;
+  pauseRecognition: () => void;
+  isRecording: () => boolean;
+  isMicOn: () => boolean;
+};
+
+const VoiceRecorder = forwardRef<VoiceRecorderHandle, VoiceRecorderProps>(({
   onVoiceRecorded,
   isDisabled = false,
   shouldPauseRecognition = false,
   onRecognitionPaused,
-  onRecognitionResumed
-}) => {
+  onRecognitionResumed,
+  onMicStateChange,
+  onRecognitionStateChange
+}, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recognitionInstance, setRecognitionInstance] = useState<SpeechRecognition | null>(null);
   const [lastSpeechTime, setLastSpeechTime] = useState<number>(0);
   const [hasSpeechStarted, setHasSpeechStarted] = useState(false);
   const [recognitionManuallyPaused, setRecognitionManuallyPaused] = useState(false);
+  const [micOn, setMicOn] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+
+  // Notify parent when mic or recognition state changes (for indicator)
+  useEffect(() => {
+    if (onMicStateChange) onMicStateChange(micOn);
+  }, [micOn, onMicStateChange]);
+
+  useEffect(() => {
+    if (onRecognitionStateChange) onRecognitionStateChange(recognizing);
+  }, [recognizing, onRecognitionStateChange]);
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
     if (isSpeaking) {
@@ -60,6 +90,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     } else if (!isDisabled && !shouldPauseRecognition && recognitionManuallyPaused) {
       resumeRecognition();
     }
+    // eslint-disable-next-line
   }, [isDisabled, shouldPauseRecognition]);
 
   const initializeRecognition = () => {
@@ -73,6 +104,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       recognition.onstart = () => {
         setIsRecording(true);
+        setRecognizing(true);
         setTranscript('');
         setLastSpeechTime(Date.now());
         setHasSpeechStarted(false);
@@ -83,6 +115,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           duration: 3000,
         });
         setRecognitionManuallyPaused(false);
+        setMicOn(true);
         if (onRecognitionResumed) onRecognitionResumed();
       };
 
@@ -101,7 +134,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           return;
         }
         setIsRecording(false);
+        setRecognizing(false);
         setRecognitionManuallyPaused(false);
+        setMicOn(false);
         toast({
           title: "Recording error",
           description: "There was an error with the voice recording",
@@ -110,6 +145,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       };
 
       recognition.onend = () => {
+        setRecognizing(false);
         if (isRecording && !isDisabled && !recognitionManuallyPaused) {
           recognition.start();
         } else {
@@ -133,6 +169,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             autoGainControl: true
           }
         });
+        setMicOn(true);
       }
       const recognition = initializeRecognition();
       if (recognition) {
@@ -142,6 +179,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         recognition.start();
         setRecognitionInstance(recognition);
       } else {
+        setMicOn(false);
         toast({
           title: "Not supported",
           description: "Speech recognition is not supported in your browser",
@@ -149,6 +187,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         });
       }
     } catch (error) {
+      setMicOn(false);
       console.error('Error accessing microphone:', error);
       toast({
         title: "Microphone error",
@@ -162,6 +201,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (recognitionInstance) {
       recognitionInstance.onend = null;
       recognitionInstance.stop();
+      setRecognizing(false);
       setIsRecording(false);
       setRecognitionManuallyPaused(true);
       if (onRecognitionPaused) onRecognitionPaused();
@@ -180,7 +220,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         };
         recognitionInstance.start();
         setIsRecording(true);
+        setRecognizing(true);
         setRecognitionManuallyPaused(false);
+        setMicOn(true);
         if (onRecognitionResumed) onRecognitionResumed();
       }, 150);
     } else {
@@ -198,7 +240,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       mediaStreamRef.current = null;
     }
     setIsRecording(false);
+    setRecognizing(false);
     setHasSpeechStarted(false);
+    setMicOn(false);
     setRecognitionManuallyPaused(false);
   };
 
@@ -210,6 +254,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    resumeRecognition,
+    pauseRecognition,
+    isRecording: () => isRecording,
+    isMicOn: () => micOn,
+  }), [isRecording, micOn]);
+
   useEffect(() => {
     return () => {
       if (mediaStreamRef.current) {
@@ -219,6 +270,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         recognitionInstance.onend = null;
         recognitionInstance.stop();
       }
+      setMicOn(false);
+      setRecognizing(false);
     };
   }, []);
 
@@ -231,6 +284,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       />
     </div>
   );
-};
+});
 
 export default VoiceRecorder;
+
