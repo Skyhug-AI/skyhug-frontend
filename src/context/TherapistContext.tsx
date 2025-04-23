@@ -96,7 +96,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // 1) Resume any open session
     const { data: existing, error: findError } = await supabase
       .from("conversations")
       .select("id")
@@ -117,7 +116,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // 2) Ensure patient row exists
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
       .select("id")
@@ -137,7 +135,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
 
-    // 3) Create a brand‑new conversation
     console.log("🟡 Creating new conversation...");
     const { data, error } = await supabase
       .from("conversations")
@@ -150,8 +147,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
     setConversationId(data.id);
 
-    // 4) PRO‑TIP: fetch the *most recently ended* conv by created_at,
-    //           but don't filter out NULL summaries—use maybeSingle()
     const {
       data: prev,
       error: memErr,
@@ -162,7 +157,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .eq("ended", true)
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle(); // <— returns null if no row, instead of an error
+      .maybeSingle();
 
     console.log("🔍 Previous conversation summary check:", { 
       found: !!prev, 
@@ -174,14 +169,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("❌ Error fetching memory_summary:", memErr);
     }
 
-    // 5) Choose greeting based on whether we have a real summary
     const greeting = prev?.memory_summary
       ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
       : "Hi there, I'm Sky. How are you feeling today?";
 
     console.log("👋 Selected greeting:", greeting);
 
-    // 6) Seed that into messages
     const { data: messageData, error: messageError } = await supabase.from("messages").insert({
       conversation_id: data.id,
       sender_role: "assistant",
@@ -196,7 +189,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.log("✅ Greeting message inserted:", messageData);
     }
 
-    // 7) Reflect into UI immediately
     setMessages([
       {
         id: crypto.randomUUID(),
@@ -209,7 +201,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       },
     ]);
 
-    // 8) Load any actual history (should be just that first message)
     await loadHistory(data.id);
   };
 
@@ -279,7 +270,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // 1) mark ended in Supabase
     const { error } = await supabase
       .from("conversations")
       .update({ ended: true })
@@ -291,7 +281,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
     console.log("✅ Conversation ended successfully.");
 
-    // 2) immediately call your FastAPI summarizer
     try {
       await fetch("http://localhost:8000/summarize_conversation", {
         method: "POST",
@@ -307,7 +296,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const playMessageAudio = async (tts_path: string) => {
     if (!tts_path) return;
   
-    // If the same audio is already playing → pause it
     if (currentAudio?.src.includes(tts_path)) {
       if (!currentAudio.paused) {
         currentAudio.pause();
@@ -315,7 +303,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         console.log("⏸️ Audio paused");
         return;
       } else {
-        // Resume playing the same audio
         setIsAudioPaused(false);
         try {
           await currentAudio.play();
@@ -326,7 +313,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
   
-    // Otherwise, stop any previous audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -401,7 +387,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         (payload) => {
           const rawMsg = payload.new;
           const msg = formatMessage(rawMsg);
-          // Only show user messages or assistant messages that are greeting or have TTS audio ready
           if (
             msg.isUser ||
             msg.isGreeting ||
@@ -410,18 +395,15 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
             setMessages((prev) => [...prev, msg]);
             setIsProcessing(false);
 
-            // Only play audio when ttsHasArrived (should always be true for non-greeting assistant)
             if (!msg.isUser && msg.ttsHasArrived && msg.tts_path) {
               setTimeout(() => {
                 playMessageAudio(msg.tts_path!);
               }, 500);
             }
           } else {
-            // Don't show this assistant message yet (i.e., TTS still pending)
           }
         }
       )
-      // Also handle UPDATE events (for when tts_status changes to done)
       .on(
         "postgres_changes",
         {
@@ -433,16 +415,14 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         (payload) => {
           const rawMsg = payload.new;
           const msg = formatMessage(rawMsg);
-          // Only now TTS may have arrived.
           if (
             !msg.isUser &&
             msg.ttsHasArrived &&
-            !msg.isGreeting // Updates for greetings aren't relevant
+            !msg.isGreeting
           ) {
-            // Add if not in list yet (i.e. after TTS processed)
             setMessages((prev) => {
               if (prev.find((m) => m.id === msg.id)) {
-                return prev; // already added!
+                return prev;
               }
               return [...prev, msg];
             });
