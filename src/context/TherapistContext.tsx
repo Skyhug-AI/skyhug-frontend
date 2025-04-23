@@ -16,6 +16,8 @@ export interface Message {
   isUser: boolean;
   timestamp: string;
   tts_path?: string | null;
+  ttsHasArrived?: boolean;
+  isGreeting?: boolean;
 }
 
 interface TherapistContextType {
@@ -47,22 +49,29 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
 
-  const formatMessage = (msg: any): Message => ({
-    id: msg.id,
-    content: msg.transcription ?? msg.assistant_text ?? "[No content]",
-    isUser: msg.sender_role === "user",
-    timestamp: new Date(msg.created_at).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    tts_path: msg.tts_path,
-  });
+  const formatMessage = (msg: any): Message & { ttsHasArrived?: boolean, isGreeting?: boolean } => {
+    return {
+      id: msg.id,
+      content: msg.transcription ?? msg.assistant_text ?? "[No content]",
+      isUser: msg.sender_role === "user",
+      timestamp: new Date(msg.created_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      tts_path: msg.tts_path,
+      ttsHasArrived: Boolean(msg.tts_path && msg.tts_status === "done"),
+      isGreeting:
+        msg.sender_role === "assistant" &&
+        (msg.assistant_text?.startsWith("Hi there, I'm Sky") ||
+         msg.assistant_text?.startsWith("Last time we spoke"))
+    };
+  };
 
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
       .from("messages")
       .select(
-        "id, sender_role, transcription, assistant_text, created_at, tts_path"
+        "id, sender_role, transcription, assistant_text, created_at, tts_path, tts_status"
       )
       .eq("conversation_id", convId)
       .order("created_at");
@@ -70,7 +79,15 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Error loading conversation history:", error);
       return;
     }
-    setMessages(rows.map(formatMessage));
+    setMessages(
+      rows
+        .map(formatMessage)
+        .filter(msg =>
+          msg.isUser ||
+          msg.isGreeting ||
+          (msg.ttsHasArrived && !msg.isUser)
+        )
+    );
   };
 
   const createConversation = async () => {
@@ -382,16 +399,59 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const msg = payload.new;
-          if (msg.sender_role === "assistant") {
-            setMessages((prev) => [...prev, formatMessage(msg)]);
+          const rawMsg = payload.new;
+          const msg = formatMessage(rawMsg);
+          // Only show user messages or assistant messages that are greeting or have TTS audio ready
+          if (
+            msg.isUser ||
+            msg.isGreeting ||
+            (msg.ttsHasArrived && !msg.isUser)
+          ) {
+            setMessages((prev) => [...prev, msg]);
             setIsProcessing(false);
 
-            // Auto-play audio if available
-            if (msg.tts_path && msg.tts_status === "done") {
+            // Only play audio when ttsHasArrived (should always be true for non-greeting assistant)
+            if (!msg.isUser && msg.ttsHasArrived && msg.tts_path) {
               setTimeout(() => {
-                playMessageAudio(msg.tts_path);
-              }, 500); // Small delay to ensure message is added
+                playMessageAudio(msg.tts_path!);
+              }, 500);
+            }
+          } else {
+            // Don't show this assistant message yet (i.e., TTS still pending)
+          }
+        }
+      )
+      // Also handle UPDATE events (for when tts_status changes to done)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const rawMsg = payload.new;
+          const msg = formatMessage(rawMsg);
+          // Only now TTS may have arrived.
+          if (
+            !msg.isUser &&
+            msg.ttsHasArrived &&
+            !msg.isGreeting // Updates for greetings aren't relevant
+          ) {
+            // Add if not in list yet (i.e. after TTS processed)
+            setMessages((prev) => {
+              if (prev.find((m) => m.id === msg.id)) {
+                return prev; // already added!
+              }
+              return [...prev, msg];
+            });
+            setIsProcessing(false);
+
+            if (msg.tts_path) {
+              setTimeout(() => {
+                playMessageAudio(msg.tts_path!);
+              }, 500);
             }
           }
         }
