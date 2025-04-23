@@ -38,6 +38,8 @@ const SessionRoom = () => {
   const lastTranscriptRef = useRef<string | null>(null);
   const lastSendRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
   const [waitingForResponse, setWaitingForResponse] = useState(false);
+  // Track if we're handling voice recognition pausing/resuming
+  const [recognitionPaused, setRecognitionPaused] = useState(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -102,6 +104,27 @@ const SessionRoom = () => {
       window.removeEventListener("beforeunload", stopAudio);
     };
   }, []);
+
+  useEffect(() => {
+    // helper to pause & clear our single Audio instance
+    const stopAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = audioRef.current.duration;
+        audioRef.current = null;
+      }
+    };
+  
+    // 1) When the browser is about to unload (close/refresh), stop audio
+    window.addEventListener("beforeunload", stopAudio);
+  
+    return () => {
+      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
+      stopAudio();
+      window.removeEventListener("beforeunload", stopAudio);
+    };
+  }, []);
+  
   
 
   const handleSendMessage = (message: string) => {
@@ -228,8 +251,7 @@ const SessionRoom = () => {
   };
   
 
-  // Track if we're handling voice recognition pausing/resuming
-  const [recognitionPaused, setRecognitionPaused] = useState(false);
+
   
   const handleRecognitionPaused = () => {
     console.log("Voice recognition paused");
