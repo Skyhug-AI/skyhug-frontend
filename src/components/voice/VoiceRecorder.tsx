@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PulsatingMicButton from './PulsatingMicButton';
 import { useVoiceDetection } from '@/hooks/useVoiceDetection';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +45,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
       clearTimeout(silenceTimeout);
     };
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
+
+  // This effect ensures that when isDisabled becomes true, we stop recording
+  useEffect(() => {
+    if (isDisabled && isRecording) {
+      stopRecording();
+    }
+  }, [isDisabled]);
 
   const startRecording = () => {
     if (isDisabled) return;
@@ -96,7 +104,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
       };
       
       recognition.onend = () => {
-        if (isRecording) {
+        if (isRecording && !isDisabled) {
           recognition.start();
         } else {
           setIsRecording(false);
@@ -122,11 +130,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
     }
   };
 
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   return (
     <div className="flex-grow flex items-center justify-center py-4">
       <PulsatingMicButton
         isRecording={isRecording}
-        onClick={isRecording ? stopRecording : startRecording}
+        onClick={toggleRecording}
         disabled={isDisabled}
       />
     </div>
