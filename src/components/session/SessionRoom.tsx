@@ -97,26 +97,26 @@ const SessionRoom = () => {
     navigate("/session-summary");
   };
 
-  const handleVoiceRecorded = (transcript: string) => {
-    const trimmed = transcript.trim();
-    if (!trimmed) return;
-  
-    const now = Date.now();
-    const { text: lastText, time: lastTime } = lastSendRef.current;
-  
-    // 1) If it’s literally the same as last time and within 3s, ignore
-    if (trimmed === lastText && now - lastTime < 3000) {
-      console.log("⏭️ Duplicate transcript ignored:", trimmed);
-      return;
-    }
-    // 2) Otherwise update our guard
-    lastSendRef.current = { text: trimmed, time: now };
-  
-    // 3) Dispatch it exactly once
-    setHasStartedChat(true);
-    sendMessage(trimmed);
-  };
-  
+const handleVoiceRecorded = (transcript: string) => {
+  const trimmed = transcript.trim();
+  if (!trimmed) return;
+
+  const now = Date.now();
+  const { text: lastText, time: lastTime } = lastSendRef.current;
+
+  // 1) If it’s literally the same as last time and within 3s, ignore
+  if (trimmed === lastText && now - lastTime < 3000) {
+    console.log("⏭️ Duplicate transcript ignored:", trimmed);
+    return;
+  }
+  // 2) Otherwise update our guard
+  lastSendRef.current = { text: trimmed, time: now };
+
+  // 3) Dispatch it exactly once
+  setHasStartedChat(true);
+  sendMessage(trimmed);
+};
+
 
   const handlePlayAudio = async (tts_path?: string | null) => {
     // 1️⃣ Guard against missing path
