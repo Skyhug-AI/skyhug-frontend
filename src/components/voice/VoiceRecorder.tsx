@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PulsatingMicButton from './PulsatingMicButton';
 import { useVoiceDetection } from '@/hooks/useVoiceDetection';
@@ -7,17 +6,27 @@ import { useToast } from '@/hooks/use-toast';
 type VoiceRecorderProps = {
   onVoiceRecorded: (transcript: string) => void;
   isDisabled?: boolean;
+  shouldPauseRecognition?: boolean;
+  onRecognitionPaused?: () => void;
+  onRecognitionResumed?: () => void;
 };
 
-const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabled = false }) => {
+const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
+  onVoiceRecorded,
+  isDisabled = false,
+  shouldPauseRecognition = false,
+  onRecognitionPaused,
+  onRecognitionResumed
+}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recognitionInstance, setRecognitionInstance] = useState<SpeechRecognition | null>(null);
   const [lastSpeechTime, setLastSpeechTime] = useState<number>(0);
   const [hasSpeechStarted, setHasSpeechStarted] = useState(false);
+  const [recognitionManuallyPaused, setRecognitionManuallyPaused] = useState(false);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
-  
+
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
     if (isSpeaking) {
       setHasSpeechStarted(true);
@@ -29,7 +38,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
 
   useEffect(() => {
     let silenceTimeout: NodeJS.Timeout;
-
     if (isRecording && hasSpeechStarted && lastSpeechTime > 0) {
       silenceTimeout = setTimeout(() => {
         if (Date.now() - lastSpeechTime > 2000) {
@@ -41,27 +49,28 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
         }
       }, 2000);
     }
-
     return () => {
       clearTimeout(silenceTimeout);
     };
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
 
   useEffect(() => {
-    if (isDisabled && isRecording) {
+    if ((isDisabled || shouldPauseRecognition) && isRecording) {
       pauseRecognition();
+    } else if (!isDisabled && !shouldPauseRecognition && recognitionManuallyPaused) {
+      resumeRecognition();
     }
-  }, [isDisabled]);
+  }, [isDisabled, shouldPauseRecognition]);
 
   const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      
+
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
-      
+
       recognition.onstart = () => {
         setIsRecording(true);
         setTranscript('');
@@ -73,8 +82,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
           description: "Speak naturally. Your message will be sent automatically after you finish speaking.",
           duration: 3000,
         });
+        setRecognitionManuallyPaused(false);
+        if (onRecognitionResumed) onRecognitionResumed();
       };
-      
+
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let currentTranscript = '';
         for (let i = 0; i < event.results.length; i++) {
@@ -83,38 +94,37 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
         setTranscript(currentTranscript);
         setLastSpeechTime(Date.now());
       };
-      
+
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error', event.error);
         if (event.error === 'no-speech') {
           return;
         }
         setIsRecording(false);
+        setRecognitionManuallyPaused(false);
         toast({
           title: "Recording error",
           description: "There was an error with the voice recording",
           variant: "destructive",
         });
       };
-      
+
       recognition.onend = () => {
-        if (isRecording && !isDisabled) {
+        if (isRecording && !isDisabled && !recognitionManuallyPaused) {
           recognition.start();
         } else {
           setIsRecording(false);
         }
       };
-      
+
       return recognition;
     }
     return null;
   };
 
   const startRecording = async () => {
-    if (isDisabled) return;
-    
+    if (isDisabled || shouldPauseRecognition) return;
     try {
-      // Get or reuse media stream
       if (!mediaStreamRef.current) {
         mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -124,8 +134,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
           }
         });
       }
-      
-      // Initialize and start recognition
       const recognition = initializeRecognition();
       if (recognition) {
         if (recognitionInstance) {
@@ -152,14 +160,37 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
 
   const pauseRecognition = () => {
     if (recognitionInstance) {
+      recognitionInstance.onend = null;
       recognitionInstance.stop();
       setIsRecording(false);
-      // Note: we don't clear mediaStreamRef here
+      setRecognitionManuallyPaused(true);
+      if (onRecognitionPaused) onRecognitionPaused();
+    }
+  };
+
+  const resumeRecognition = () => {
+    if (recognitionInstance && !isRecording) {
+      recognitionInstance.onend = null;
+      recognitionInstance.stop();
+      setTimeout(() => {
+        recognitionInstance.onend = () => {
+          if (!isDisabled && !shouldPauseRecognition && recognitionManuallyPaused) {
+            setIsRecording(false);
+          }
+        };
+        recognitionInstance.start();
+        setIsRecording(true);
+        setRecognitionManuallyPaused(false);
+        if (onRecognitionResumed) onRecognitionResumed();
+      }, 150);
+    } else {
+      startRecording();
     }
   };
 
   const stopRecording = () => {
     if (recognitionInstance) {
+      recognitionInstance.onend = null;
       recognitionInstance.stop();
     }
     if (mediaStreamRef.current) {
@@ -168,6 +199,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
     }
     setIsRecording(false);
     setHasSpeechStarted(false);
+    setRecognitionManuallyPaused(false);
   };
 
   const toggleRecording = () => {
@@ -178,11 +210,14 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
     }
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (recognitionInstance) {
+        recognitionInstance.onend = null;
+        recognitionInstance.stop();
       }
     };
   }, []);
@@ -192,11 +227,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
       <PulsatingMicButton
         isRecording={isRecording}
         onClick={toggleRecording}
-        disabled={isDisabled}
+        disabled={isDisabled || shouldPauseRecognition}
       />
     </div>
   );
 };
 
 export default VoiceRecorder;
-
