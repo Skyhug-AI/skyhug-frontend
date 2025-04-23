@@ -69,61 +69,60 @@ const SessionRoom = () => {
   }, [currentlyPlayingPath]);
 
   useEffect(() => {
-    const lastMsg = messages[messages.length - 1];
-    if (
-      lastMsg &&
-      !lastMsg.isUser &&
-      lastMsg.tts_path &&
-      lastPlayedRef.current !== lastMsg.id
-    ) {
-      console.log('►►► SessionRoom auto-playing message', lastMsg.id);
-      lastPlayedRef.current = lastMsg.id;
-      // reset the transcript guard on every new assistant reply:
-      lastTranscriptRef.current = null;
+    // helper to pause & clear our single Audio instance
+    const stopAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = audioRef.current.duration;
+        audioRef.current = null;
+      }
+    };
   
+    // 1) When the browser is about to unload (close/refresh), stop audio
+    window.addEventListener("beforeunload", stopAudio);
+  
+    return () => {
+      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
+      stopAudio();
+      window.removeEventListener("beforeunload", stopAudio);
+    };
+  }, []);
+
+  useEffect(() => {
+    // helper to pause & clear our single Audio instance
+    const stopAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = audioRef.current.duration;
+        audioRef.current = null;
+      }
+    };
+  
+    // 1) When the browser is about to unload (close/refresh), stop audio
+    window.addEventListener("beforeunload", stopAudio);
+  
+    return () => {
+      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
+      stopAudio();
+      window.removeEventListener("beforeunload", stopAudio);
+    };
+  }, []);
+
+  const prevCountRef = useRef<number>(messages.length);
+
+useEffect(() => {
+  // if we’ve added at least one more message…
+  if (messages.length > prevCountRef.current) {
+    const lastMsg = messages[messages.length - 1];
+    // only auto-play when that new message is an assistant reply
+    if (!lastMsg.isUser && lastMsg.tts_path) {
+      lastPlayedRef.current = lastMsg.id;
       handlePlayAudio(lastMsg.tts_path);
     }
-  }, [messages]);
-
-  useEffect(() => {
-    // helper to pause & clear our single Audio instance
-    const stopAudio = () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = audioRef.current.duration;
-        audioRef.current = null;
-      }
-    };
-  
-    // 1) When the browser is about to unload (close/refresh), stop audio
-    window.addEventListener("beforeunload", stopAudio);
-  
-    return () => {
-      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
-      stopAudio();
-      window.removeEventListener("beforeunload", stopAudio);
-    };
-  }, []);
-
-  useEffect(() => {
-    // helper to pause & clear our single Audio instance
-    const stopAudio = () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = audioRef.current.duration;
-        audioRef.current = null;
-      }
-    };
-  
-    // 1) When the browser is about to unload (close/refresh), stop audio
-    window.addEventListener("beforeunload", stopAudio);
-  
-    return () => {
-      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
-      stopAudio();
-      window.removeEventListener("beforeunload", stopAudio);
-    };
-  }, []);
+  }
+  // update for next diff
+  prevCountRef.current = messages.length;
+}, [messages]);
   
   
 
