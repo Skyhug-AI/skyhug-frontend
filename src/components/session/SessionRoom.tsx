@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
-import VoiceRecorder, { VoiceRecorderHandle } from "@/components/voice/VoiceRecorder";
+import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,12 +26,10 @@ const SessionRoom = () => {
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [audioStates, setAudioStates] = useState<{[key: string]: boolean}>({});
+  const [isMicLocked, setIsMicLocked] = useState(false); // NEW STATE
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const voiceRecorderRef = useRef<VoiceRecorderHandle>(null);
-
-  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -53,21 +51,12 @@ const SessionRoom = () => {
     scrollToBottom();
   }, [messages]);
 
-  // PAUSE any playing audio when user switches to voice mode
+  // NEW: unlock mic when playback stops
   useEffect(() => {
-    if (isVoiceMode && currentlyPlayingPath && activeAudioRef.current) {
-      activeAudioRef.current.pause();
+    if (!currentlyPlayingPath) {
+      setIsMicLocked(false);
     }
-  }, [isVoiceMode, currentlyPlayingPath]);
-
-  // Cleanup active audio on unmount
-  useEffect(() => {
-    return () => {
-      if (activeAudioRef.current) {
-        activeAudioRef.current.pause();
-      }
-    };
-  }, []);
+  }, [currentlyPlayingPath]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -91,76 +80,38 @@ const SessionRoom = () => {
     sendMessage(transcript);
   };
 
-  // Play audio and ensure mic is off
+  // PATCH: lock/unlock microphone while audio is playing
   const handlePlayAudio = async (tts_path?: string | null) => {
-    if (!tts_path) {
+    if (tts_path) {
+      setIsMicLocked(true); // Lock mic before playback starts
+      setCurrentlyPlayingPath(tts_path);
+
+      // Toggle the playing state for this specific audio
+      setAudioStates(prev => {
+        const newState = {...prev};
+        newState[tts_path] = !prev[tts_path];
+        return newState;
+      });
+
+      // Play and listen for end of audio to unlock
+      try {
+        await playMessageAudio(tts_path);
+      } finally {
+        setTimeout(() => {
+          setIsMicLocked(false);
+          setCurrentlyPlayingPath(null);
+          setAudioStates(prev => ({
+            ...prev,
+            [tts_path]: false,
+          }));
+        }, 250); // Delay to ensure audio has ended
+      }
+    } else {
       toast({
         title: "No audio available",
         description: "This message doesn't have audio",
         variant: "destructive",
       });
-      return;
-    }
-
-    // Stop recording if currently active
-    if (voiceRecorderRef.current) {
-      voiceRecorderRef.current.stopRecording();
-    }
-
-    // Pause previous audio
-    if (activeAudioRef.current) {
-      activeAudioRef.current.pause();
-      activeAudioRef.current.currentTime = 0;
-    }
-
-    // Play audio using playMessageAudio, but control our playback pause/resume
-    // Instead, we manage our own audio reference here for full control
-    try {
-      // Get signed URL (re-use logic from TherapistContext)
-      const response = await fetch(`/api/get-signed-url?path=${encodeURIComponent(tts_path)}`);
-      const { url } = await response.json();
-
-      const audio = new Audio(url);
-      activeAudioRef.current = audio;
-
-      audio.onplay = () => {
-        setCurrentlyPlayingPath(tts_path);
-        setAudioStates((prev) => ({
-          ...prev,
-          [tts_path]: true,
-        }));
-      };
-      audio.onpause = () => {
-        setAudioStates((prev) => ({
-          ...prev,
-          [tts_path]: false,
-        }));
-      };
-      audio.onended = () => {
-        setCurrentlyPlayingPath(null);
-        setAudioStates((prev) => ({
-          ...prev,
-          [tts_path]: false,
-        }));
-        activeAudioRef.current = null;
-      };
-      await audio.play();
-    } catch (e) {
-      toast({ title: "Playback error", description: "Audio could not be played.", variant: "destructive" });
-    }
-  };
-
-  // Pause any audio when mic starts
-  const handleToggleVoiceMode = async () => {
-    const next = !isVoiceMode;
-    setIsVoiceMode(next);
-    await setVoiceEnabled(next);
-
-    if (next) {
-      // Switching TO voice mode: pause any playing audio first
-      if (activeAudioRef.current && !activeAudioRef.current.paused) {
-        activeAudioRef.current.pause();
-      }
     }
   };
 
@@ -205,6 +156,7 @@ const SessionRoom = () => {
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handlePlayAudio(message.tts_path)}
+                  disabled={isMicLocked}
                 >
                   {audioStates[message.tts_path || ""] ? (
                     <Pause className="h-4 w-4" />
@@ -272,7 +224,11 @@ const SessionRoom = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleToggleVoiceMode}
+                onClick={async () => {
+                  const next = !isVoiceMode;
+                  setIsVoiceMode(next);
+                  await setVoiceEnabled(next);
+                }}
                 className="rounded-full w-8 h-8"
               >
                 {isVoiceMode ? (
@@ -287,9 +243,8 @@ const SessionRoom = () => {
           <div className="flex gap-2">
             {isVoiceMode ? (
               <VoiceRecorder
-                ref={voiceRecorderRef}
                 onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing}
+                isDisabled={isProcessing || isMicLocked}
               />
             ) : (
               <div className="flex-grow">
@@ -308,4 +263,3 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
-
