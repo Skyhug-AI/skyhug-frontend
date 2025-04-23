@@ -33,6 +33,7 @@ const SessionRoom = () => {
   const lastPlayedId = useRef<string | null>(null);
   const lastPlayedRef = useRef<string | null>(null);
   const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
+  const lastTranscriptRef = useRef<string | null>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -71,6 +72,9 @@ const SessionRoom = () => {
     ) {
       console.log('►►► SessionRoom auto-playing message', lastMsg.id);
       lastPlayedRef.current = lastMsg.id;
+      // reset the transcript guard on every new assistant reply:
+      lastTranscriptRef.current = null;
+  
       handlePlayAudio(lastMsg.tts_path);
     }
   }, [messages]);
@@ -93,8 +97,16 @@ const SessionRoom = () => {
   };
 
   const handleVoiceRecorded = (transcript: string) => {
+    const trimmed = transcript.trim();
+    // 1) ignore empty
+    if (!trimmed) return;
+    // 2) ignore exact duplicates
+    if (lastTranscriptRef.current === trimmed) return;
+  
+    // 3) mark it as sent, then call sendMessage
+    lastTranscriptRef.current = trimmed;
     setHasStartedChat(true);
-    sendMessage(transcript);
+    sendMessage(trimmed);
   };
 
   const handlePlayAudio = async (tts_path?: string | null) => {

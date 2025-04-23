@@ -28,6 +28,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [recognitionManuallyPaused, setRecognitionManuallyPaused] = useState(false);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+  const lastSentRef = useRef<string>('')
+  const [pausedByUser, setPausedByUser] = useState(false);
+
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
     if (isSpeaking) {
@@ -42,33 +45,36 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     let silenceTimeout: NodeJS.Timeout;
     if (isRecording && hasSpeechStarted && lastSpeechTime > 0) {
       silenceTimeout = setTimeout(() => {
+        // 1) If it’s been 2s since last speech…
         if (Date.now() - lastSpeechTime > 2000) {
-          if (transcript.trim()) {
-            onVoiceRecorded(transcript);
+          const trimmed = transcript.trim();
+          // 2) And we’ve actually got words…
+          if (trimmed) {
+            // 3) Fire exactly one callback
+            onVoiceRecorded(trimmed);
+            // 4) Reset so we don’t send again
             setTranscript('');
             setHasSpeechStarted(false);
+            // 5) **Immediately stop listening** to prevent duplicates
+            pauseRecognition();
           }
         }
       }, 2000);
     }
-    return () => {
-      clearTimeout(silenceTimeout);
-    };
+    return () => clearTimeout(silenceTimeout);
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
+  
 
   useEffect(() => {
-    // Pause whenever disabled or TTS is on; otherwise keep the mic live
     if ((isDisabled || shouldPauseRecognition) && isRecording) {
       pauseRecognition();
-    } else if (!isDisabled && !shouldPauseRecognition) {
-      if (recognitionManuallyPaused) {
-        resumeRecognition();
-      }
-      if (!isRecording && !recognitionManuallyPaused) {
-        startRecording();
-      }
+    } else if (!isDisabled && !shouldPauseRecognition && recognitionManuallyPaused) {
+      resumeRecognition();
     }
   }, [isDisabled, shouldPauseRecognition]);
+  
+  
+  
   
   useEffect(() => {
     // On mount, if we're not paused and not already recording, start right away
@@ -218,18 +224,26 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const toggleRecording = () => {
-    // if audio is playing, this button is now “skip and record”
     if (shouldPauseRecognition && onInterruptPlayback) {
-      onInterruptPlayback()
-      // and fall through to startRecording()
+      // skip the TTS…
+      onInterruptPlayback();
+  
+      // now manually resume (not start) the same session
+      resumeRecognition();
+      setPausedByUser(false);
+      return;
     }
   
     if (isRecording) {
-      pauseRecognition()
+      // user is explicitly pausing
+      pauseRecognition();
+      setPausedByUser(true);
     } else {
-      startRecording()
+      // user is explicitly starting or resuming
+      startRecording();
+      setPausedByUser(false);
     }
-  }
+  };
   
 
   useEffect(() => {
