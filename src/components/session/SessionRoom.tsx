@@ -10,6 +10,7 @@ import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-reac
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 const SessionRoom = () => {
   const { toast } = useToast();
@@ -32,7 +33,8 @@ const SessionRoom = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastPlayedId = useRef<string | null>(null);
   const lastPlayedRef = useRef<string | null>(null);
-  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
   const lastTranscriptRef = useRef<string | null>(null);
   const lastSendRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
 
@@ -117,71 +119,83 @@ const handleVoiceRecorded = (transcript: string) => {
   sendMessage(trimmed);
 };
 
+const handlePlayAudio = async (tts_path?: string | null) => {
+  if (!tts_path) {
+    toast({
+      title: "No audio available",
+      description: "This message doesn't have audio",
+      variant: "destructive",
+    });
+    return;
+  }
 
-  const handlePlayAudio = async (tts_path?: string | null) => {
-    // 1️⃣ Guard against missing path
-    if (!tts_path) {
-      toast({
-        title: "No audio available",
-        description: "This message doesn't have audio",
-        variant: "destructive",
-      });
-      return;
+  // If we're clicking the same clip that's already loaded, toggle pause/play
+  if (currentlyPlayingPath === tts_path && audioRef.current) {
+    // If it's currently playing, pause it and immediately free the mic
+    if (!audioRef.current.paused) {
+      audioRef.current.pause();
+      setIsPaused(true);
+      setIsMicLocked(false);   // unlock mic as soon as user pauses
     }
-  
-    // 2️⃣ If something’s already playing, stop it immediately
-    if (audioEl) {
-      audioEl.onended = null;           // remove old handler
-      audioEl.pause();
-      audioEl.currentTime = audioEl.duration;  // skip to end
+    // If it's currently paused, resume playback and lock the mic again
+    else {
+      try {
+        await audioRef.current.play();
+        setIsPaused(false);
+        setIsMicLocked(true);  // lock mic while audio plays
+      } catch (e) {
+        console.error("Error resuming audio:", e);
+      }
     }
-  
-    // Also clear the old UI state
-    if (currentlyPlayingPath) {
-      setAudioStates(prev => ({
-        ...prev,
-        [currentlyPlayingPath]: false
-      }));
-    }
-  
-    // 3️⃣ Lock mic & mark this clip as “playing”
-    console.log("🔒 locking mic for", tts_path);
-    setIsMicLocked(true);
-    setCurrentlyPlayingPath(tts_path);
-    setAudioStates(prev => ({
-      ...prev,
-      [tts_path]: true
-    }));
-  
-    // 4️⃣ Kick off TTS playback via your context, capture the <audio> back
-    const newAudio = await playMessageAudio(tts_path);
-    if (!newAudio) {
-      // If for any reason no element was returned, unlock immediately
-      setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
-      setAudioStates(prev => ({
-        ...prev,
-        [tts_path]: false
-      }));
-      return;
-    }
-  
-    // 5️⃣ Store it for “interrupt” use
-    setAudioEl(newAudio);
-  
-    // 6️⃣ When it truly ends, unlock and clear state
-    newAudio.onended = () => {
-      console.log("🔓 TTS finished, unlocking mic for", tts_path);
-      setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
-      setAudioStates(prev => ({
-        ...prev,
-        [tts_path]: false
-      }));
-      setAudioEl(null);
-    };
+    return;
+  }
+
+  // Otherwise, tearing down any previous audio and starting a new clip:
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+  }
+
+  setIsMicLocked(true);
+  setCurrentlyPlayingPath(tts_path);
+  setIsPaused(false);
+
+  const { data, error } = await supabase
+    .storage
+    .from("tts-audio")
+    .createSignedUrl(tts_path, 60);
+
+  if (error || !data?.signedUrl) {
+    toast({ title: "Audio error", description: "Could not load TTS audio", variant: "destructive" });
+    setIsMicLocked(false);
+    setCurrentlyPlayingPath(null);
+    return;
+  }
+
+  const audio = new Audio(data.signedUrl);
+  audioRef.current = audio;
+  audio.preload = 'auto';
+
+  audio.onended = () => {
+    setIsMicLocked(false);
+    setCurrentlyPlayingPath(null);
+    setIsPaused(false);
+    audioRef.current = null;
   };
-  
+  audio.onerror = () => {
+    console.error("Audio playback error");
+    setIsMicLocked(false);
+    setCurrentlyPlayingPath(null);
+  };
+
+  try {
+    await audio.play();
+  } catch (e) {
+    console.error("Error starting audio:", e);
+    setIsMicLocked(false);
+    setCurrentlyPlayingPath(null);
+  }
+};
 
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);
@@ -196,18 +210,23 @@ const handleVoiceRecorded = (transcript: string) => {
     setRecognitionPaused(false);
   };
 
-  const interruptPlayback = () => {
-    if (audioEl) {
-      audioEl.pause();
-      audioEl.currentTime = audioEl.duration;
-    }
-    setIsMicLocked(false);
-    if (currentlyPlayingPath) {
-      setAudioStates(prev => ({ ...prev, [currentlyPlayingPath]: false }));
-      setCurrentlyPlayingPath(null);
-    }
-    setAudioEl(null);
-  };
+const interruptPlayback = () => {
+  // If there’s a clip still loaded, stop & skip it
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = audioRef.current.duration;
+    audioRef.current = null;
+  }
+
+  // Unlock the mic immediately
+  setIsMicLocked(false);
+
+  // Clear your UI “playing” flags
+  if (currentlyPlayingPath) {
+    setAudioStates(prev => ({ ...prev, [currentlyPlayingPath]: false }));
+    setCurrentlyPlayingPath(null);
+  }
+};
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
@@ -252,14 +271,10 @@ const handleVoiceRecorded = (transcript: string) => {
                   onClick={() => handlePlayAudio(message.tts_path)}
                   disabled={isMicLocked && currentlyPlayingPath !== message.tts_path}
                 >
-                  {audioStates[message.tts_path || ""] ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {audioStates[message.tts_path || ""] ? "Pause audio" : "Play audio"}
-                  </span>
+                  {currentlyPlayingPath === message.tts_path && !isPaused
+                    ? <Pause className="h-4 w-4" />
+                    : <Play className="h-4 w-4" />
+                  }
                 </Button>
               )}
             </div>

@@ -39,6 +39,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const [showReminder, setShowReminder] = useState(false);
   const [ambientSound, setAmbientSound] = useState<string | null>(null);
   const reminderTimeoutRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -90,39 +91,43 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
 
   const handlePlayAudio = async (tts_path?: string | null) => {
     if (!tts_path) return;
-  
-    // if already playing this clip, just toggle pause/resume
-    if (currentlyPlayingPath === tts_path) {
-      const audioEl = document.querySelector(`audio[data-path="${tts_path}"]`) as HTMLAudioElement;
+
+    // If we’re already playing *this* clip, toggle pause/resume on the single instance
+    if (currentlyPlayingPath === tts_path && audioRef.current) {
       if (!isPaused) {
-        audioEl.pause();
+        audioRef.current.pause();
         setIsPaused(true);
       } else {
-        audioEl.play();
+        await audioRef.current.play();
         setIsPaused(false);
       }
       return;
     }
-  
-    // stop any other clips
-    document.querySelectorAll("audio[data-path]").forEach(el => {
-      (el as HTMLAudioElement).pause();
-      (el as HTMLAudioElement).currentTime = 0;
-    });
-  
-    // mark that we're about to play
-    setCurrentlyPlayingPath(tts_path);
-    setIsPaused(false);
-    setIsPlayingAudio(true);               // <-- pause mic
-  
-    const audio = new Audio(await getSignedURL(tts_path));
-    audio.setAttribute("data-path", tts_path);
+
+    // Otherwise, either it's a different clip or first time—tear down the old one
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+
+    // set up the new clip
+    const signedUrl = await getSignedURL(tts_path);
+    const audio = new Audio(signedUrl);
+    audioRef.current = audio;
+    audio.preload = 'auto';
     audio.onended = () => {
       setCurrentlyPlayingPath(null);
       setIsPaused(false);
-      setIsPlayingAudio(false);            // <-- resume mic
+      // any mic‐resume logic here...
     };
-    audio.play();
+    audio.onerror = () => {
+      console.error('Audio playback error');
+    };
+
+    // kick it off
+    setCurrentlyPlayingPath(tts_path);
+    setIsPaused(false);
+    await audio.play();
   };
   
   
