@@ -58,14 +58,14 @@ const SessionRoom = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, []);
 
   useEffect(() => {
     const latestMessage = messages[messages.length - 1];
     if (latestMessage?.tts_path && !latestMessage.isUser) {
       playMessageAudio(latestMessage.tts_path);
     }
-  }, [messages]);
+  }, []);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
