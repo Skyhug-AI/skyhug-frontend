@@ -365,7 +365,7 @@ const interruptPlayback = () => {
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
                 isDisabled={isProcessing}
-                shouldPauseRecognition={isMicLocked}
+                shouldPauseRecognition={ isMicLocked || waitingForResponse }
                 onRecognitionPaused={handleRecognitionPaused}
                 onRecognitionResumed={handleRecognitionResumed}
                 onInterruptPlayback={interruptPlayback} 
