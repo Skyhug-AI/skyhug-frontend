@@ -354,6 +354,8 @@ def process_tts():
                 .execute()
             voice_on = conv.data.get("voice_enabled", False) if conv.data else False
             print(f"🎚 Voice enabled? {voice_on}")
+            if voice_on is None: 
+                voise_on = True 
             if not voice_on:
                 print("⏭ Voice off. Updating tts_status to done...")
                 supabase_admin.table("messages").update({
@@ -436,7 +438,7 @@ if __name__ == "__main__":
     print("✔️ Supabase connectivity test:", test.data)
 
     no_work_count = 0
-    MAX_IDLE_CYCLES = 20
+    MAX_IDLE_CYCLES = 2000
     close_inactive_conversations()
 
     while True:
