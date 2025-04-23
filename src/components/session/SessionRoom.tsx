@@ -5,7 +5,14 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
+import {
+  HelpCircle,
+  Mic,
+  MessageSquare,
+  Loader,
+  Play,
+  Pause,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,8 +30,12 @@ const SessionRoom = () => {
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
-  const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
-  const [audioStates, setAudioStates] = useState<{[key: string]: boolean}>({});
+  const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<
+    string | null
+  >(null);
+  const [audioStates, setAudioStates] = useState<{ [key: string]: boolean }>(
+    {}
+  );
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -81,11 +92,11 @@ const SessionRoom = () => {
   const handlePlayAudio = (tts_path?: string | null) => {
     if (tts_path) {
       playMessageAudio(tts_path);
-      
+
       // Toggle the playing state for this specific audio
       setCurrentlyPlayingPath(tts_path);
-      setAudioStates(prev => {
-        const newState = {...prev};
+      setAudioStates((prev) => {
+        const newState = { ...prev };
         // If it's already playing (true), we're pausing it; otherwise, we're playing it
         newState[tts_path] = !prev[tts_path];
         return newState;
@@ -147,7 +158,9 @@ const SessionRoom = () => {
                     <Play className="h-4 w-4" />
                   )}
                   <span className="sr-only">
-                    {audioStates[message.tts_path || ""] ? "Pause audio" : "Play audio"}
+                    {audioStates[message.tts_path || ""]
+                      ? "Pause audio"
+                      : "Play audio"}
                   </span>
                 </Button>
               )}

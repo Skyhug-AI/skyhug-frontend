@@ -10,12 +10,29 @@ import { useAuth } from "./AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/hooks/use-toast";
 
+// Utility for timing operations
+const timeOperation = async <T,>(operation: () => Promise<T>, name: string): Promise<T> => {
+  const start = performance.now();
+  try {
+    const result = await operation();
+    const duration = (performance.now() - start).toFixed(2);
+    console.log(`⏱️ ${name} took ${duration}ms`);
+    return result;
+  } catch (error) {
+    const duration = (performance.now() - start).toFixed(2);
+    console.error(`❌ ${name} failed after ${duration}ms:`, error);
+    throw error;
+  }
+};
+
 export interface Message {
   id: string;
   content: string;
   isUser: boolean;
   timestamp: string;
-  tts_path?: string | null;
+  tts_path?: string;
+  tts_status?: string;
+  isVisible?: boolean;
 }
 
 interface TherapistContextType {
@@ -27,7 +44,7 @@ interface TherapistContextType {
   clearMessages: () => Promise<void>;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
-  playMessageAudio: (tts_path: string) => Promise<void>;
+  playMessageAudio: (tts_path: string, isAutoPlay?: boolean) => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -46,6 +63,106 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     null
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
+  const [messageQueue, setMessageQueue] = useState<Message[]>([]);
+
+  const playMessageAudio = useCallback(async (tts_path: string, isAutoPlay = false) => {
+    if (!tts_path) return;
+    const startTime = performance.now();
+    console.log(`${isAutoPlay ? "🔄" : "▶️"} Attempting to play audio:`, tts_path);
+
+    // If the same audio is already playing → pause it
+    if (currentAudio?.src.includes(tts_path)) {
+      if (!currentAudio.paused) {
+        currentAudio.pause();
+        setIsAudioPaused(true);
+        console.log("⏸️ Audio paused");
+        return;
+      } else {
+        setIsAudioPaused(false);
+        console.log("▶️ Resuming paused audio");
+        try {
+          await currentAudio.play();
+          return;
+        } catch (err) {
+          console.error("❌ Error resuming audio:", err);
+        }
+      }
+    }
+
+    try {
+      // Stop any currently playing audio
+      if (currentAudio) {
+        currentAudio.pause();
+        setCurrentAudio(null);
+      }
+
+      const audio = new Audio();
+
+      // Get signed URL for the audio file
+      const { data: { signedUrl }, error: urlError } = await supabase
+        .storage
+        .from("tts-audio")
+        .createSignedUrl(tts_path, 60);
+
+      if (urlError) {
+        console.error("❌ Error getting signed URL:", urlError);
+        if (!isAutoPlay) {
+          toast({
+            title: "Audio error",
+            description: "Could not get audio URL",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      audio.src = signedUrl;
+
+      audio.onplay = () => {
+        const totalPrepTime = (performance.now() - startTime).toFixed(2);
+        console.log(`▶️ Audio started playing (total prep time: ${totalPrepTime}ms)`);
+        setIsAudioPaused(false);
+        if (!isAutoPlay) {
+          toast({
+            title: "🎧 Playing audio",
+            description: "Sky's response is playing now",
+          });
+        }
+      };
+
+      audio.onended = () => {
+        const totalPlayTime = (performance.now() - startTime).toFixed(2);
+        console.log(`⏹️ Audio finished playing (total time: ${totalPlayTime}ms)`);
+        setIsAudioPaused(true);
+      };
+
+      audio.onerror = (e) => {
+        console.error("❌ Audio playback error:", e);
+        if (!isAutoPlay) {
+          toast({
+            title: "Audio error",
+            description: "Could not play the audio",
+            variant: "destructive",
+          });
+        }
+      };
+
+      setCurrentAudio(audio);
+      setIsAudioPaused(false);
+      console.log("▶️ Starting audio playback...");
+      await audio.play();
+    } catch (err) {
+      const errorTime = (performance.now() - startTime).toFixed(2);
+      console.error(`❌ TTS playback exception after ${errorTime}ms:`, err);
+      if (!isAutoPlay) {
+        toast({
+          title: "Playback error",
+          description: "An error occurred while playing audio",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [currentAudio, toast]);
 
   const formatMessage = (msg: any): Message => ({
     id: msg.id,
@@ -147,10 +264,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .limit(1)
       .maybeSingle(); // <— returns null if no row, instead of an error
 
-    console.log("🔍 Previous conversation summary check:", { 
-      found: !!prev, 
+    console.log("🔍 Previous conversation summary check:", {
+      found: !!prev,
       summary: prev?.memory_summary,
-      error: memErr 
+      error: memErr,
     });
 
     if (memErr && memErr.code !== "PGRST116") {
@@ -165,13 +282,17 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     console.log("👋 Selected greeting:", greeting);
 
     // 6) Seed that into messages
-    const { data: messageData, error: messageError } = await supabase.from("messages").insert({
-      conversation_id: data.id,
-      sender_role: "assistant",
-      assistant_text: greeting,
-      ai_status: "done",
-      tts_status: "pending",
-    }).select().single();
+    const { data: messageData, error: messageError } = await supabase
+      .from("messages")
+      .insert({
+        conversation_id: data.id,
+        sender_role: "assistant",
+        assistant_text: greeting,
+        ai_status: "done",
+        tts_status: "pending",
+      })
+      .select()
+      .single();
 
     if (messageError) {
       console.error("❌ Error inserting greeting message:", messageError);
@@ -200,50 +321,65 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
   const sendMessage = async (content: string) => {
     if (!conversationId || !content.trim()) return;
-    console.log("📤 Sending message to Supabase...");
+    console.log("📝 User sending text message:", content.slice(0, 50) + "...");
+    const startTime = performance.now();
     setIsProcessing(true);
 
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
-      sender_role: "user",
-      transcription: content,
-      transcription_status: "done",
-      ai_status: "pending",
-      tts_status: "pending",
-    });
+    await timeOperation(async () => {
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_role: "user",
+        transcription: content,
+        transcription_status: "done",
+        ai_status: "pending",
+        tts_status: "pending",
+      });
+      if (error) console.error("Error sending message:", error);
+    }, "Message insertion");
 
-    if (error) console.error("Error sending message:", error);
-    await loadHistory(conversationId);
+    await timeOperation(() => loadHistory(conversationId), "History reload");
+    console.log(`⏱️ Total message send operation took ${(performance.now() - startTime).toFixed(2)}ms`);
   };
 
   const sendAudioMessage = async (blob: Blob) => {
     if (!conversationId || !user) return;
+    console.log("🎤 User sending audio message...");
+    const startTime = performance.now();
     setIsProcessing(true);
     const key = `${user.id}/${uuidv4()}.webm`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("raw-audio")
-      .upload(key, blob, { contentType: "audio/webm" });
+    console.log("⬆️ Uploading audio to storage...");
+    await timeOperation(async () => {
+      const { error: uploadError } = await supabase.storage
+        .from("raw-audio")
+        .upload(key, blob, { contentType: "audio/webm" });
 
-    if (uploadError) {
-      console.error("Error uploading audio:", uploadError);
-      setIsProcessing(false);
-      return;
-    }
+      if (uploadError) {
+        console.error("Error uploading audio:", uploadError);
+        setIsProcessing(false);
+        return;
+      }
+    }, "Audio upload");
+    console.log("✅ Audio uploaded successfully");
 
-    const { error: insertError } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
-      sender_role: "user",
-      audio_path: key,
-      transcription_status: "pending",
-      ai_status: "pending",
-      tts_status: "pending",
-    });
+    console.log("📝 Creating message record...");
+    await timeOperation(async () => {
+      const { error: insertError } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_role: "user",
+        audio_path: key,
+        transcription_status: "pending",
+        ai_status: "pending",
+        tts_status: "pending",
+      });
 
-    if (insertError)
-      console.error("Error inserting audio message:", insertError);
-    await loadHistory(conversationId);
+      if (insertError)
+        console.error("Error inserting audio message:", insertError);
+    }, "Audio message record creation");
+
+    await timeOperation(() => loadHistory(conversationId), "History reload after audio");
     setIsProcessing(false);
+    console.log(`⏱️ Total audio message operation took ${(performance.now() - startTime).toFixed(2)}ms`);
   };
 
   const setVoiceEnabled = async (on: boolean) => {
@@ -287,9 +423,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = async (tts_path: string) => {
+  const playMessageAudio = async (tts_path: string, isAutoPlay = false) => {
     if (!tts_path) return;
-  
+    const startTime = performance.now();
+    console.log(`${isAutoPlay ? "🔄" : "▶️"} Attempting to play audio:`, tts_path);
+
     // If the same audio is already playing → pause it
     if (currentAudio?.src.includes(tts_path)) {
       if (!currentAudio.paused) {
@@ -298,8 +436,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         console.log("⏸️ Audio paused");
         return;
       } else {
-        // Resume playing the same audio
         setIsAudioPaused(false);
+        console.log("▶️ Resuming paused audio");
         try {
           await currentAudio.play();
           return;
@@ -308,99 +446,200 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         }
       }
     }
-  
-    // Otherwise, stop any previous audio
+
     if (currentAudio) {
+      console.log("⏹️ Stopping previous audio");
       currentAudio.pause();
       currentAudio.currentTime = 0;
     }
-  
+
     try {
-      const { data, error } = await supabase.storage
-        .from("tts-audio")
-        .createSignedUrl(tts_path, 60);
-  
+      console.log("🔑 Getting signed URL for audio...");
+      const { data, error } = await timeOperation(
+        () => supabase.storage.from("tts-audio").createSignedUrl(tts_path, 60),
+        "Signed URL generation"
+      );
+
       if (error || !data?.signedUrl) {
-        toast({
-          title: "Could not play audio",
-          description: "Unable to generate signed URL",
-          variant: "destructive",
-        });
-        console.error("Signed URL error:", error);
+        console.error("❌ Signed URL error:", error);
+        if (!isAutoPlay) {
+          toast({
+            title: "Could not play audio",
+            description: "Unable to generate signed URL",
+            variant: "destructive",
+          });
+        }
         return;
       }
-  
+      console.log("✅ Got signed URL");
+
+      console.log("🎵 Creating audio element...");
       const audio = new Audio(data.signedUrl);
       audio.preload = "auto";
-  
+
+      console.log("⏳ Waiting for audio to be ready...");
+      const audioLoadStart = performance.now();
+      const audioReady = new Promise((resolve, reject) => {
+        let timeoutId: NodeJS.Timeout;
+
+        const cleanup = () => {
+          clearTimeout(timeoutId);
+          audio.removeEventListener("canplaythrough", handleCanPlay);
+          audio.removeEventListener("error", handleError);
+        };
+
+        const handleCanPlay = () => {
+          const loadTime = (performance.now() - audioLoadStart).toFixed(2);
+          console.log(`✅ Audio is ready to play (took ${loadTime}ms)`);
+          cleanup();
+          resolve(true);
+        };
+
+        const handleError = (e: Event) => {
+          const loadTime = (performance.now() - audioLoadStart).toFixed(2);
+          console.error(`❌ Audio loading error after ${loadTime}ms:`, e);
+          cleanup();
+          reject(e);
+        };
+
+        timeoutId = setTimeout(() => {
+          const loadTime = (performance.now() - audioLoadStart).toFixed(2);
+          console.error(`⏰ Audio loading timed out after ${loadTime}ms`);
+          cleanup();
+          reject(new Error("Audio loading timed out"));
+        }, 5000);
+
+        audio.addEventListener("canplaythrough", handleCanPlay);
+        audio.addEventListener("error", handleError);
+      });
+
+      await audioReady;
+
       audio.onloadeddata = () => {
-        console.log("✅ Audio loaded successfully");
+        console.log("📥 Audio data loaded");
       };
+
       audio.onplay = () => {
+        const totalPrepTime = (performance.now() - startTime).toFixed(2);
+        console.log(`▶️ Audio started playing (total prep time: ${totalPrepTime}ms)`);
         setIsAudioPaused(false);
-        toast({
-          title: "🎧 Playing audio",
-          description: "Serenity's response is playing now",
-        });
+        if (!isAutoPlay) {
+          toast({
+            title: "🎧 Playing audio",
+            description: "Sky's response is playing now",
+          });
+        }
       };
+
       audio.onended = () => {
+        const totalPlayTime = (performance.now() - startTime).toFixed(2);
+        console.log(`⏹️ Audio finished playing (total time: ${totalPlayTime}ms)`);
         setIsAudioPaused(true);
       };
+
       audio.onerror = (e) => {
-        console.error("Audio playback error:", e);
-        toast({
-          title: "Audio error",
-          description: "Could not play the audio",
-          variant: "destructive",
-        });
+        console.error("❌ Audio playback error:", e);
+        if (!isAutoPlay) {
+          toast({
+            title: "Audio error",
+            description: "Could not play the audio",
+            variant: "destructive",
+          });
+        }
       };
-  
+
       setCurrentAudio(audio);
       setIsAudioPaused(false);
+      console.log("▶️ Starting audio playback...");
       await audio.play();
-  
     } catch (err) {
-      console.error("TTS playback exception:", err);
-      toast({
-        title: "Playback error",
-        description: "An error occurred while playing audio",
-        variant: "destructive",
-      });
+      const errorTime = (performance.now() - startTime).toFixed(2);
+      console.error(`❌ TTS playback exception after ${errorTime}ms:`, err);
+      if (!isAutoPlay) {
+        toast({
+          title: "Playback error",
+          description: "An error occurred while playing audio",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   useEffect(() => {
-    if (!conversationId) return;
-    const channel = supabase
-      .channel(`messages-updates-${conversationId}`)
+    const subscription = supabase
+      .channel("messages")
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        async (payload) => {
           const msg = payload.new;
           if (msg.sender_role === "assistant") {
+            const startTime = performance.now();
+            console.log("📩 Received new assistant message:", {
+              id: msg.id,
+              hasAudio: !!msg.tts_path,
+              ttsStatus: msg.tts_status,
+              timestamp: new Date().toISOString()
+            });
+
             setMessages((prev) => [...prev, formatMessage(msg)]);
             setIsProcessing(false);
 
-            // Auto-play audio if available
-            if (msg.tts_path && msg.tts_status === "done") {
-              setTimeout(() => {
-                playMessageAudio(msg.tts_path);
-              }, 500); // Small delay to ensure message is added
+            if (msg.tts_path) {
+              console.log("🔍 Checking TTS status for message:", msg.id);
+              let attempts = 0;
+              const maxAttempts = 10;
+              const checkTTSStatus = async () => {
+                const attemptStart = performance.now();
+                console.log(`⏳ TTS status check attempt ${attempts + 1}/${maxAttempts}`);
+
+                const { data, error } = await timeOperation(
+                  async () => {
+                    const result = await supabase
+                      .from("messages")
+                      .select("tts_status")
+                      .eq("id", msg.id)
+                      .single();
+                    return result;
+                  },
+                  `TTS status check attempt ${attempts + 1}`
+                );
+
+                if (error) {
+                  console.error("❌ Error checking TTS status:", error);
+                  return;
+                }
+
+                if (data.tts_status === "done") {
+                  const totalWaitTime = (performance.now() - startTime).toFixed(2);
+                  console.log(`✅ TTS is ready after ${totalWaitTime}ms, starting auto-play`);
+                  playMessageAudio(msg.tts_path, true);
+                } else if (attempts < maxAttempts) {
+                  const attemptTime = (performance.now() - attemptStart).toFixed(2);
+                  console.log(`⏳ TTS not ready yet after ${attemptTime}ms, status:`, data.tts_status);
+                  attempts++;
+                  setTimeout(checkTTSStatus, 1000);
+                } else {
+                  const totalTime = (performance.now() - startTime).toFixed(2);
+                  console.log(`❌ Gave up waiting for TTS after ${totalTime}ms (${maxAttempts} attempts)`);
+                }
+              };
+
+              checkTTSStatus();
             }
           }
         }
       )
       .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(subscription);
     };
-  }, [conversationId]);
+  }, []);
 
   return (
     <TherapistContext.Provider

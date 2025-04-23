@@ -26,8 +26,8 @@ supabase_admin = create_client(
 print("🔑 Supabase token prefix:", os.getenv("SUPABASE_SERVICE_ROLE_KEY")[:10])
 
 
-info = supabase.rpc("auth_role").execute()
-print("🔐 Auth role seen by Supabase:", info)
+# info = supabase.rpc("auth_role").execute()
+# print("🔐 Auth role seen by Supabase:", info)
 
 
 
@@ -37,12 +37,12 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
 SYSTEM_PROMPT = """
-You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care. 
-Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language. 
+You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care.
+Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language.
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
 
-Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms. 
-If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind 
+Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms.
+If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind
 them that you're an AI and not a substitute for professional care.
 
 Your structure for each response should be:
@@ -429,7 +429,7 @@ def process_tts():
                 "tts_status": "done"
             }).eq("id", msg["id"]).execute()
 
-            
+
 # ─── Main Loop ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     test = supabase.table("messages").select("id").limit(1).execute()
@@ -457,4 +457,3 @@ if __name__ == "__main__":
             close_inactive_conversations()
 
         time.sleep(1)
-
