@@ -83,6 +83,27 @@ const SessionRoom = () => {
     }
   }, [messages]);
 
+  useEffect(() => {
+    // helper to pause & clear our single Audio instance
+    const stopAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = audioRef.current.duration;
+        audioRef.current = null;
+      }
+    };
+  
+    // 1) When the browser is about to unload (close/refresh), stop audio
+    window.addEventListener("beforeunload", stopAudio);
+  
+    return () => {
+      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
+      stopAudio();
+      window.removeEventListener("beforeunload", stopAudio);
+    };
+  }, []);
+  
+
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
       setHasStartedChat(true);
