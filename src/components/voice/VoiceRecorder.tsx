@@ -49,22 +49,24 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         if (Date.now() - lastSpeechTime > 2000 && !silenceSentRef.current) {
           const trimmed = transcript.trim();
           if (trimmed) {
-            // mark that we've sent for this turn
             silenceSentRef.current = true;
   
-            // fire once
+            // 1) Send the transcript
             onVoiceRecorded(trimmed);
   
-            // clear transcript & stop listening
-            setTranscript('');
-            setHasSpeechStarted(false);
+            // 2) Tear down recognition
             pauseRecognition();
+  
+            // 3) *Immediately* notify parent that ASR is now paused
+            if (onRecognitionPaused) {
+              onRecognitionPaused();
+            }
           }
         }
       }, 2000);
     }
     return () => clearTimeout(silenceTimeout);
-  }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
+  }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded, onRecognitionPaused]);
   
   
 
@@ -121,9 +123,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error', event.error);
+      
+        // Treat “no-speech” as an intentional stop:
         if (event.error === 'no-speech') {
+          // this will stop the recognizer, flip your flags, and fire onRecognitionPaused()
+          pauseRecognition();
           return;
         }
+      
+        // for any other errors, fall back to your existing error UI
         setIsRecording(false);
         setRecognitionManuallyPaused(false);
         toast({
@@ -132,14 +140,25 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           variant: "destructive",
         });
       };
+      
 
       recognition.onend = () => {
+        // if we should keep listening, restart
         if (isRecording && !isDisabled && !recognitionManuallyPaused) {
           recognition.start();
-        } else {
-          setIsRecording(false);
+          return;
+        }
+      
+        // otherwise we’ve truly stopped
+        setIsRecording(false);
+        setRecognitionManuallyPaused(true);
+      
+        // notify parent that recognition is now paused
+        if (onRecognitionPaused) {
+          onRecognitionPaused();
         }
       };
+      
 
       return recognition;
     }

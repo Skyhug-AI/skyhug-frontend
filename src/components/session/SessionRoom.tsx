@@ -6,7 +6,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -240,23 +240,23 @@ const interruptPlayback = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
-      {isVoiceMode && (
-        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm text-gray-600">
-          <motion.div
-            className="w-2 h-2 rounded-full bg-skyhug-500"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <span>Sky is listening...</span>
+            {isVoiceMode && (
+        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm">
+          {recognitionPaused ? (
+            <X className="w-4 h-4 text-red-500" />
+          ) : (
+            <motion.div
+              className="w-2 h-2 rounded-full bg-skyhug-500"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
+          <span className={recognitionPaused ? "text-red-500" : "text-gray-600"}>
+            {recognitionPaused ? "Sky is not listening..." : "Sky is listening..."}
+          </span>
         </div>
       )}
+
 
       <div
         className="flex-grow overflow-y-auto py-6 scroll-smooth"
