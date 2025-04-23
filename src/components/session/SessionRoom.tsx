@@ -30,6 +30,8 @@ const SessionRoom = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const lastPlayedId = useRef<string | null>(null);
+  const lastPlayedRef = useRef<string | null>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -58,6 +60,20 @@ const SessionRoom = () => {
     }
   }, [currentlyPlayingPath]);
 
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (
+      lastMsg &&
+      !lastMsg.isUser &&
+      lastMsg.tts_path &&
+      lastPlayedRef.current !== lastMsg.id
+    ) {
+      console.log('►►► SessionRoom auto-playing message', lastMsg.id);
+      lastPlayedRef.current = lastMsg.id;
+      handlePlayAudio(lastMsg.tts_path);
+    }
+  }, [messages]);
+
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
       setHasStartedChat(true);
@@ -81,45 +97,40 @@ const SessionRoom = () => {
   };
 
   const handlePlayAudio = async (tts_path?: string | null) => {
-    if (tts_path) {
-      // If we're already playing audio, stop it first
-      if (currentlyPlayingPath) {
-        // Update audio state for the currently playing track
-        setAudioStates(prev => ({
-          ...prev,
-          [currentlyPlayingPath]: false
-        }));
-      }
-      
-      // Lock mic before playback starts
-      setIsMicLocked(true);
-      setCurrentlyPlayingPath(tts_path);
-
-      // Set this audio as playing
-      setAudioStates(prev => ({
-        ...prev,
-        [tts_path]: true
-      }));
-
-      try {
-        await playMessageAudio(tts_path);
-      } finally {
-        // Automatically unlock the mic and reset playing state when audio finishes
-        setIsMicLocked(false);
-        setCurrentlyPlayingPath(null);
-        setAudioStates(prev => ({
-          ...prev,
-          [tts_path]: false,
-        }));
-      }
-    } else {
+    if (!tts_path) {
       toast({
         title: "No audio available",
         description: "This message doesn't have audio",
         variant: "destructive",
       });
+      return;
+    }
+  
+    // stop a previous clip (if any)
+    if (currentlyPlayingPath) {
+      setAudioStates(prev => ({ ...prev, [currentlyPlayingPath]: false }));
+    }
+  
+    // lock the mic
+    console.log("🔒 locking mic for", tts_path);
+    setIsMicLocked(true);
+    setCurrentlyPlayingPath(tts_path);
+    setAudioStates(prev => ({ ...prev, [tts_path]: true }));
+  
+    // kick off playback and get the element back
+    const audio = await playMessageAudio(tts_path);
+  
+    if (audio) {
+      // when it really ends, unlock mic
+      audio.onended = () => {
+        console.log("🔓 TTS finished, unlocking mic for", tts_path);
+        setIsMicLocked(false);
+        setCurrentlyPlayingPath(null);
+        setAudioStates(prev => ({ ...prev, [tts_path]: false }));
+      };
     }
   };
+  
 
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);

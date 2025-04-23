@@ -41,6 +41,8 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const reminderTimeoutRef = useRef<number | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
 
 
   useEffect(() => {
@@ -89,40 +91,40 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const handlePlayAudio = async (tts_path?: string | null) => {
     if (!tts_path) return;
   
-    if (currentlyPlayingPath === tts_path && !isPaused) {
-      // Pause current playback
+    // if already playing this clip, just toggle pause/resume
+    if (currentlyPlayingPath === tts_path) {
       const audioEl = document.querySelector(`audio[data-path="${tts_path}"]`) as HTMLAudioElement;
-      audioEl?.pause();
-      setIsPaused(true);
+      if (!isPaused) {
+        audioEl.pause();
+        setIsPaused(true);
+      } else {
+        audioEl.play();
+        setIsPaused(false);
+      }
       return;
     }
   
-    if (currentlyPlayingPath === tts_path && isPaused) {
-      // Resume current playback
-      const audioEl = document.querySelector(`audio[data-path="${tts_path}"]`) as HTMLAudioElement;
-      audioEl?.play();
-      setIsPaused(false);
-      return;
-    }
-  
-    // New audio: stop any existing
-    document.querySelectorAll("audio[data-path]").forEach((el) => {
+    // stop any other clips
+    document.querySelectorAll("audio[data-path]").forEach(el => {
       (el as HTMLAudioElement).pause();
       (el as HTMLAudioElement).currentTime = 0;
     });
   
-    const audio = new Audio();
-    audio.src = await getSignedURL(tts_path); // fetch signed URL
+    // mark that we're about to play
+    setCurrentlyPlayingPath(tts_path);
+    setIsPaused(false);
+    setIsPlayingAudio(true);               // <-- pause mic
+  
+    const audio = new Audio(await getSignedURL(tts_path));
     audio.setAttribute("data-path", tts_path);
     audio.onended = () => {
       setCurrentlyPlayingPath(null);
       setIsPaused(false);
+      setIsPlayingAudio(false);            // <-- resume mic
     };
-  
     audio.play();
-    setCurrentlyPlayingPath(tts_path);
-    setIsPaused(false);
   };
+  
   
   
   const handleAmbientSound = (sound: string) => {
@@ -197,7 +199,13 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          <VoiceRecorder onVoiceRecorded={onVoiceRecorded} isDisabled={isProcessing} />
+           <VoiceRecorder
+            onVoiceRecorded={onVoiceRecorded}
+            isDisabled={isProcessing}
+            shouldPauseRecognition={isPlayingAudio}
+            onRecognitionPaused={() => console.log("mic paused")}
+            onRecognitionResumed={() => console.log("mic resumed")}
+          />
         </div>
       </main>
 

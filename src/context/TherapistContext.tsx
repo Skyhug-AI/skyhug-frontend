@@ -293,7 +293,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = async (tts_path: string) => {
+  const playMessageAudio = async (tts_path: string): Promise<HTMLAudioElement | null> => {
     if (!tts_path) return;
   
     if (currentAudio?.src.includes(tts_path)) {
@@ -361,6 +361,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       setCurrentAudio(audio);
       setIsAudioPaused(false);
       await audio.play();
+      return audio;
   
     } catch (err) {
       console.error("TTS playback exception:", err);
@@ -395,11 +396,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
             setMessages((prev) => [...prev, msg]);
             setIsProcessing(false);
 
-            if (!msg.isUser && msg.ttsHasArrived && msg.tts_path) {
-              setTimeout(() => {
-                playMessageAudio(msg.tts_path!);
-              }, 500);
-            }
           } else {
           }
         }
@@ -428,11 +424,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
             });
             setIsProcessing(false);
 
-            if (msg.tts_path) {
-              setTimeout(() => {
-                playMessageAudio(msg.tts_path!);
-              }, 500);
-            }
           }
         }
       )
