@@ -208,8 +208,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       tts_status: "pending",
     });
 
-    if (error) console.error("Error sending message:", error);
-    await loadHistory(conversationId);
+    if (error) {
+      console.error("Error sending message:", error);
+      setIsProcessing(false);
+    }
   };
 
   const sendAudioMessage = async (blob: Blob) => {
@@ -238,7 +240,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     if (insertError)
       console.error("Error inserting audio message:", insertError);
-    await loadHistory(conversationId);
+
     setIsProcessing(false);
   };
 
@@ -374,16 +376,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const rawMsg = payload.new;
-          const msg = formatMessage(rawMsg);
-          if (
-            msg.isUser ||
-            (msg.ttsHasArrived && !msg.isUser)
-          ) {
-            // for INSERT and UPDATE both…
-            setMessages(prev => [...prev, msg]);
+          const msg = formatMessage(payload.new);
+          if (msg.isUser /* only user messages on INSERT */) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === msg.id)) return prev;
+              return [...prev, msg];
+            });
             setIsProcessing(false);
-          } else {
           }
         }
       )
@@ -396,23 +395,24 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const rawMsg = payload.new;
-          const msg = formatMessage(rawMsg);
-          if (
-            msg.isUser ||
-            (msg.ttsHasArrived && !msg.isUser)
-          ) {
-            // for INSERT and UPDATE both…
-            setMessages(prev => [...prev, msg]);
+          const msg = formatMessage(payload.new);
+          // only add assistant messages once they have audio
+          if (!msg.isUser && msg.ttsHasArrived) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === msg.id)) return prev;
+              return [...prev, msg];
+            });
             setIsProcessing(false);
           }
         }
       )
       .subscribe();
+  
     return () => {
       supabase.removeChannel(channel);
     };
   }, [conversationId]);
+  
 
   return (
     <TherapistContext.Provider
