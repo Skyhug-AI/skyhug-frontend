@@ -15,6 +15,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
   const [recognitionInstance, setRecognitionInstance] = useState<SpeechRecognition | null>(null);
   const [lastSpeechTime, setLastSpeechTime] = useState<number>(0);
   const [hasSpeechStarted, setHasSpeechStarted] = useState(false);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
   
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
@@ -46,21 +47,14 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
     };
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
 
-  // This effect ensures that when isDisabled becomes true, we stop recording
   useEffect(() => {
     if (isDisabled && isRecording) {
-      stopRecording();
+      pauseRecognition();
     }
   }, [isDisabled]);
 
-  const startRecording = () => {
-    if (isDisabled) return;
-    
+  const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      if (recognitionInstance) {
-        recognitionInstance.stop();
-      }
-      
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
@@ -111,32 +105,87 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
         }
       };
       
-      recognition.start();
-      setRecognitionInstance(recognition);
-    } else {
+      return recognition;
+    }
+    return null;
+  };
+
+  const startRecording = async () => {
+    if (isDisabled) return;
+    
+    try {
+      // Get or reuse media stream
+      if (!mediaStreamRef.current) {
+        mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      }
+      
+      // Initialize and start recognition
+      const recognition = initializeRecognition();
+      if (recognition) {
+        if (recognitionInstance) {
+          recognitionInstance.stop();
+        }
+        recognition.start();
+        setRecognitionInstance(recognition);
+      } else {
+        toast({
+          title: "Not supported",
+          description: "Speech recognition is not supported in your browser",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
       toast({
-        title: "Not supported",
-        description: "Speech recognition is not supported in your browser",
+        title: "Microphone error",
+        description: "Could not access the microphone",
         variant: "destructive",
       });
+    }
+  };
+
+  const pauseRecognition = () => {
+    if (recognitionInstance) {
+      recognitionInstance.stop();
+      setIsRecording(false);
+      // Note: we don't clear mediaStreamRef here
     }
   };
 
   const stopRecording = () => {
     if (recognitionInstance) {
       recognitionInstance.stop();
-      setIsRecording(false);
-      setHasSpeechStarted(false);
     }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+    setIsRecording(false);
+    setHasSpeechStarted(false);
   };
 
   const toggleRecording = () => {
     if (isRecording) {
-      stopRecording();
+      pauseRecognition();
     } else {
       startRecording();
     }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   return (
     <div className="flex-grow flex items-center justify-center py-4">
@@ -150,3 +199,4 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onVoiceRecorded, isDisabl
 };
 
 export default VoiceRecorder;
+
