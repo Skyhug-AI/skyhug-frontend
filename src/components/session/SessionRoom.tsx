@@ -32,6 +32,7 @@ const SessionRoom = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastPlayedId = useRef<string | null>(null);
   const lastPlayedRef = useRef<string | null>(null);
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -97,6 +98,7 @@ const SessionRoom = () => {
   };
 
   const handlePlayAudio = async (tts_path?: string | null) => {
+    // 1️⃣ Guard against missing path
     if (!tts_path) {
       toast({
         title: "No audio available",
@@ -106,29 +108,57 @@ const SessionRoom = () => {
       return;
     }
   
-    // stop a previous clip (if any)
-    if (currentlyPlayingPath) {
-      setAudioStates(prev => ({ ...prev, [currentlyPlayingPath]: false }));
+    // 2️⃣ If something’s already playing, stop it immediately
+    if (audioEl) {
+      audioEl.onended = null;           // remove old handler
+      audioEl.pause();
+      audioEl.currentTime = audioEl.duration;  // skip to end
     }
   
-    // lock the mic
+    // Also clear the old UI state
+    if (currentlyPlayingPath) {
+      setAudioStates(prev => ({
+        ...prev,
+        [currentlyPlayingPath]: false
+      }));
+    }
+  
+    // 3️⃣ Lock mic & mark this clip as “playing”
     console.log("🔒 locking mic for", tts_path);
     setIsMicLocked(true);
     setCurrentlyPlayingPath(tts_path);
-    setAudioStates(prev => ({ ...prev, [tts_path]: true }));
+    setAudioStates(prev => ({
+      ...prev,
+      [tts_path]: true
+    }));
   
-    // kick off playback and get the element back
-    const audio = await playMessageAudio(tts_path);
-  
-    if (audio) {
-      // when it really ends, unlock mic
-      audio.onended = () => {
-        console.log("🔓 TTS finished, unlocking mic for", tts_path);
-        setIsMicLocked(false);
-        setCurrentlyPlayingPath(null);
-        setAudioStates(prev => ({ ...prev, [tts_path]: false }));
-      };
+    // 4️⃣ Kick off TTS playback via your context, capture the <audio> back
+    const newAudio = await playMessageAudio(tts_path);
+    if (!newAudio) {
+      // If for any reason no element was returned, unlock immediately
+      setIsMicLocked(false);
+      setCurrentlyPlayingPath(null);
+      setAudioStates(prev => ({
+        ...prev,
+        [tts_path]: false
+      }));
+      return;
     }
+  
+    // 5️⃣ Store it for “interrupt” use
+    setAudioEl(newAudio);
+  
+    // 6️⃣ When it truly ends, unlock and clear state
+    newAudio.onended = () => {
+      console.log("🔓 TTS finished, unlocking mic for", tts_path);
+      setIsMicLocked(false);
+      setCurrentlyPlayingPath(null);
+      setAudioStates(prev => ({
+        ...prev,
+        [tts_path]: false
+      }));
+      setAudioEl(null);
+    };
   };
   
 
@@ -143,6 +173,19 @@ const SessionRoom = () => {
   const handleRecognitionResumed = () => {
     console.log("Voice recognition resumed");
     setRecognitionPaused(false);
+  };
+
+  const interruptPlayback = () => {
+    if (audioEl) {
+      audioEl.pause();
+      audioEl.currentTime = audioEl.duration;
+    }
+    setIsMicLocked(false);
+    if (currentlyPlayingPath) {
+      setAudioStates(prev => ({ ...prev, [currentlyPlayingPath]: false }));
+      setCurrentlyPlayingPath(null);
+    }
+    setAudioEl(null);
   };
 
   return (
@@ -278,6 +321,7 @@ const SessionRoom = () => {
                 shouldPauseRecognition={isMicLocked}
                 onRecognitionPaused={handleRecognitionPaused}
                 onRecognitionResumed={handleRecognitionResumed}
+                onInterruptPlayback={interruptPlayback} 
               />
             ) : (
               <div className="flex-grow">

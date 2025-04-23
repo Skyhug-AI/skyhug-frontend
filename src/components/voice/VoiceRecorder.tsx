@@ -9,6 +9,7 @@ type VoiceRecorderProps = {
   shouldPauseRecognition?: boolean;
   onRecognitionPaused?: () => void;
   onRecognitionResumed?: () => void;
+  onInterruptPlayback?: () => void;  
 };
 
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
@@ -16,7 +17,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   isDisabled = false,
   shouldPauseRecognition = false,
   onRecognitionPaused,
-  onRecognitionResumed
+  onRecognitionResumed,
+  onInterruptPlayback, 
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -55,12 +57,25 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded]);
 
   useEffect(() => {
+    // Pause whenever disabled or TTS is on; otherwise keep the mic live
     if ((isDisabled || shouldPauseRecognition) && isRecording) {
       pauseRecognition();
-    } else if (!isDisabled && !shouldPauseRecognition && recognitionManuallyPaused) {
-      resumeRecognition();
+    } else if (!isDisabled && !shouldPauseRecognition) {
+      if (recognitionManuallyPaused) {
+        resumeRecognition();
+      }
+      if (!isRecording && !recognitionManuallyPaused) {
+        startRecording();
+      }
     }
   }, [isDisabled, shouldPauseRecognition]);
+  
+  useEffect(() => {
+    // On mount, if we're not paused and not already recording, start right away
+    if (!isDisabled && !shouldPauseRecognition && !isRecording) {
+      startRecording();
+    }
+  }, []);
 
   const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -203,12 +218,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const toggleRecording = () => {
-    if (isRecording) {
-      pauseRecognition();
-    } else {
-      startRecording();
+    // if audio is playing, this button is now “skip and record”
+    if (shouldPauseRecognition && onInterruptPlayback) {
+      onInterruptPlayback()
+      // and fall through to startRecording()
     }
-  };
+  
+    if (isRecording) {
+      pauseRecognition()
+    } else {
+      startRecording()
+    }
+  }
+  
 
   useEffect(() => {
     return () => {
