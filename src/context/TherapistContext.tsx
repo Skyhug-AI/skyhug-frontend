@@ -84,7 +84,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         .map(formatMessage)
         .filter(msg =>
           msg.isUser ||
-          msg.isGreeting ||
           (msg.ttsHasArrived && !msg.isUser)
         )
     );
@@ -189,17 +188,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.log("✅ Greeting message inserted:", messageData);
     }
 
-    setMessages([
-      {
-        id: crypto.randomUUID(),
-        content: greeting,
-        isUser: false,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      },
-    ]);
 
     await loadHistory(data.id);
   };
@@ -390,12 +378,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           const msg = formatMessage(rawMsg);
           if (
             msg.isUser ||
-            msg.isGreeting ||
             (msg.ttsHasArrived && !msg.isUser)
           ) {
-            setMessages((prev) => [...prev, msg]);
+            // for INSERT and UPDATE both…
+            setMessages(prev => [...prev, msg]);
             setIsProcessing(false);
-
           } else {
           }
         }
@@ -412,18 +399,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           const rawMsg = payload.new;
           const msg = formatMessage(rawMsg);
           if (
-            !msg.isUser &&
-            msg.ttsHasArrived &&
-            !msg.isGreeting
+            msg.isUser ||
+            (msg.ttsHasArrived && !msg.isUser)
           ) {
-            setMessages((prev) => {
-              if (prev.find((m) => m.id === msg.id)) {
-                return prev;
-              }
-              return [...prev, msg];
-            });
+            // for INSERT and UPDATE both…
+            setMessages(prev => [...prev, msg]);
             setIsProcessing(false);
-
           }
         }
       )
