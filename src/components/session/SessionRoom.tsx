@@ -104,14 +104,13 @@ const SessionRoom = () => {
       try {
         await playMessageAudio(tts_path);
       } finally {
-        setTimeout(() => {
-          setIsMicLocked(false);
-          setCurrentlyPlayingPath(null);
-          setAudioStates(prev => ({
-            ...prev,
-            [tts_path]: false,
-          }));
-        }, 250); // Delay to ensure audio has ended
+        // Automatically unlock the mic and reset playing state when audio finishes
+        setIsMicLocked(false);
+        setCurrentlyPlayingPath(null);
+        setAudioStates(prev => ({
+          ...prev,
+          [tts_path]: false,
+        }));
       }
     } else {
       toast({
@@ -120,6 +119,19 @@ const SessionRoom = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // Track if we're handling voice recognition pausing/resuming
+  const [recognitionPaused, setRecognitionPaused] = useState(false);
+  
+  const handleRecognitionPaused = () => {
+    console.log("Voice recognition paused");
+    setRecognitionPaused(true);
+  };
+  
+  const handleRecognitionResumed = () => {
+    console.log("Voice recognition resumed");
+    setRecognitionPaused(false);
   };
 
   return (
@@ -251,7 +263,10 @@ const SessionRoom = () => {
             {isVoiceMode ? (
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing || isMicLocked}
+                isDisabled={isProcessing}
+                shouldPauseRecognition={isMicLocked}
+                onRecognitionPaused={handleRecognitionPaused}
+                onRecognitionResumed={handleRecognitionResumed}
               />
             ) : (
               <div className="flex-grow">
