@@ -12,7 +12,7 @@ const SessionSummaryPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#FCEEB5] to-[#E0F7FA]">
       <div className="sticky top-0 z-50">
         <Header />
       </div>
