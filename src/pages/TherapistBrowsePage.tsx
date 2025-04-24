@@ -8,8 +8,6 @@ import TherapistList from '@/components/therapist/TherapistList';
 import TherapistGrid from '@/components/therapist/TherapistGrid';
 import TherapistFilters from '@/components/therapist/TherapistFilters';
 import { useToast } from '@/hooks/use-toast';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 // Define the therapist type to use throughout the components
 export type Therapist = {
@@ -167,82 +165,78 @@ const TherapistBrowsePage = () => {
   };
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto py-8 px-4">
-          <h1 className="text-3xl font-bold text-center mb-6">Find Your Perfect Therapist Match</h1>
-          <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Browse through our highly qualified therapists and find someone who resonates with your needs. 
-            You can filter by specialty, availability, and more to find your ideal match.
-          </p>
-          
-          <div className="flex flex-col md:flex-row gap-6 mb-8">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by name or specialty..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">View as:</span>
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('list')}
-                aria-label="List view"
-              >
-                <LayoutList className="h-4 w-4" />
-              </Button>
-            </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8 px-4">
+        <h1 className="text-3xl font-bold text-center mb-6">Find Your Perfect Therapist Match</h1>
+        <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Browse through our highly qualified therapists and find someone who resonates with your needs. 
+          You can filter by specialty, availability, and more to find your ideal match.
+        </p>
+        
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by name or specialty..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <aside className="lg:col-span-1">
-              <TherapistFilters 
-                filters={selectedFilters}
-                onFilterChange={handleFilterChange}
-                availableSpecialties={Array.from(new Set(therapists.flatMap(t => t.specialties)))}
-              />
-            </aside>
-            
-            <main className="lg:col-span-3">
-              {filteredTherapists.length > 0 ? (
-                viewMode === 'grid' ? (
-                  <TherapistGrid 
-                    therapists={filteredTherapists} 
-                    onBookSession={handleBookSession} 
-                  />
-                ) : (
-                  <TherapistList 
-                    therapists={filteredTherapists} 
-                    onBookSession={handleBookSession} 
-                  />
-                )
-              ) : (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-medium mb-2">No therapists found</h3>
-                  <p className="text-muted-foreground">Try adjusting your filters to see more results.</p>
-                </div>
-              )}
-            </main>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">View as:</span>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('grid')}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('list')}
+              aria-label="List view"
+            >
+              <LayoutList className="h-4 w-4" />
+            </Button>
           </div>
         </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <aside className="lg:col-span-1">
+            <TherapistFilters 
+              filters={selectedFilters}
+              onFilterChange={handleFilterChange}
+              availableSpecialties={Array.from(new Set(therapists.flatMap(t => t.specialties)))}
+            />
+          </aside>
+          
+          <main className="lg:col-span-3">
+            {filteredTherapists.length > 0 ? (
+              viewMode === 'grid' ? (
+                <TherapistGrid 
+                  therapists={filteredTherapists} 
+                  onBookSession={handleBookSession} 
+                />
+              ) : (
+                <TherapistList 
+                  therapists={filteredTherapists} 
+                  onBookSession={handleBookSession} 
+                />
+              )
+            ) : (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-medium mb-2">No therapists found</h3>
+                <p className="text-muted-foreground">Try adjusting your filters to see more results.</p>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
-      <Footer />
-    </>
+    </div>
   );
 };
 
