@@ -1,4 +1,3 @@
-// TherapistContext.tsx
 import React, {
   createContext,
   useState,
@@ -10,7 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useSpeechRecognition } from "react-speech-kit";
 
 interface TherapistContextType {
+  messages?: { id?: string; content: string; isUser: boolean; timestamp?: string; tts_path?: string }[];
   messageHistory: { text: string; isUser: boolean }[];
+  sendMessage?: (message: string, isAudio?: boolean) => void;
+  sendAudioMessage?: (audioMessage: string) => void;
+  isProcessing?: boolean;
   addMessage: (message: string, isUser: boolean) => void;
   clearMessages: () => void;
   ttsLoading: boolean;
@@ -22,6 +25,8 @@ interface TherapistContextType {
   listening: boolean;
   finalTranscript: string;
   setFinalTranscript: React.Dispatch<React.SetStateAction<string>>;
+  setVoiceEnabled?: (enabled: boolean) => Promise<void>;
+  endConversation?: () => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -118,6 +123,15 @@ export const TherapistProvider: React.FC<TherapistProviderProps> = ({
     stop();
   };
 
+  const setVoiceEnabled = async (enabled: boolean) => {
+    console.log(`Voice enabled set to: ${enabled}`);
+  };
+
+  const endConversation = async () => {
+    console.log("Conversation ended");
+    clearMessages();
+  };
+
   return (
     <TherapistContext.Provider
       value={{
@@ -133,6 +147,8 @@ export const TherapistProvider: React.FC<TherapistProviderProps> = ({
         listening,
         finalTranscript,
         setFinalTranscript,
+        setVoiceEnabled,
+        endConversation,
       }}
     >
       {children}
