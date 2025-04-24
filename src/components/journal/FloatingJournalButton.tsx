@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { BookText, Cloud, Sun, Repeat, Brain, Target } from 'lucide-react';
+import { BookText, Cloud, Sun, Repeat, Brain, Target, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +14,24 @@ const prompts = [
   { icon: <Target className="w-4 h-4" />, text: "What's one thing you're proud of?", emoji: "🎯" },
 ];
 
+const templates = [
+  {
+    title: "Gratitude Entry",
+    icon: "🙏",
+    text: "Today I am grateful for:\n1.\n2.\n3.\n\nOne small joy I experienced:"
+  },
+  {
+    title: "Daily Reflection",
+    icon: "✨",
+    text: "Morning mood:\nTop priority today:\nHighlight of my day:\nWhat I learned:"
+  },
+  {
+    title: "Stress Release",
+    icon: "🌬️",
+    text: "What's on my mind:\nWhat I can control:\nWhat I need to let go:\nOne small step I can take:"
+  }
+];
+
 const moods = [
   { emoji: "😔", label: "Sad" },
   { emoji: "😐", label: "Neutral" },
@@ -26,6 +43,7 @@ const moods = [
 const FloatingJournalButton = () => {
   const { toast } = useToast();
   const [selectedPrompt, setSelectedPrompt] = useState<string>("");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [selectedMood, setSelectedMood] = useState<string>("");
   const [moodTag, setMoodTag] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +51,12 @@ const FloatingJournalButton = () => {
 
   const handlePromptSelect = (promptText: string) => {
     setSelectedPrompt(promptText);
+    setSelectedTemplate("");
+  };
+
+  const handleTemplateSelect = (template: string) => {
+    setSelectedTemplate(template);
+    setSelectedPrompt("");
   };
 
   const handleMoodSelect = (mood: string) => {
@@ -67,33 +91,56 @@ const FloatingJournalButton = () => {
           <BookText className="h-6 w-6 text-skyhug-500" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
+      <DialogContent className="sm:max-w-[650px] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-2xl font-medium tracking-tight text-gray-900">Add Journal Entry</DialogTitle>
         </DialogHeader>
         <div className="px-6 py-4 space-y-6">
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600 font-medium">Not sure what to write? Try one of these prompts:</p>
-            <div className="grid gap-2">
-              {prompts.map((prompt) => (
-                <Button
-                  key={prompt.text}
-                  variant="outline"
-                  className={`w-full justify-start text-left h-auto p-3 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50 ${
-                    selectedPrompt === prompt.text ? 'bg-gray-50/80 border-gray-300' : ''
-                  }`}
-                  onClick={() => handlePromptSelect(prompt.text)}
-                >
-                  <span className="mr-2 text-lg">{prompt.emoji}</span>
-                  <span className="text-sm font-normal">{prompt.text}</span>
-                </Button>
-              ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 font-medium">Write with a prompt:</p>
+              <div className="space-y-2">
+                {prompts.map((prompt) => (
+                  <Button
+                    key={prompt.text}
+                    variant="outline"
+                    className={`w-full justify-start text-left h-auto p-3 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50 ${
+                      selectedPrompt === prompt.text ? 'bg-gray-50/80 border-gray-300' : ''
+                    }`}
+                    onClick={() => handlePromptSelect(prompt.text)}
+                  >
+                    <span className="mr-2 text-lg">{prompt.emoji}</span>
+                    <span className="text-sm font-normal">{prompt.text}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 font-medium">Or use a template:</p>
+              <div className="space-y-2">
+                {templates.map((template) => (
+                  <Button
+                    key={template.title}
+                    variant="outline"
+                    className={`w-full justify-start text-left h-auto p-3 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50 ${
+                      selectedTemplate === template.text ? 'bg-gray-50/80 border-gray-300' : ''
+                    }`}
+                    onClick={() => handleTemplateSelect(template.text)}
+                  >
+                    <span className="mr-2 text-lg">{template.icon}</span>
+                    <span className="text-sm font-normal">{template.title}</span>
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           
           <Textarea
-            placeholder={selectedPrompt || "Write your thoughts here..."}
-            className="min-h-[180px] resize-none rounded-xl border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-base"
+            placeholder={selectedPrompt || selectedTemplate || "Write your thoughts here..."}
+            value={selectedTemplate}
+            onChange={(e) => setSelectedTemplate(e.target.value)}
+            className="min-h-[150px] resize-none rounded-xl border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-base"
           />
           
           <div className="space-y-3">
