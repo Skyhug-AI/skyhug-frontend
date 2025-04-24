@@ -46,7 +46,7 @@ const SessionPage = () => {
           zIndex: -3,
         }}
       />
-      {/* Sun-inspired bottom circle gradient */}
+      {/* Voice-inspired bottom circle gradient */}
       <div
         className="fixed pointer-events-none"
         style={{
@@ -56,8 +56,8 @@ const SessionPage = () => {
           width: 300,
           height: 140,
           borderRadius: "50%",
-          background: "linear-gradient(to bottom right, #FEF7CD, #FEC6A1, #FFD700 80%)",
-          boxShadow: "0 0 50px 30px rgba(254, 199, 161, 0.3)",
+          background: "linear-gradient(to bottom right, #FEF7CD, #F97316, #8B5CF6 80%)",
+          boxShadow: "0 0 50px 30px rgba(249, 115, 22, 0.2)",
           opacity: 0.8,
           zIndex: -2,
           filter: "blur(10px)",
