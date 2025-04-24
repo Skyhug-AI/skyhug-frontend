@@ -29,6 +29,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
   const silenceSentRef = useRef(false);
+  const cleanupVadRef = useRef<() => void>()
+  const prevRecordingRef = useRef(isRecording)
+
 
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
@@ -86,6 +89,14 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   }, []);
 
+  useEffect(() => {
+    // if we *were* recording, and now we're *not*, fire the paused callback
+    if (prevRecordingRef.current && !isRecording) {
+      onRecognitionPaused?.()
+    }
+    prevRecordingRef.current = isRecording
+  }, [isRecording, onRecognitionPaused])
+
   const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -95,20 +106,27 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onstart = () => {
-        setIsRecording(true);
-        setTranscript('');
-        setLastSpeechTime(Date.now());
-        setHasSpeechStarted(false);
-        initVoiceDetection();
-        toast({
-          title: "Recording started",
-          description: "Speak naturally. Your message will be sent automatically after you finish speaking.",
-          duration: 3000,
-        });
-        setRecognitionManuallyPaused(false);
-        if (onRecognitionResumed) onRecognitionResumed();
-      };
+  recognition.onstart = async () => {
+    setIsRecording(true);
+  
+    // kick off VAD and keep its cleanup fn
+    cleanupVadRef.current = await initVoiceDetection();
+  
+    setTranscript('');
+    setLastSpeechTime(Date.now());
+    setHasSpeechStarted(false);
+  
+    toast({
+      title: "Recording started",
+      description:
+        "Speak naturally. Your message will be sent automatically after you finish speaking.",
+      duration: 3000,
+    });
+  
+    setRecognitionManuallyPaused(false);
+    onRecognitionResumed?.();
+  };
+  
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let currentTranscript = '';
@@ -192,15 +210,20 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const pauseRecognition = () => {
+    // tear down VAD…
+    cleanupVadRef.current?.()
+    cleanupVadRef.current = undefined
+  
     if (recognitionInstance) {
-      recognitionInstance.onend = null;
-      recognitionInstance.stop();
-      setIsRecording(false);
-      setRecognitionManuallyPaused(true);
-      if (onRecognitionPaused) onRecognitionPaused();
+      recognitionInstance.onend = null
+      recognitionInstance.stop()
     }
-  };
-
+  
+    setIsRecording(false)
+    setRecognitionManuallyPaused(true)
+    onRecognitionPaused?.()
+  }
+  
   const resumeRecognition = () => {
     silenceSentRef.current = false;
     if (recognitionInstance && !isRecording) {
