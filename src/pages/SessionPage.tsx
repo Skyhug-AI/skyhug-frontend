@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -45,7 +46,7 @@ const SessionPage = () => {
           zIndex: -3,
         }}
       />
-      {/* Removed sun orb gradient accent */}
+      {/* Sun-inspired bottom circle gradient */}
       <div
         className="fixed pointer-events-none"
         style={{
@@ -55,9 +56,11 @@ const SessionPage = () => {
           width: 300,
           height: 140,
           borderRadius: "50%",
-          background: "linear-gradient(to bottom right, #EEF2FF, #F7F8FD, #EEF4FD)",
+          background: "linear-gradient(to bottom right, #FEF7CD, #FEC6A1, #FFD700 80%)",
+          boxShadow: "0 0 50px 30px rgba(254, 199, 161, 0.3)",
           opacity: 0.8,
           zIndex: -2,
+          filter: "blur(10px)",
         }}
       />
 
