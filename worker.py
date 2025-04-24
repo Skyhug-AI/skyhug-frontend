@@ -30,6 +30,9 @@ info = supabase.rpc("auth_role").execute()
 print("🔐 Auth role seen by Supabase:", info)
 
 
+
+
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────

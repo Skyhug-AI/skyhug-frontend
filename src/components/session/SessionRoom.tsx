@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 const SessionRoom = () => {
   const { toast } = useToast();
   const {
-    messages,
+    messages = [],
     sendMessage,
     isProcessing,
     clearMessages,
