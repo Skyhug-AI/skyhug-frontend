@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-const config = {
+export default {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
@@ -193,16 +193,6 @@ const config = {
             transform: 'scale(1)',
           }
         },
-        "morphing-pulse-fast": {
-          "0%": { transform: "scale(1)", opacity: "0.3" },
-          "50%": { transform: "scale(1.2)", opacity: "0.5" },
-          "100%": { transform: "scale(1)", opacity: "0.3" }
-        },
-        "color-shift": {
-          "0%": { filter: "hue-rotate(0deg)" },
-          "50%": { filter: "hue-rotate(15deg)" },
-          "100%": { filter: "hue-rotate(0deg)" }
-        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -219,8 +209,6 @@ const config = {
         'pulse-gentle': 'pulse-gentle 3s ease-in-out infinite',
         'gradient-flow': 'gradient-flow 8s ease infinite',
         'soft-pulse': 'soft-pulse 2.8s ease-in-out infinite',
-        "morphing-pulse-fast": "morphing-pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "color-shift": "color-shift 2s linear infinite"
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -235,6 +223,4 @@ const config = {
     }
   },
   plugins: [require("tailwindcss-animate")],
-}
-
-export default config
+} satisfies Config;

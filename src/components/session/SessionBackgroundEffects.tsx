@@ -34,31 +34,47 @@ const SessionBackgroundEffects: React.FC = () => {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Removed sunrise gradient */}
+      {/* Subtle horizon/sunrise gradient background */}
       <div
         className="absolute inset-0 w-full h-full"
         style={{
-          background: "linear-gradient(to bottom right, #EEF2FF, #F7F8FD, #EEF4FD)",
+          background: "linear-gradient(to top, #fde1d3 0%, #fdf6e3 45%, #f6f9ff 95%)",
           opacity: 1,
         }}
       />
 
-      {/* Soft, warm sun-like orb */}
+      {/* Soft sun/orb "rise" at bottom center */}
       <div
         className="absolute"
         style={{
           left: "50%",
-          bottom: "-10%",
+          bottom: "-18%",
           transform: "translateX(-50%)",
-          width: 300,
-          height: 140,
+          width: 350,
+          height: 180,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #FEF7CD 0%, #FEC6A1 50%, #FF9800 100%)",
-          boxShadow: "0 0 50px 20px rgba(254, 199, 161, 0.3)",
-          opacity: 0.8,
-          zIndex: -2,
-          filter: "blur(12px)",
-          animation: "float-sun 4s ease-in-out infinite",
+          background:
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(4px)",
+          opacity: 0.90,
+          animation: "float-sun 12s ease-in-out infinite",
+        }}
+      />
+
+      {/* Optional: faint mirrored glow above "sun" for glow effect */}
+      <div
+        className="absolute"
+        style={{
+          left: "50%",
+          bottom: "6%",
+          transform: "translateX(-50%)",
+          width: 180,
+          height: 70,
+          borderRadius: "50%",
+          background: "radial-gradient(ellipse at 50% 38%, #fff7ed33 0%, #fbed9677 95%)",
+          filter: "blur(18px)",
+          opacity: 0.41,
         }}
       />
 
@@ -81,9 +97,27 @@ const SessionBackgroundEffects: React.FC = () => {
           }}
         />
       ))}
+
+      {/* Ultra sparse sparkles */}
+      {[...Array(12)].map((_, i) => (
+        <div
+          key={`sparkle-${i}`}
+          className="absolute opacity-25 rounded-full"
+          style={{
+            width: `${Math.random() * 7 + 3}px`,
+            height: `${Math.random() * 7 + 3}px`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            background: "radial-gradient(circle, #fbed96 52%, white 100%)",
+            filter: "blur(1.1px)",
+            animation: `float-cloud ${Math.random() * 9 + 11}s infinite`,
+            animationDelay: `${Math.random() * 8}s`,
+            zIndex: 2,
+          }}
+        />
+      ))}
     </div>
   );
 };
 
 export default SessionBackgroundEffects;
-

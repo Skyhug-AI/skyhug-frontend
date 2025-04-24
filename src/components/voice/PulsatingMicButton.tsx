@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useVoiceDetection } from '@/hooks/useVoiceDetection';
-import { getScaleStyle } from '@/utils/voiceAnimation';
 
 interface PulsatingMicButtonProps {
   isRecording: boolean;
@@ -46,68 +45,39 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
     };
   }, [isRecording]);
 
-  // Generate animation and scale styles
-  const afterAnimation = isRecording 
-    ? (isSpeaking ? 'morphing-pulse-fast' : 'pulse-ring')
-    : 'pulse-ring';
-  const afterScale = isRecording 
-    ? getScaleStyle(1.08, volumeLevel) 
-    : '1.05';
-    
-  const beforeAnimation = isRecording 
-    ? (isSpeaking ? 'morphing-pulse-fast' : 'pulse-ring')
-    : 'pulse-ring';
-  const beforeScale = isRecording 
-    ? getScaleStyle(1.12, volumeLevel) 
-    : '1.09';
-    
-  const div1Animation = isRecording 
-    ? (isSpeaking ? 'morphing-pulse-fast' : 'pulse-ring')
-    : 'pulse-ring';
-  const div1Scale = isRecording 
-    ? getScaleStyle(1.15, volumeLevel) 
-    : '1.13';
-    
-  const div2Animation = isRecording 
-    ? (isSpeaking ? 'morphing-pulse-fast' : 'pulse-ring')
-    : 'pulse-ring';
-  const div2Scale = isRecording 
-    ? getScaleStyle(1.18, volumeLevel) 
-    : '1.17';
+  const getScaleStyle = (baseScale: number) => {
+    const volumeBoost = volumeLevel * 0.2;
+    const maxScale = baseScale + 0.1;
+    const calculatedScale = baseScale + volumeBoost;
+    return `${Math.min(calculatedScale, maxScale)}`;
+  };
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative w-16 h-16 rounded-full overflow-visible transition-all duration-300",
-        "bg-gradient-to-br from-amber-100 via-amber-300 to-orange-400",
+        "relative w-16 h-16 rounded-full overflow-visible transition-all duration-500",
+        "bg-orb-gradient shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
         [
           "after:content-[''] after:absolute after:inset-[-4px]",
-          "after:bg-gradient-to-br after:from-amber-200 after:via-amber-300 after:to-orange-400 after:opacity-30 after:rounded-full",
-          `after:animate-[${afterAnimation}] 1.6s ease-out infinite after:scale-[${afterScale}]`,
+          "after:bg-orb-gradient after:opacity-30 after:rounded-full",
+          `after:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.4s_ease-out_infinite] after:scale-[${isRecording && isSpeaking ? getScaleStyle(1.05) : '1.05'}]`,
           "before:content-[''] before:absolute before:inset-[-7px]",
-          isRecording && isSpeaking ? 
-            "before:bg-gradient-to-br before:from-yellow-200 before:via-amber-400 before:to-orange-500" : 
-            "before:bg-gradient-to-br before:from-amber-200 before:via-amber-300 before:to-orange-400",
+          isRecording && isSpeaking ? "before:bg-sky-gradient" : "before:bg-orb-gradient",
           "before:opacity-20 before:rounded-full",
-          `before:animate-[${beforeAnimation}] 1.8s ease-out infinite before:scale-[${beforeScale}]`,
+          `before:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.8s_ease-out_infinite] before:scale-[${isRecording && isSpeaking ? getScaleStyle(1.09) : '1.09'}]`,
           "[&>div:nth-child(1)]:content-[''] [&>div:nth-child(1)]:absolute [&>div:nth-child(1)]:inset-[-10px]",
-          isRecording && isSpeaking ? 
-            "[&>div:nth-child(1)]:bg-gradient-to-br [&>div:nth-child(1)]:from-yellow-300 [&>div:nth-child(1)]:via-amber-400 [&>div:nth-child(1)]:to-orange-500" : 
-            "[&>div:nth-child(1)]:bg-gradient-to-br [&>div:nth-child(1)]:from-amber-200 [&>div:nth-child(1)]:via-amber-300 [&>div:nth-child(1)]:to-orange-400",
+          isRecording && isSpeaking ? "[&>div:nth-child(1)]:bg-sky-gradient" : "[&>div:nth-child(1)]:bg-orb-gradient",
           "[&>div:nth-child(1)]:opacity-15 [&>div:nth-child(1)]:rounded-full",
-          `[&>div:nth-child(1)]:animate-[${div1Animation}] 2s ease-out infinite [&>div:nth-child(1)]:scale-[${div1Scale}]`,
+          `[&>div:nth-child(1)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_3.2s_ease-out_infinite] [&>div:nth-child(1)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.13) : '1.13'}]`,
           "[&>div:nth-child(2)]:content-[''] [&>div:nth-child(2)]:absolute [&>div:nth-child(2)]:inset-[-13px]",
-          isRecording && isSpeaking ? 
-            "[&>div:nth-child(2)]:bg-gradient-to-br [&>div:nth-child(2)]:from-yellow-400 [&>div:nth-child(2)]:via-amber-500 [&>div:nth-child(2)]:to-orange-600" : 
-            "[&>div:nth-child(2)]:bg-gradient-to-br [&>div:nth-child(2)]:from-amber-200 [&>div:nth-child(2)]:via-amber-300 [&>div:nth-child(2)]:to-orange-400",
+          isRecording && isSpeaking ? "[&>div:nth-child(2)]:bg-sky-gradient" : "[&>div:nth-child(2)]:bg-orb-gradient",
           "[&>div:nth-child(2)]:opacity-10 [&>div:nth-child(2)]:rounded-full",
-          `[&>div:nth-child(2)]:animate-[${div2Animation}] 2.2s ease-out infinite [&>div:nth-child(2)]:scale-[${div2Scale}]`,
-          "shadow-lg shadow-amber-400/30",
-          isRecording && isSpeaking ? "scale-110" : "scale-100",
-          "transition-all duration-300",
-          isRecording && isSpeaking && "animate-[color-shift_2s_linear_infinite]"
+          `[&>div:nth-child(2)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_3.6s_ease-out_infinite] [&>div:nth-child(2)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.17) : '1.17'}]`,
+          "shadow-lg shadow-orb-periwinkle/50",
+          isRecording && isSpeaking ? "scale-105" : "scale-100",
+          "transition-transform duration-300"
         ],
         disabled && "opacity-50 cursor-not-allowed"
       )}

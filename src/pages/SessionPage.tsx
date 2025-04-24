@@ -45,6 +45,24 @@ const SessionPage = () => {
           zIndex: -3,
         }}
       />
+      {/* Sun orb gradient as a decorative accent at the bottom */}
+      <div
+        className="fixed pointer-events-none"
+        style={{
+          left: "50%",
+          bottom: "-10%",
+          transform: "translateX(-50%)",
+          width: 300,
+          height: 140,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
+          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
+          filter: "blur(5px)",
+          opacity: 0.8,
+          zIndex: -2,
+        }}
+      />
 
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
