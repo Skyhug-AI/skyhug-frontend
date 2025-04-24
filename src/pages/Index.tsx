@@ -4,33 +4,21 @@ import Footer from '@/components/Footer';
 import HeroSection from '@/components/landing/HeroSection';
 import SupportOptions from '@/components/landing/SupportOptions';
 import MoodTrackingPreview from '@/components/landing/MoodTrackingPreview';
-import TalkToSkyButton from '@/components/landing/TalkToSkyButton';
+import TherapyOptions from '@/components/landing/TherapyOptions';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText, Brain, Heart, ArrowRight } from 'lucide-react';
+
 const Index = () => {
-  return <div className="min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-grow">
         <HeroSection />
-        
-        {/* Quick Access Button */}
-        
-        
-        {/* Mood Tracking Preview */}
-        <section className="py-32 px-4 md:px-8 bg-gradient-to-b from-serenity-50/50 to-white">
-          <div className="max-w-7xl mx-auto text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6">Track Your Skies Over Time</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See your mood shift, your sessions grow, and your mental clarity deepen — all in one visual timeline.
-            </p>
-          </div>
-          <MoodTrackingPreview />
-        </section>
-
-        {/* Support Options */}
+        <TherapyOptions />
+        <MoodTrackingPreview />
         <SupportOptions />
-
+        
         {/* Features Section */}
         <section className="py-32 px-4 md:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
@@ -145,6 +133,8 @@ const Index = () => {
       </main>
       
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
