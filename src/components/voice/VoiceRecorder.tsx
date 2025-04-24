@@ -29,6 +29,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
   const silenceSentRef = useRef(false);
+  const cleanupVadRef = useRef<() => void>()
+
 
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
@@ -95,20 +97,27 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onstart = () => {
-        setIsRecording(true);
-        setTranscript('');
-        setLastSpeechTime(Date.now());
-        setHasSpeechStarted(false);
-        initVoiceDetection();
-        toast({
-          title: "Recording started",
-          description: "Speak naturally. Your message will be sent automatically after you finish speaking.",
-          duration: 3000,
-        });
-        setRecognitionManuallyPaused(false);
-        if (onRecognitionResumed) onRecognitionResumed();
-      };
+  recognition.onstart = async () => {
+    setIsRecording(true);
+  
+    // kick off VAD and keep its cleanup fn
+    cleanupVadRef.current = await initVoiceDetection();
+  
+    setTranscript('');
+    setLastSpeechTime(Date.now());
+    setHasSpeechStarted(false);
+  
+    toast({
+      title: "Recording started",
+      description:
+        "Speak naturally. Your message will be sent automatically after you finish speaking.",
+      duration: 3000,
+    });
+  
+    setRecognitionManuallyPaused(false);
+    onRecognitionResumed?.();
+  };
+  
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let currentTranscript = '';
@@ -192,13 +201,20 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const pauseRecognition = () => {
+    // 1) tear down your voice-activity-detection
+    cleanupVadRef.current?.();
+    cleanupVadRef.current = undefined;
+  
+    // 2) stop the SpeechRecognition instance
     if (recognitionInstance) {
       recognitionInstance.onend = null;
       recognitionInstance.stop();
-      setIsRecording(false);
-      setRecognitionManuallyPaused(true);
-      if (onRecognitionPaused) onRecognitionPaused();
     }
+  
+    // 3) update UI state & notify parent
+    setIsRecording(false);
+    setRecognitionManuallyPaused(true);
+    onRecognitionPaused?.();
   };
 
   const resumeRecognition = () => {

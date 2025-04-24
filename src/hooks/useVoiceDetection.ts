@@ -1,49 +1,45 @@
-
 export const useVoiceDetection = (
   callback: (isSpeaking: boolean, volumeLevel?: number) => void,
   threshold = 0.01
 ) => {
-  const init = async () => {
+  let rafId: number
+  let audioContext: AudioContext
+  let stream: MediaStream
+
+  const initVoiceDetection = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-      
-      const audioContext = new AudioContext();
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.6; // Increased to smooth out fluctuations
-      source.connect(analyser);
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }})
+      audioContext = new AudioContext()
+      const source = audioContext.createMediaStreamSource(stream)
+      const analyser = audioContext.createAnalyser()
+      analyser.fftSize = 512
+      analyser.smoothingTimeConstant = 0.6
+      source.connect(analyser)
 
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
       const checkAudioLevel = () => {
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((acc, value) => acc + value, 0) / dataArray.length;
-        const normalizedAverage = average / 256; // Convert to 0-1 range
-        
-        // Apply a dampening factor to reduce sensitivity
-        const dampened = normalizedAverage * 0.7;
-        
-        callback(dampened > threshold, dampened);
-        requestAnimationFrame(checkAudioLevel);
-      };
+        analyser.getByteFrequencyData(dataArray)
+        const average = dataArray.reduce((a,v) => a+v, 0)/dataArray.length
+        const dampened = (average/256)*0.7
+        callback(dampened > threshold, dampened)
+        rafId = requestAnimationFrame(checkAudioLevel)
+      }
+      rafId = requestAnimationFrame(checkAudioLevel)
 
-      checkAudioLevel();
-
+      // **return this cleanup fn** so caller can stop both VAD loop and close the context
       return () => {
-        stream.getTracks().forEach(track => track.stop());
-        audioContext.close();
-      };
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
+        cancelAnimationFrame(rafId)
+        analyser.disconnect()
+        source.disconnect()
+        stream.getTracks().forEach(t => t.stop())
+        if (audioContext.state !== "closed") {
+          audioContext.close().catch(() => {/* swallow */})
+        }
+      }
+    } catch (err) {
+      console.error("useVoiceDetection init error", err)
     }
-  };
+  }
 
-  return { initVoiceDetection: init };
-};
+  return { initVoiceDetection }
+}
