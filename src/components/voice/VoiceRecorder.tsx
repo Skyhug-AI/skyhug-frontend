@@ -47,7 +47,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     let silenceTimeout: NodeJS.Timeout;
     if (isRecording && hasSpeechStarted && lastSpeechTime > 0) {
       silenceTimeout = setTimeout(() => {
-        if (Date.now() - lastSpeechTime > 2000 && !silenceSentRef.current) {
+        if (Date.now() - lastSpeechTime > 1000 && !silenceSentRef.current) {
           const trimmed = transcript.trim();
           if (trimmed) {
             silenceSentRef.current = true;
@@ -64,7 +64,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             }
           }
         }
-      }, 2000);
+      }, 1000);
     }
     return () => clearTimeout(silenceTimeout);
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded, onRecognitionPaused]);
