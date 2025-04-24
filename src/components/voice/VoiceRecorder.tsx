@@ -32,8 +32,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const cleanupVadRef = useRef<() => void>()
   const prevRecordingRef = useRef(isRecording)
 
-
-
   const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
     if (isSpeaking) {
       setHasSpeechStarted(true);
@@ -68,7 +66,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
     return () => clearTimeout(silenceTimeout);
   }, [lastSpeechTime, isRecording, hasSpeechStarted, transcript, onVoiceRecorded, onRecognitionPaused]);
-  
   
 
   useEffect(() => {
@@ -106,27 +103,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-  recognition.onstart = async () => {
-    setIsRecording(true);
-  
-    // kick off VAD and keep its cleanup fn
-    cleanupVadRef.current = await initVoiceDetection();
-  
-    setTranscript('');
-    setLastSpeechTime(Date.now());
-    setHasSpeechStarted(false);
-  
-    toast({
-      title: "Recording started",
-      description:
-        "Speak naturally. Your message will be sent automatically after you finish speaking.",
-      duration: 3000,
-    });
-  
-    setRecognitionManuallyPaused(false);
-    onRecognitionResumed?.();
-  };
-  
+      recognition.onstart = async () => {
+        setIsRecording(true);
+      
+        // kick off VAD and keep its cleanup fn
+        cleanupVadRef.current = await initVoiceDetection();
+      
+        setTranscript('');
+        setLastSpeechTime(Date.now());
+        setHasSpeechStarted(false);
+      
+        setRecognitionManuallyPaused(false);
+        onRecognitionResumed?.();
+      };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let currentTranscript = '';
