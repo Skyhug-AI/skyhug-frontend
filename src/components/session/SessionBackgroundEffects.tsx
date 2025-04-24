@@ -43,7 +43,7 @@ const SessionBackgroundEffects: React.FC = () => {
         }}
       />
 
-      {/* Remove the specific sun/orb "rise" */}
+      {/* Soft, warm sun-like orb */}
       <div
         className="absolute"
         style={{
@@ -53,9 +53,12 @@ const SessionBackgroundEffects: React.FC = () => {
           width: 300,
           height: 140,
           borderRadius: "50%",
-          background: "linear-gradient(to bottom right, #EEF2FF, #F7F8FD, #EEF4FD)",
+          background: "linear-gradient(135deg, #FEF7CD 0%, #FEC6A1 50%, #FF9800 100%)",
+          boxShadow: "0 0 50px 20px rgba(254, 199, 161, 0.3)",
           opacity: 0.8,
           zIndex: -2,
+          filter: "blur(12px)",
+          animation: "float-sun 4s ease-in-out infinite",
         }}
       />
 
@@ -78,10 +81,9 @@ const SessionBackgroundEffects: React.FC = () => {
           }}
         />
       ))}
-
-      {/* Optional: sparse sparkles removed */}
     </div>
   );
 };
 
 export default SessionBackgroundEffects;
+
