@@ -41,15 +41,12 @@ const FloatingJournalButton = () => {
 
   const handleSaveEntry = () => {
     setShowEncouragement(true);
-    
-    // Show points animation
     toast({
       title: "+30 Calm Points",
       description: "That was brave. Every word you write is part of your healing.",
       className: "animate-fade-in-up",
     });
 
-    // Delay modal close
     setTimeout(() => {
       setIsOpen(false);
       setShowEncouragement(false);
@@ -70,67 +67,65 @@ const FloatingJournalButton = () => {
           <BookText className="h-6 w-6 text-skyhug-500" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add Journal Entry</DialogTitle>
+      <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle className="text-2xl font-medium tracking-tight text-gray-900">Add Journal Entry</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Not sure what to write? Try one of these prompts:</p>
-            <div className="flex flex-wrap gap-2">
+        <div className="px-6 py-4 space-y-6">
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 font-medium">Not sure what to write? Try one of these prompts:</p>
+            <div className="grid gap-2">
               {prompts.map((prompt) => (
                 <Button
                   key={prompt.text}
                   variant="outline"
-                  size="sm"
-                  className={`flex items-center gap-1.5 ${
-                    selectedPrompt === prompt.text ? 'bg-skyhug-50 border-skyhug-200' : ''
+                  className={`w-full justify-start text-left h-auto p-3 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50 ${
+                    selectedPrompt === prompt.text ? 'bg-gray-50/80 border-gray-300' : ''
                   }`}
                   onClick={() => handlePromptSelect(prompt.text)}
                 >
-                  {prompt.icon}
-                  <span className="mr-1">{prompt.emoji}</span>
-                  {prompt.text}
+                  <span className="mr-2 text-lg">{prompt.emoji}</span>
+                  <span className="text-sm font-normal">{prompt.text}</span>
                 </Button>
               ))}
             </div>
           </div>
+          
           <Textarea
             placeholder={selectedPrompt || "Write your thoughts here..."}
-            className="min-h-[200px] resize-none"
+            className="min-h-[180px] resize-none rounded-xl border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-base"
           />
           
           <div className="space-y-3">
-            <p className="text-sm font-medium">What emotion best describes this entry?</p>
-            <div className="flex gap-2 flex-wrap">
+            <p className="text-sm font-medium text-gray-600">How are you feeling?</p>
+            <div className="flex justify-between items-center px-4 py-2 bg-gray-50/50 rounded-xl">
               {moods.map((mood) => (
-                <Button
+                <button
                   key={mood.emoji}
-                  variant="outline"
-                  size="sm"
-                  className={`text-lg ${
-                    selectedMood === mood.emoji ? 'bg-skyhug-50 border-skyhug-200' : ''
-                  }`}
                   onClick={() => handleMoodSelect(mood.emoji)}
+                  className={`flex flex-col items-center transition-all ${
+                    selectedMood === mood.emoji 
+                      ? 'transform scale-110 text-gray-900' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
                 >
-                  {mood.emoji}
-                </Button>
+                  <span className="text-2xl mb-1">{mood.emoji}</span>
+                  <span className="text-xs font-medium">{mood.label}</span>
+                </button>
               ))}
             </div>
             
-            <div className="pt-2">
-              <input
-                type="text"
-                placeholder="Add a mood tag (e.g., overwhelm, connection)"
-                className="w-full px-3 py-2 border rounded-md text-sm"
-                value={moodTag}
-                onChange={(e) => setMoodTag(e.target.value)}
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Add tags (optional)"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-sm"
+              value={moodTag}
+              onChange={(e) => setMoodTag(e.target.value)}
+            />
           </div>
 
           {showEncouragement ? (
-            <div className="text-center space-y-4 animate-fade-in py-4">
+            <div className="text-center space-y-3 animate-fade-in py-4">
               <Badge variant="secondary" className="animate-scale-in">
                 +30 Calm Points
               </Badge>
@@ -139,7 +134,12 @@ const FloatingJournalButton = () => {
               </p>
             </div>
           ) : (
-            <Button onClick={handleSaveEntry} className="w-full">Save Entry</Button>
+            <Button 
+              onClick={handleSaveEntry} 
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl py-2.5"
+            >
+              Save Entry
+            </Button>
           )}
         </div>
       </DialogContent>
