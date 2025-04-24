@@ -1,39 +1,38 @@
-import os, time, io, json, requests
-from supabase import create_client
-from openai import OpenAI
-from dotenv import load_dotenv
-from datetime import datetime, timezone, timedelta
-import tempfile
+import os
+import io
+import json
+import time
+import threading
+import requests
+import asyncio
 
+from datetime import datetime, timezone, timedelta
+from dotenv import load_dotenv
+from supabase import create_client      # sync client for handlers
+from supabase._async.client import create_client as create_client_async  # async for realtime
+from openai import OpenAI
+from realtime import RealtimeSubscribeStates
+from supabase._async.client import create_client as create_client_async
+
+# ─── CONFIG & CLIENTS ────────────────────────────────────────────────────────
 load_dotenv()
 
-print("➤ Loaded ENV:")
-print("  SUPABASE_URL =", os.getenv("SUPABASE_URL"))
-print("  OPENAI_API_KEY =", bool(os.getenv("OPENAI_API_KEY")))
-print("  ELEVENLABS_API_KEY =", bool(os.getenv("ELEVENLABS_API_KEY")))
+SUPABASE_URL        = os.getenv("SUPABASE_URL")
+SERVICE_ROLE_KEY    = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 
+# sync clients for your existing handlers
+supabase       = create_client(SUPABASE_URL, SERVICE_ROLE_KEY)
+supabase_admin = create_client(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-# ─── Supabase & OpenAI setup ────────────────────────────────────────────────
-supabase = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+# async client only for realtime
+# will be created inside `start_realtime()`
 
-supabase_admin = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_SERVICE_ROLE_KEY")  # ⚠️ must be the SERVICE ROLE KEY
-)
-print("🔑 Supabase token prefix:", os.getenv("SUPABASE_SERVICE_ROLE_KEY")[:10])
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+START_TS    = datetime.now(timezone.utc).isoformat()
+MAX_HISTORY = 10
 
-info = supabase.rpc("auth_role").execute()
-print("🔐 Auth role seen by Supabase:", info)
-
-
-
-
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
 SYSTEM_PROMPT = """
@@ -88,13 +87,260 @@ FUNCTION_DEFS = [
     }
 ]
 
+# ─── SYNC HELPERS & HANDLERS ────────────────────────────────────────────────
+
+def update_status(table: str, record_id: str, fields: dict):
+    supabase.table(table).update(fields).eq("id", record_id).execute()
+
+def download_audio(path: str, bucket="raw-audio") -> bytes:
+    url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
+    return requests.get(url).content
+
+def summarize_and_store(conv_id: str):
+    history = supabase.table("messages") \
+        .select("sender_role,transcription,assistant_text") \
+        .eq("conversation_id", conv_id) \
+        .order("created_at").execute().data or []
+    if sum(1 for m in history if m["sender_role"]=="assistant") < 4:
+        return
+
+    msgs = [
+        {"role":"user" if m["sender_role"]=="user" else "assistant",
+         "content": m["transcription"] if m["sender_role"]=="user" else m["assistant_text"]}
+        for m in history
+    ]
+    prompt = (
+        "You are a concise summarizer. Extract the single main theme "
+        "of the conversation as a noun or gerund phrase (≤12 words)."
+    )
+    resp = openai_client.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[{"role":"system","content":prompt}] + msgs,
+        temperature=0.5, max_tokens=30
+    )
+    summary = resp.choices[0].message.content.strip().rstrip(".")
+    supabase.table("conversations") \
+        .update({"memory_summary": summary}) \
+        .eq("id", conv_id).execute()
+
+def close_inactive_conversations():
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    stale = supabase.table("conversations") \
+        .select("id") \
+        .eq("ended", False) \
+        .lt("updated_at", cutoff) \
+        .execute().data or []
+    for rec in stale:
+        summarize_and_store(rec["id"])
+        supabase.table("conversations") \
+            .update({"ended": True}) \
+            .eq("id", rec["id"]).execute()
+
+def schedule_cleanup(interval_hours=1):
+    def job():
+        close_inactive_conversations()
+        threading.Timer(interval_hours * 3600, job).start()
+    job()
+
+def build_chat_payload(conv_id: str) -> list:
+    # reuse your SYSTEM_PROMPT and EXAMPLE_DIALOG from above
+    SYSTEM_PROMPT = """You are a compassionate…(your prompt)…"""
+    EXAMPLE_DIALOG = [
+      {"role":"user","content":"…"},
+      {"role":"assistant","content":"…"},
+      # etc
+    ]
+
+    meta = supabase.table("conversations") \
+        .select("memory_summary") \
+        .eq("id", conv_id).single().execute().data or {}
+    memory = meta.get("memory_summary")
+
+    history = supabase.table("messages") \
+        .select("sender_role,transcription,assistant_text,created_at") \
+        .eq("conversation_id", conv_id) \
+        .order("created_at").execute().data or []
+
+    messages = [{"role":"system","content":SYSTEM_PROMPT}] + EXAMPLE_DIALOG
+    if memory and not history:
+        messages.append({
+            "role":"assistant",
+            "content": f"Last time we spoke, we talked about: {memory}. Would you like to continue?"
+        })
+
+    turns = [
+        {"role":"user","content":m["transcription"]} if m["sender_role"]=="user"
+        else {"role":"assistant","content":m["assistant_text"]}
+        for m in history
+    ]
+
+    if len(turns) > MAX_HISTORY:
+        summary = openai_client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=messages + [{"role":"assistant","content":"Please summarize earlier conversation briefly."}] + turns[:-MAX_HISTORY],
+            temperature=0.3, max_tokens=200
+        ).choices[0].message.content
+        messages += [{"role":"assistant","content":f"Summary of earlier conversation: {summary}"}] + turns[-MAX_HISTORY:]
+    else:
+        messages += turns
+
+    return messages
+
+def handle_transcription_record(msg):
+    print(f"📝 ⏳ Transcribing message {msg['id']}…")
+    try:
+        audio = download_audio(msg["audio_path"])
+        resp  = openai_client.audio.transcriptions.create(
+            model="whisper-1",
+            file=io.BytesIO(audio)
+        )
+        update_status("messages", msg["id"], {
+            "transcription": resp.text,
+            "transcription_status": "done"
+        })
+        print(f"✅ Transcribed {msg['id']}: “{resp.text[:30]}…”")
+    except Exception as e:
+        update_status("messages", msg["id"], {"transcription_status": "error"})
+        print(f"❌ Transcription error for {msg['id']}:", e)
+
+
+def handle_ai_record(msg):
+    print(f"💬 ⏳ Generating AI reply for message {msg['id']}…")
+    try:
+        payload = build_chat_payload(msg["conversation_id"])
+        resp    = openai_client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=payload,
+            temperature=0.7,
+            functions=FUNCTION_DEFS,
+            function_call="auto"
+        )
+        choice = resp.choices[0].message
+
+        if getattr(choice, "function_call", None):
+            args    = json.loads(choice.function_call.arguments)
+            content = (
+                "I'm so sorry you’re feeling this way. "
+                f"If you ever think about harming yourself, call {args['hotline_number']}."
+            )
+        else:
+            content = choice.content
+
+        supabase.table("messages").insert({
+            "conversation_id": msg["conversation_id"],
+            "sender_role":     "assistant",
+            "assistant_text":  content,
+            "ai_status":       "done",
+            "tts_status":      "pending"
+        }).execute()
+
+        update_status("messages", msg["id"], {"ai_status": "done"})
+        print(f"✅ Assistant response created for message {msg['id']}")
+    except Exception as e:
+        update_status("messages", msg["id"], {"ai_status": "error"})
+        print(f"❌ AI error for {msg['id']}:", e)
+
+
+def handle_tts_record(msg):
+    print(f"🔊 ⏳ Generating TTS for assistant message {msg['id']}…")
+    try:
+        # fetch voice flag
+        conv     = supabase_admin.table("conversations") \
+                        .select("voice_enabled") \
+                        .eq("id", msg["conversation_id"]) \
+                        .single().execute().data or {}
+        voice_on = conv.get("voice_enabled", True)
+        print(f"🎚 Voice enabled? {voice_on}")
+
+        if not voice_on:
+            print(f"⏭ Skipping TTS for {msg['id']} (voice off)")
+            supabase_admin.table("messages") \
+                .update({"tts_status": "done"}) \
+                .eq("id", msg["id"]).execute()
+            return
+
+        # call ElevenLabs
+        print("🎤 Sending TTS request to ElevenLabs…")
+        url     = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+        headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY"), "Content-Type": "application/json"}
+        body    = {"text": msg["assistant_text"], "voice_settings": {"stability":0.75,"similarity_boost":0.75}}
+
+        with requests.post(url, json=body, headers=headers, stream=True, timeout=15) as r:
+            r.raise_for_status()
+            buf = io.BytesIO()
+            for chunk in r.iter_content(8192):
+                if chunk:
+                    buf.write(chunk)
+            # … after you’ve filled `buf` with the audio …
+            buf.seek(0)
+            path = f"{msg['conversation_id']}/{msg['id']}.mp3"
+            print(f"📤 Uploading TTS mp3 to Supabase at {path}…")
+
+            # pass buf.getvalue() (bytes) or buf (file-like) as `file=`, and path as `path=`
+            supabase_admin.storage.from_("tts-audio").upload(
+                file=buf.getvalue(), 
+                path=path, 
+                file_options={"content-type": "audio/mpeg"}
+)
+
+        # mark done
+        supabase_admin.table("messages") \
+            .update({"tts_path": path, "tts_status": "done"}) \
+            .eq("id", msg["id"]).execute()
+        print(f"✅ TTS succeeded for {msg['id']}")
+    except Exception as e:
+        print(f"❌ TTS error for {msg['id']}:", e)
+        supabase_admin.table("messages") \
+            .update({"tts_status": "done"}) \
+            .eq("id", msg["id"]).execute()
+
+
+
+# ─── ASYNC REALTIME SUBSCRIPTION ─────────────────────────────────────────────
+async def start_realtime():
+    supabase_async = await create_client_async(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+    def on_insert(payload):
+        # supabase-py async realtime wraps the change under payload["data"]
+        change = payload.get("data", {})
+        msg    = change.get("record")
+        if not msg:
+            return
+
+        loop = asyncio.get_event_loop()
+
+        # 1) If this is a new user message awaiting transcription:
+        if msg["sender_role"] == "user" and msg["transcription_status"] == "pending":
+            loop.run_in_executor(None, handle_transcription_record, msg)
+
+        # 2) If this user message has been transcribed and now awaits an AI reply:
+        elif msg["sender_role"] == "user" \
+        and msg["transcription_status"] == "done" \
+        and msg.get("ai_status") == "pending":
+            loop.run_in_executor(None, handle_ai_record, msg)
+
+        # 3) Finally, when the assistant row appears with tts_status pending:
+        elif msg["sender_role"] == "assistant" \
+        and msg.get("tts_status") == "pending":
+            loop.run_in_executor(None, handle_tts_record, msg)
+
+    def on_subscribe(status, err):
+        if status == RealtimeSubscribeStates.SUBSCRIBED:
+            print("🔌 SUBSCRIBED to messages_changes")
+        else:
+            print("❗ Realtime status:", status, err)
+
+    channel = supabase_async.channel("messages_changes")
+    channel.on_postgres_changes("INSERT", schema="public", table="messages", callback=on_insert)
+    await channel.subscribe(on_subscribe)
+
+    # never exit
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    asyncio.run(start_realtime())
+
 # ─── Helpers ────────────────────────────────────────────────────────────────
-# Record the time when the worker started, as an ISO timestamp string
-START_TS = datetime.now(timezone.utc).isoformat()
-
-#Cutoff for "Only keep the last X messages in full detail — and summarize the rest.
-MAX_HISTORY = 10
-
 def fetch_pending(table, **conds):
     """
     Fetch rows matching conds from the given table.
@@ -244,7 +490,7 @@ def build_chat_payload(conv_id):
     # — summarization of old turns if needed —
     if len(user_msgs) > MAX_HISTORY:
         to_summarize = user_msgs[:-MAX_HISTORY]
-        summary_resp = client.chat.completions.create(
+        summary_resp = openai_client.chat.completions.create(
             model="gpt-4-turbo",
             messages=messages + [
                 {"role":"assistant","content":"Please summarize the earlier conversation in a brief sentence."}
@@ -261,199 +507,37 @@ def build_chat_payload(conv_id):
 
     return messages
 
-
-# ─── 1) Transcription Pass ──────────────────────────────────────────────────
-def process_transcriptions():
-    pending = fetch_pending("messages", sender_role="user", transcription_status="pending")
-    print(f"📝 Transcription stage: {len(pending)} messages pending")
-    for msg in pending:
-        try:
-            audio = download_audio(msg["audio_path"])
-            resp  = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=io.BytesIO(audio)
-            )
-            update_status("messages", msg["id"], {
-                "transcription": resp.text,
-                "transcription_status": "done"
-            })
-            print(f"✅ Marked message {msg['id']} as ai_status=done")
-        except Exception as e:
-            update_status("messages", msg["id"], {"transcription_status": "error"})
-            print("Transcribe error:", e)
+# ─── ENTRYPOINT ─────────────────────────────────────────────────────────────
 
 
-# ─── 2) AI Response Pass ────────────────────────────────────────────────────
-def process_ai():
-    pending = fetch_pending(
+if __name__ == "__main__":
+    print("➤ Loaded ENV:")
+    print("  SUPABASE_URL =", SUPABASE_URL)
+    print("  OPENAI_API_KEY set?", bool(os.getenv("OPENAI_API_KEY")))
+    print("  ELEVENLABS_API_KEY set?", bool(os.getenv("ELEVENLABS_API_KEY")))
+
+    # 1) One-off cleanup + schedule hourly
+    close_inactive_conversations()
+    schedule_cleanup(interval_hours=1)
+
+    # 2) Drain any pending rows left over from before restart
+    #    (so transcription, AI, and TTS all pick up where they left off)
+    for msg in fetch_pending("messages", sender_role="user", transcription_status="pending"):
+        handle_transcription_record(msg)
+
+    for msg in fetch_pending(
         "messages",
         sender_role="user",
         transcription_status="done",
-        ai_status="pending",
-    )
-    print(f"💬 AI stage: {len(pending)} messages pending")
-    for msg in pending:
-        try:
-            # Build the chat payload
-            payload = build_chat_payload(msg["conversation_id"])
-            # Call GPT-4 Turbo
-            resp = client.chat.completions.create(
-                model="gpt-4-turbo",
-                messages=payload,
-                temperature=0.7,
-                functions=FUNCTION_DEFS,
-                function_call="auto",
-            )
-            choice = resp.choices[0].message  # ChatCompletionMessage
+        ai_status="pending"
+    ):
+        handle_ai_record(msg)
 
-            # Check if GPT wants to call our suicide handler
-            if hasattr(choice, "function_call") and choice.function_call:
-                func = choice.function_call
-                args = json.loads(func.arguments)
-                # Craft the response
-                content = (
-                    "I'm so sorry to hear how distressed you're feeling. "
-                    f"If you ever think about harming yourself or feel unsafe, please call "
-                    f"{args['hotline_number']} immediately. {args['recommendation']}"
-                )
-            else:
-                # Normal assistant response
-                content = choice.content
+    for msg in fetch_pending("messages", sender_role="assistant", tts_status="pending"):
+        handle_tts_record(msg)
 
-            # Insert assistant reply
-            supabase.table("messages").insert({
-                "conversation_id": msg["conversation_id"],
-                "sender_role":     "assistant",
-                "assistant_text":  content,
-                "ai_status":       "done",
-                "tts_status":      "pending"
-            }).execute()
-
-            # Mark the user message as done
-            update_status("messages", msg["id"], {"ai_status": "done"})
-            print(f"✅ Assistant response created for message {msg['id']}")
-
-        except Exception as e:
-            # On error, mark ai_status as error so we don’t loop forever
-            update_status("messages", msg["id"], {"ai_status": "error"})
-            print("❌ AI error:", e)
-
-
-# ─── 3) TTS Generation Pass ─────────────────────────────────────────────────
-def process_tts():
-    pending = fetch_pending("messages", sender_role="assistant", tts_status="pending")
-    print(f"🔊 TTS stage: {len(pending)} messages pending")
-    for msg in pending:
-        print(f"📄 Processing message: {msg['id']}")
-        try:
-            print("📥 Fetching conversation info...")
-            conv = supabase_admin.table("conversations") \
-                .select("voice_enabled") \
-                .eq("id", msg["conversation_id"]) \
-                .single() \
-                .execute()
-            voice_on = conv.data.get("voice_enabled", False) if conv.data else False
-            print(f"🎚 Voice enabled? {voice_on}")
-            if voice_on is None: 
-                voice_on = True 
-            if not voice_on:
-                print("⏭ Voice off. Updating tts_status to done...")
-                supabase_admin.table("messages").update({
-                    "tts_status": "done"
-                }).eq("id", msg["id"]).execute()
-                continue
-
-            # Generate ElevenLabs TTS
-            print("🎤 Sending TTS request to ElevenLabs...")
-            url = f"https://api.elevenlabs.io/v1/text-to-speech/{os.getenv('ELEVENLABS_VOICE_ID')}"
-            headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY"), "Content-Type": "application/json"}
-            body = {
-                "text": msg["assistant_text"],
-                "voice_settings": {"stability": 0.75, "similarity_boost": 0.75}
-            }
-
-            # if ElevenLabs doesn’t respond in 30 s, raise a Timeout we’ll catch below
-            with requests.post(url, json=body, headers=headers, stream=True, timeout=15) as r:
-                r.raise_for_status()
-                with tempfile.NamedTemporaryFile(suffix=".mp3") as tmp:
-                    for chunk in r.iter_content(chunk_size=8192):
-                        if chunk:
-                            tmp.write(chunk)
-                    tmp.flush()
-
-                    path = f"{msg['conversation_id']}/{msg['id']}.mp3"
-
-                    # Upload to Supabase
-                    # Step 1: Generate path to use for storage (must match exactly)
-                    path = f"{msg['conversation_id']}/{msg['id']}.mp3"
-
-                    # Step 2: Create signed upload URL
-                    print("📤 Getting signed upload URL...")
-                    signed_upload = supabase_admin.storage.from_("tts-audio").create_signed_upload_url(path)
-                    upload_url = signed_upload.get("signed_url") or signed_upload.get("signedUrl")
-                    print(f"🔍 Upload URL: {upload_url}")
-
-                    if not upload_url:
-                        raise Exception("❌ Failed to get signed upload URL")
-
-                    # Step 3: Upload file using PUT
-                    print("📤 Uploading MP3 to Supabase...")
-                    with open(tmp.name, "rb") as audio_file:
-                        put_response = requests.put(
-                            upload_url,
-                            data=audio_file,
-                            headers={"Content-Type": "audio/mpeg"}
-                        )
-                        put_response.raise_for_status()
-                    print("✅ Upload succeeded")
-
-                    # Step 4: playback URL
-                    signed_playback = supabase_admin.storage.from_("tts-audio").create_signed_url(path, 60)
-                    print("🔊 Signed playback URL:", signed_playback.get("signed_url") or signed_playback.get("signedUrl"))
-
-
-            # ✅ Update the DB record
-            print("✅ Updating tts_path and tts_status...")
-            supabase_admin.table("messages").update({
-                "tts_path": path,
-                "tts_status": "done"
-            }).eq("id", msg["id"]).execute()
-
-            print(f"✅ TTS succeeded for {msg['id']}")
-
-
-        except Exception as e:
-            print("❌ TTS error:", e)
-            supabase_admin.table("messages").update({
-                "tts_status": "done"
-            }).eq("id", msg["id"]).execute()
-
-            
-# ─── Main Loop ───────────────────────────────────────────────────────────────
-if __name__ == "__main__":
-    test = supabase.table("messages").select("id").limit(1).execute()
-    print("✔️ Supabase connectivity test:", test.data)
-
-    no_work_count = 0
-    MAX_IDLE_CYCLES = 2000
-    close_inactive_conversations()
-
-    while True:
-        trans_count = len(fetch_pending("messages", sender_role="user", transcription_status="pending"))
-        ai_count     = len(fetch_pending("messages", sender_role="user", transcription_status="done", ai_status="pending"))
-        tts_count    = len(fetch_pending("messages", sender_role="assistant", tts_status="pending"))
-
-        if trans_count == 0 and ai_count == 0 and tts_count == 0:
-            no_work_count += 1
-        else:
-            no_work_count = 0
-
-        if no_work_count < MAX_IDLE_CYCLES:
-            process_transcriptions()
-            process_ai()
-            process_tts()
-        else:
-            close_inactive_conversations()
-
-        time.sleep(1)
-
+    # 3) Start your realtime listener
+    try:
+        asyncio.run(start_realtime())
+    except KeyboardInterrupt:
+        print("👋 Shutting down.")
