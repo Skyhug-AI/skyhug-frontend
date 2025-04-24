@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -44,23 +43,6 @@ const SessionPage = () => {
         style={{
           background: "linear-gradient(to bottom right, #EEF2FF, #F7F8FD, #EEF4FD)",
           zIndex: -3,
-        }}
-      />
-      {/* Voice-inspired bottom circle gradient */}
-      <div
-        className="fixed pointer-events-none"
-        style={{
-          left: "50%",
-          bottom: "-10%",
-          transform: "translateX(-50%)",
-          width: 300,
-          height: 140,
-          borderRadius: "50%",
-          background: "linear-gradient(to bottom right, #FEF7CD, #F97316, #8B5CF6 80%)",
-          boxShadow: "0 0 50px 30px rgba(249, 115, 22, 0.2)",
-          opacity: 0.8,
-          zIndex: -2,
-          filter: "blur(10px)",
         }}
       />
 
