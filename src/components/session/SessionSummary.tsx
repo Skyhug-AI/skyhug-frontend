@@ -1,13 +1,11 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Heart, Home, BookText, Clock, Sun, Cloud, Moon, Coffee, CheckCircle2 } from 'lucide-react';
+import { Calendar, Heart, Home, BookText, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 // Types for the data
 interface SessionSummaryProps {
@@ -48,35 +46,14 @@ const mockSummary = {
   ],
 };
 
-// Mood options with improved visuals
+// Mood options
 const moodOptions = [
-  { value: 'terrible', emoji: '🫠', label: 'Terrible' },
+  { value: 'terrible', emoji: '😥', label: 'Terrible' },
   { value: 'bad', emoji: '😟', label: 'Bad' }, 
   { value: 'okay', emoji: '😐', label: 'Okay' },
   { value: 'good', emoji: '🙂', label: 'Good' },
   { value: 'great', emoji: '😁', label: 'Great' },
 ];
-
-// Emotion icons mapping
-const emotionIcons: Record<string, string> = {
-  'Anxious': '😟',
-  'Hopeful': '🌈',
-  'Tired': '😴',
-  'Reflective': '🪞',
-  'Happy': '😊',
-  'Sad': '😢',
-  'Angry': '😠',
-  'Calm': '😌',
-  'Confused': '😕',
-  'Excited': '😃'
-};
-
-// Suggestion icons mapping
-const suggestionIcons: Record<number, React.ReactNode> = {
-  0: <Moon className="h-5 w-5 text-indigo-400" />,
-  1: <BookText className="h-5 w-5 text-emerald-500" />,
-  2: <Clock className="h-5 w-5 text-amber-500" />
-};
 
 const SessionSummary: React.FC<SessionSummaryProps> = ({ summary = mockSummary, onClose }) => {
   const [journalEntry, setJournalEntry] = useState('');
@@ -115,61 +92,34 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ summary = mockSummary, 
     }
   };
 
-  // Helper function to determine the icon for each summary point
-  const getSummaryIcon = (text: string, id: number) => {
-    if (text.toLowerCase().includes('mindful') || text.toLowerCase().includes('meditat')) {
-      return <Coffee className="h-4 w-4 text-purple-500" />;
-    } else if (text.toLowerCase().includes('sleep')) {
-      return <Moon className="h-4 w-4 text-blue-400" />;
-    } else if (text.toLowerCase().includes('work')) {
-      return <BookText className="h-4 w-4 text-amber-500" />;
-    } else {
-      // Alternate between icons for other points
-      const icons = [
-        <Heart className="h-4 w-4 text-rose-400" />,
-        <CheckCircle2 className="h-4 w-4 text-green-500" />,
-        <Cloud className="h-4 w-4 text-sky-400" />
-      ];
-      return icons[id % icons.length];
-    }
-  };
-
   return (
-    <div className="min-h-screen py-8 px-4 flex items-center justify-center font-['Poppins',sans-serif]">
-      <Card className="w-full max-w-3xl shadow-lg border-skyhug-200 animate-fade-in rounded-2xl bg-white/90 backdrop-blur">
-        <CardHeader className="pb-4 border-b border-skyhug-100 space-y-3">
-          <CardTitle className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <Sun className="h-8 w-8 text-amber-400 animate-pulse-slow" /> 
+    <div className="min-h-screen bg-gradient-to-b from-serenity-50 to-white p-4 flex items-center justify-center">
+      <Card className="w-full max-w-3xl shadow-lg border-skyhug-200 animate-fade-in">
+        <CardHeader className="pb-4 wavy-border">
+          <CardTitle className="text-2xl font-semibold text-skyhug-800">
             Here's what we talked about today
           </CardTitle>
-          <CardDescription className="flex items-center gap-2 text-muted-foreground text-lg">
-            <Clock className="h-5 w-5" /> Session completed on {new Date().toLocaleDateString()}
+          <CardDescription className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-4 w-4" /> Session completed on {new Date().toLocaleDateString()}
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="pt-8 space-y-8">
-          <div className="space-y-8">
+        <CardContent className="pt-6">
+          <div className="space-y-6">
             {/* AI-Generated Summary */}
             <div>
-              <h3 className="text-xl font-medium mb-4 flex items-center gap-2">
-                <BookText className="h-6 w-6 text-skyhug-500" /> 
-                Session Summary
+              <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                <BookText className="h-5 w-5 text-skyhug-500" /> 
+                Summary
               </h3>
-              <ScrollArea className="h-48 rounded-xl border-0 shadow-inner bg-serenity-50 p-4">
-                <ul className="space-y-4">
-                  {summary.points.map((point, index) => (
-                    <li key={point.id} className="flex gap-3 items-start p-2 transition-all hover:bg-white/50 rounded-lg">
-                      <div className="bg-white rounded-full p-1.5 shadow-sm flex-shrink-0">
-                        {getSummaryIcon(point.text, index)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center mb-1">
-                          <span className="text-xs bg-skyhug-100 text-skyhug-700 px-2 py-1 rounded-full font-mono">
-                            {point.time}
-                          </span>
-                        </div>
-                        <p className="text-sm">{point.text}</p>
-                      </div>
+              <ScrollArea className="h-40 rounded-md border p-4">
+                <ul className="space-y-3">
+                  {summary.points.map((point) => (
+                    <li key={point.id} className="flex gap-2">
+                      <span className="text-xs bg-skyhug-100 text-skyhug-700 px-1.5 py-0.5 rounded font-mono">
+                        {point.time}
+                      </span>
+                      <p className="text-sm flex-1">{point.text}</p>
                     </li>
                   ))}
                 </ul>
@@ -177,77 +127,52 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ summary = mockSummary, 
             </div>
             
             {/* Emotions */}
-            <div className="pt-2">
-              <h3 className="text-lg font-medium mb-3">Key emotions detected:</h3>
-              <div className="flex flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Key emotions detected:</h3>
+              <div className="flex flex-wrap gap-2">
                 {summary.emotions.map((emotion) => (
-                  <Badge 
-                    key={emotion.id} 
-                    variant="secondary" 
-                    className="bg-serenity-100 hover:bg-serenity-200 transition-all px-3 py-1.5 text-base flex items-center gap-1.5 animate-pulse-gentle"
-                  >
-                    <span>{emotionIcons[emotion.name] || '😊'}</span> {emotion.name}
+                  <Badge key={emotion.id} variant="secondary" className="bg-cloud-100">
+                    {emotion.name}
                   </Badge>
                 ))}
               </div>
             </div>
             
             {/* Suggested next steps */}
-            <div className="pt-2">
-              <h3 className="text-lg font-medium mb-3">Suggested next steps:</h3>
-              <div className="grid gap-3 md:grid-cols-3">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Suggested next steps:</h3>
+              <ul className="list-disc list-inside space-y-1.5 pl-1 text-sm">
                 {summary.suggestions.map((suggestion, i) => (
-                  <Card key={i} className="bg-white shadow-sm hover:shadow-md transition-all">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                          {suggestionIcons[i]}
-                        </div>
-                        <div>
-                          <p className="text-sm text-slate-700">{suggestion}</p>
-                          <Button variant="outline" size="sm" className="mt-3">
-                            Add to Plan
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <li key={i} className="text-muted-foreground">{suggestion}</li>
                 ))}
-              </div>
+              </ul>
             </div>
             
             {/* Journal Prompt */}
-            <div className="pt-4">
-              <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
-                <BookText className="h-5 w-5 text-emerald-500" />
-                Would you like to reflect on today's session?
-              </h3>
-              <div className="bg-white/80 rounded-xl border p-5 shadow-sm">
-                <Textarea 
-                  placeholder="Let it out... what did you learn or feel today?"
-                  className="min-h-[120px] resize-none bg-white/70 border-serenity-100 focus-visible:ring-serenity-300"
-                  value={journalEntry}
-                  onChange={handleJournalChange}
-                />
-                <div className="flex justify-end mt-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleSaveJournal}
-                    disabled={!journalEntry.trim()}
-                    className="flex items-center gap-1.5 hover:bg-serenity-100"
-                  >
-                    <BookText className="h-4 w-4" />
-                    Save to Journal
-                  </Button>
-                </div>
+            <div className="pt-2">
+              <h3 className="text-lg font-medium mb-3">Would you like to reflect on today's session?</h3>
+              <Textarea 
+                placeholder="Write your thoughts here..." 
+                className="min-h-[120px] resize-none"
+                value={journalEntry}
+                onChange={handleJournalChange}
+              />
+              <div className="flex justify-end mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSaveJournal}
+                  disabled={!journalEntry.trim()}
+                >
+                  Save to Journal
+                </Button>
               </div>
             </div>
             
             {/* Mood Selection */}
-            <div className="pt-4">
-              <h3 className="text-xl font-medium mb-4">How are you feeling after this session?</h3>
-              <div className="flex justify-between items-center bg-white/80 rounded-xl px-6 py-4 shadow-sm">
+            <div className="pt-2">
+              <h3 className="text-lg font-medium mb-3">How are you feeling after this session?</h3>
+              <div className="flex justify-between items-center px-4 py-2">
                 {moodOptions.map((mood) => (
                   <button
                     key={mood.value}
@@ -258,10 +183,8 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ summary = mockSummary, 
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <span className="text-4xl mb-2 transition-transform hover:animate-pulse-gentle">{mood.emoji}</span>
-                    <span className={`text-sm font-medium ${selectedMood === mood.value ? 'text-skyhug-600' : ''}`}>
-                      {mood.label}
-                    </span>
+                    <span className="text-3xl mb-1">{mood.emoji}</span>
+                    <span className="text-xs font-medium">{mood.label}</span>
                   </button>
                 ))}
               </div>
@@ -269,17 +192,17 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ summary = mockSummary, 
           </div>
         </CardContent>
         
-        <CardFooter className="flex justify-between pt-6 border-t mt-6 pb-6">
+        <CardFooter className="flex justify-between pt-4 border-t">
           <Button
             variant="outline"
             onClick={handleGoHome}
-            className="gap-2 hover:bg-serenity-100 px-5 rounded-full"
+            className="gap-2"
           >
             <Home className="h-4 w-4" /> Go Home
           </Button>
           <Button
             onClick={handleScheduleNext}
-            className="bg-gradient-to-r from-skyhug-500 to-serenity-500 hover:from-skyhug-600 hover:to-serenity-600 gap-2 px-8 py-6 rounded-full transition-transform hover:scale-105"
+            className="bg-skyhug-500 hover:bg-skyhug-600 gap-2"
           >
             <Calendar className="h-4 w-4" /> Schedule Next Session
           </Button>
