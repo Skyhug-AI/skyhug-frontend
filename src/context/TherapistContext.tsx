@@ -83,9 +83,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       rows
         .map(formatMessage)
         .filter(msg =>
-          msg.isUser ||
-          (msg.ttsHasArrived && !msg.isUser)
-        )
+                msg.isUser ||
+                msg.isGreeting ||               
+                (msg.ttsHasArrived && !msg.isUser)
+              )
     );
   };
 
@@ -380,7 +381,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           const msg = formatMessage(payload.new);
           setMessages(prev => {
             if (prev.some(m => m.id === msg.id)) return prev;
-            return [...prev, msg];
+            return [...prev, msg]; 
           });
           setIsProcessing(false);
         }

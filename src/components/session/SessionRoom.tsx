@@ -38,6 +38,7 @@ const SessionRoom = () => {
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);
   const playedTtsRef = useRef<Set<string>>(new Set());
+  const hasPrimedRef   = useRef(false);
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const voiceTimeoutRef = useRef<number | null>(null);
 
@@ -121,23 +122,31 @@ const SessionRoom = () => {
 
 
   useEffect(() => {
+    if (!hasPrimedRef.current) {
+      // on initial mount, mark everything that's already arrived as "played"
+      displayedMessages.forEach(msg => {
+        if (!msg.isUser && msg.ttsHasArrived && msg.tts_path) {
+          playedTtsRef.current.add(msg.id);
+        }
+      });
+      hasPrimedRef.current = true;
+      return;  // skip the real play loop this first time
+    }
+  
+    // your existing loop: only play the first unplayed msg
     for (const msg of displayedMessages) {
-      // only auto-play new assistant messages whose TTS just arrived
-      if (
-        !msg.isUser &&
-        msg.ttsHasArrived &&
-        msg.tts_path &&
-        !playedTtsRef.current.has(msg.id)
+      if (!msg.isUser &&
+          msg.ttsHasArrived &&
+          msg.tts_path &&
+          !playedTtsRef.current.has(msg.id)
       ) {
         playedTtsRef.current.add(msg.id);
-        // clear the "thinking" spinner
         setWaitingForResponse(false);
         handlePlayAudio(msg.tts_path);
-        break; // only play the first new one
+        break;
       }
     }
   }, [displayedMessages]);
-  
   
 
   const handleSendMessage = (message: string) => {
