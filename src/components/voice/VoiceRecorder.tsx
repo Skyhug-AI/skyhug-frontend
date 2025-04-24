@@ -28,8 +28,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [recognitionManuallyPaused, setRecognitionManuallyPaused] = useState(false);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
-  const lastSentRef = useRef<string>('')
-  const [pausedByUser, setPausedByUser] = useState(false);
   const silenceSentRef = useRef(false);
 
 
@@ -82,9 +80,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   
   
   useEffect(() => {
-    // On mount, if we're not paused and not already recording, start right away
+    // On mount, if we're allowed to listen, go through resumeRecognition()
     if (!isDisabled && !shouldPauseRecognition && !isRecording) {
-      startRecording();
+      resumeRecognition();
     }
   }, []);
 
@@ -143,21 +141,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       
 
       recognition.onend = () => {
-        // if we should keep listening, restart
-        if (isRecording && !isDisabled && !recognitionManuallyPaused) {
-          recognition.start();
-          return;
-        }
-      
-        // otherwise we’ve truly stopped
         setIsRecording(false);
         setRecognitionManuallyPaused(true);
-      
-        // notify parent that recognition is now paused
-        if (onRecognitionPaused) {
-          onRecognitionPaused();
-        }
+        if (onRecognitionPaused) onRecognitionPaused();
       };
+      
       
 
       return recognition;
@@ -255,18 +243,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   
       // now manually resume (not start) the same session
       resumeRecognition();
-      setPausedByUser(false);
       return;
     }
   
     if (isRecording) {
       // user is explicitly pausing
       pauseRecognition();
-      setPausedByUser(true);
     } else {
       // user is explicitly starting or resuming
-      startRecording();
-      setPausedByUser(false);
+      resumeRecognition();
     }
   };
   
