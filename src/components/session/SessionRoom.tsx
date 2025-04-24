@@ -38,6 +38,8 @@ const SessionRoom = () => {
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);
   const playedTtsRef = useRef<Set<string>>(new Set());
+  const [voiceUnavailable, setVoiceUnavailable] = useState(false);
+  const voiceTimeoutRef = useRef<number | null>(null);
 
   // only hide assistant bubbles until tts arrives *when* voice mode is on
   const displayedMessages = messages.filter(msg =>
@@ -167,6 +169,16 @@ const SessionRoom = () => {
     setHasStartedChat(true);
     // start showing “Sky is thinking...” immediately
     setWaitingForResponse(true);
+
+    // kick off the timer
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current);
+    }
+    voiceTimeoutRef.current = window.setTimeout(() => {
+      setWaitingForResponse(false);
+      setVoiceUnavailable(true);
+    }, 15_000);
+
     sendMessage(trimmed);
   };
   
@@ -232,10 +244,18 @@ const SessionRoom = () => {
     // stop “thinking…” as soon as we have audio buffered
     audio.onloadeddata = () => {
       setWaitingForResponse(false);
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
     };
     // also in case play begins right away
     audio.onplay = () => {
       setWaitingForResponse(false);
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
     };
   
     audio.onended = () => {
@@ -249,6 +269,11 @@ const SessionRoom = () => {
       setWaitingForResponse(false);
       setIsMicLocked(false);
       setCurrentlyPlayingPath(null);
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
+      setVoiceUnavailable(true);
     };
   
     try {
@@ -342,27 +367,33 @@ const interruptPlayback = () => {
               )}
             </div>
           ))}
-          {(isProcessing || waitingForResponse) && (
-            <div className="flex items-center gap-2 px-4 py-2">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Loader className="h-4 w-4 text-skyhug-500" />
-              </motion.div>
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-gray-600"
-              >
-                Sky is thinking...
-              </motion.span>
-            </div>
-          )}
+
+            {voiceUnavailable ? (
+              <div className="px-4 py-2 text-sm text-red-500">
+                Voice Mode not available. Use Chat Mode or come back later.
+              </div>
+            ) : (isProcessing || waitingForResponse) && (
+              <div className="flex items-center gap-2 px-4 py-2">
+                              <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "linear",
+                            }}
+                          >
+                            <Loader className="h-4 w-4 text-skyhug-500" />
+                          </motion.div>
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-sm text-gray-600"
+                          >
+                            Sky is thinking...
+                          </motion.span>
+              </div>
+            )}
+
 
           <div ref={messagesEndRef} />
         </div>
@@ -394,22 +425,19 @@ const interruptPlayback = () => {
               End chat & continue
             </Button>
             <div className="ml-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={async () => {
-                  const next = !isVoiceMode;
-                  setIsVoiceMode(next);
-                  await setVoiceEnabled(next);
-                }}
-                className="rounded-full w-8 h-8"
-              >
-                {isVoiceMode ? (
-                  <MessageSquare className="h-4 w-4 text-gray-600" />
-                ) : (
-                  <Mic className="h-4 w-4 text-gray-600" />
-                )}
-              </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => {
+                setVoiceUnavailable(false);
+                const next = !isVoiceMode;
+                setIsVoiceMode(next);
+                await setVoiceEnabled(next);
+              }}
+              className="rounded-full w-8 h-8"
+            >
+              {isVoiceMode ? <MessageSquare /> : <Mic />}
+            </Button>
             </div>
           </div>
 
