@@ -355,7 +355,7 @@ def process_tts():
             voice_on = conv.data.get("voice_enabled", False) if conv.data else False
             print(f"🎚 Voice enabled? {voice_on}")
             if voice_on is None: 
-                voise_on = True 
+                voice_on = True 
             if not voice_on:
                 print("⏭ Voice off. Updating tts_status to done...")
                 supabase_admin.table("messages").update({
@@ -372,7 +372,8 @@ def process_tts():
                 "voice_settings": {"stability": 0.75, "similarity_boost": 0.75}
             }
 
-            with requests.post(url, json=body, headers=headers, stream=True) as r:
+            # if ElevenLabs doesn’t respond in 30 s, raise a Timeout we’ll catch below
+            with requests.post(url, json=body, headers=headers, stream=True, timeout=15) as r:
                 r.raise_for_status()
                 with tempfile.NamedTemporaryFile(suffix=".mp3") as tmp:
                     for chunk in r.iter_content(chunk_size=8192):
