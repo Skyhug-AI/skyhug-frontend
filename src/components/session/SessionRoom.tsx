@@ -31,11 +31,8 @@ const SessionRoom = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const lastPlayedId = useRef<string | null>(null);
-  const lastPlayedRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const lastTranscriptRef = useRef<string | null>(null);
   const lastSendRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
   const [waitingForResponse, setWaitingForResponse] = useState(false);
   // Track if we're handling voice recognition pausing/resuming
