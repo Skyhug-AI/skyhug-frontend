@@ -29,7 +29,7 @@ interface TherapistContextType {
   clearMessages: () => Promise<void>;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
-  playMessageAudio: (tts_path: string) => Promise<HTMLAudioElement | null | void>;
+  playMessageAudio: (tts_path: string) => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -285,7 +285,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = async (tts_path: string): Promise<HTMLAudioElement | null | void> => {
+  const playMessageAudio = async (tts_path: string): Promise<HTMLAudioElement | null> => {
     if (!tts_path) return;
   
     if (currentAudio?.src.includes(tts_path)) {
