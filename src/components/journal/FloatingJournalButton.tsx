@@ -1,11 +1,15 @@
-
 import React, { useState } from 'react';
-import { BookText, Cloud, Sun, Repeat, Brain, Target } from 'lucide-react';
+import { BookText, Cloud, Sun, Repeat, Brain, Target, FileText, ChevronDown, CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const prompts = [
   { icon: <Cloud className="w-4 h-4" />, text: "What felt heavy today?", emoji: "🌥️" },
@@ -13,6 +17,24 @@ const prompts = [
   { icon: <Repeat className="w-4 h-4" />, text: "What's a pattern you're noticing in yourself?", emoji: "🔄" },
   { icon: <Brain className="w-4 h-4" />, text: "What thought do you want to let go of?", emoji: "🧠" },
   { icon: <Target className="w-4 h-4" />, text: "What's one thing you're proud of?", emoji: "🎯" },
+];
+
+const templates = [
+  {
+    title: "Gratitude Entry",
+    icon: "🙏",
+    text: "Today I am grateful for:\n1.\n2.\n3.\n\nOne small joy I experienced:"
+  },
+  {
+    title: "Daily Reflection",
+    icon: "✨",
+    text: "Morning mood:\nTop priority today:\nHighlight of my day:\nWhat I learned:"
+  },
+  {
+    title: "Stress Release",
+    icon: "🌬️",
+    text: "What's on my mind:\nWhat I can control:\nWhat I need to let go:\nOne small step I can take:"
+  }
 ];
 
 const moods = [
@@ -26,36 +48,41 @@ const moods = [
 const FloatingJournalButton = () => {
   const { toast } = useToast();
   const [selectedPrompt, setSelectedPrompt] = useState<string>("");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [journalContent, setJournalContent] = useState<string>("");
   const [selectedMood, setSelectedMood] = useState<string>("");
   const [moodTag, setMoodTag] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [showEncouragement, setShowEncouragement] = useState(false);
+  const [date, setDate] = useState<Date>(new Date());
 
   const handlePromptSelect = (promptText: string) => {
     setSelectedPrompt(promptText);
+    setJournalContent("");
   };
 
-  const handleMoodSelect = (mood: string) => {
-    setSelectedMood(mood);
+  const handleTemplateSelect = (template: string) => {
+    setSelectedTemplate(template);
+    setJournalContent(template);
+    setSelectedPrompt("");
   };
 
   const handleSaveEntry = () => {
     setShowEncouragement(true);
-    
-    // Show points animation
     toast({
       title: "+30 Calm Points",
       description: "That was brave. Every word you write is part of your healing.",
       className: "animate-fade-in-up",
     });
 
-    // Delay modal close
     setTimeout(() => {
       setIsOpen(false);
       setShowEncouragement(false);
       setSelectedPrompt("");
       setSelectedMood("");
       setMoodTag("");
+      setJournalContent("");
+      setDate(new Date());
     }, 3000);
   };
 
@@ -70,67 +97,107 @@ const FloatingJournalButton = () => {
           <BookText className="h-6 w-6 text-skyhug-500" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add Journal Entry</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Not sure what to write? Try one of these prompts:</p>
-            <div className="flex flex-wrap gap-2">
-              {prompts.map((prompt) => (
+      <DialogContent className="max-w-[95vw] h-[95vh] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
+        <DialogHeader className="p-6 pb-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-medium tracking-tight text-gray-900">Add Journal Entry</DialogTitle>
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  key={prompt.text}
-                  variant="outline"
-                  size="sm"
-                  className={`flex items-center gap-1.5 ${
-                    selectedPrompt === prompt.text ? 'bg-skyhug-50 border-skyhug-200' : ''
-                  }`}
-                  onClick={() => handlePromptSelect(prompt.text)}
+                  variant={"outline"}
+                  className={cn(
+                    "w-[180px] pl-3 text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
                 >
-                  {prompt.icon}
-                  <span className="mr-1">{prompt.emoji}</span>
-                  {prompt.text}
+                  {format(date, "PPP")}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
-              ))}
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(newDate) => setDate(newDate || new Date())}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-          <Textarea
-            placeholder={selectedPrompt || "Write your thoughts here..."}
-            className="min-h-[200px] resize-none"
-          />
-          
-          <div className="space-y-3">
-            <p className="text-sm font-medium">What emotion best describes this entry?</p>
-            <div className="flex gap-2 flex-wrap">
-              {moods.map((mood) => (
-                <Button
-                  key={mood.emoji}
-                  variant="outline"
-                  size="sm"
-                  className={`text-lg ${
-                    selectedMood === mood.emoji ? 'bg-skyhug-50 border-skyhug-200' : ''
-                  }`}
-                  onClick={() => handleMoodSelect(mood.emoji)}
-                >
-                  {mood.emoji}
-                </Button>
-              ))}
+        </DialogHeader>
+        <div className="px-6 py-4 space-y-6 h-[calc(95vh-120px)] overflow-y-auto">
+          <div className="grid grid-cols-[1fr,1.5fr] gap-6 h-full">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 font-medium mb-2">Choose your writing style:</p>
+                <Select onValueChange={(value) => handleTemplateSelect(templates.find(t => t.title === value)?.text || "")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map((template) => (
+                      <SelectItem key={template.title} value={template.title}>
+                        <span className="inline-flex items-center gap-2">
+                          <span>{template.icon}</span>
+                          <span>{template.title}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600 font-medium">Or choose a prompt:</p>
+                {prompts.map((prompt) => (
+                  <Button
+                    key={prompt.text}
+                    variant="outline"
+                    className={`w-full justify-start text-left h-auto p-3 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50 ${
+                      selectedPrompt === prompt.text ? 'bg-gray-50/80 border-gray-300' : ''
+                    }`}
+                    onClick={() => handlePromptSelect(prompt.text)}
+                  >
+                    <span className="mr-2 text-lg">{prompt.emoji}</span>
+                    <span className="text-sm font-normal">{prompt.text}</span>
+                  </Button>
+                ))}
+              </div>
             </div>
             
-            <div className="pt-2">
-              <input
-                type="text"
-                placeholder="Add a mood tag (e.g., overwhelm, connection)"
-                className="w-full px-3 py-2 border rounded-md text-sm"
-                value={moodTag}
-                onChange={(e) => setMoodTag(e.target.value)}
+            <div className="space-y-4 h-full">
+              <Textarea
+                placeholder="Start writing here..."
+                value={journalContent}
+                onChange={(e) => setJournalContent(e.target.value)}
+                className="h-[calc(100%-100px)] resize-none rounded-xl border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-base"
               />
+              
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-600">How are you feeling?</p>
+                <div className="flex justify-between items-center px-4 py-2 bg-gray-50/50 rounded-xl">
+                  {moods.map((mood) => (
+                    <button
+                      key={mood.emoji}
+                      onClick={() => setSelectedMood(mood.emoji)}
+                      className={`flex flex-col items-center transition-all ${
+                        selectedMood === mood.emoji 
+                          ? 'transform scale-110 text-gray-900' 
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <span className="text-2xl mb-1">{mood.emoji}</span>
+                      <span className="text-xs font-medium">{mood.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
           {showEncouragement ? (
-            <div className="text-center space-y-4 animate-fade-in py-4">
+            <div className="text-center space-y-3 animate-fade-in py-4">
               <Badge variant="secondary" className="animate-scale-in">
                 +30 Calm Points
               </Badge>
@@ -139,7 +206,12 @@ const FloatingJournalButton = () => {
               </p>
             </div>
           ) : (
-            <Button onClick={handleSaveEntry} className="w-full">Save Entry</Button>
+            <Button 
+              onClick={handleSaveEntry} 
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl py-2.5"
+            >
+              Save Entry
+            </Button>
           )}
         </div>
       </DialogContent>

@@ -52,7 +52,7 @@ const StreakTracker = ({
           Streak Tracker
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-8"> {/* Added pb-8 for bottom padding */}
+      <CardContent className=""> {/* Added pb-8 for bottom padding */}
         <div className="space-y-4">
           <div className="text-center">
             <p className="text-lg font-medium mb-1">
