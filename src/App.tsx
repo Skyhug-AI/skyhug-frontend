@@ -20,6 +20,7 @@ import BlogPage from "./pages/BlogPage";
 import SessionPage from "./pages/SessionPage";
 import ProfilePage from "./pages/ProfilePage";
 import SessionSummaryPage from "./pages/SessionSummaryPage";
+import TherapistBrowsePage from "./pages/TherapistBrowsePage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,14 @@ const App = () => (
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/blog" element={<BlogPage />} />
+              <Route 
+                path="/therapists" 
+                element={
+                  <ProtectedRoute>
+                    <TherapistBrowsePage />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/home" 
                 element={

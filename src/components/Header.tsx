@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
-import { Menu, LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, BookMarked, Bell, LayoutDashboard } from 'lucide-react';
+import { Menu, LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, BookMarked, Bell, LayoutDashboard, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -45,6 +45,12 @@ const Header = () => {
             className={`transition-colors ${location.pathname === '/session' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'}`}
           >
             Start a Session
+          </button>
+          <button 
+            onClick={() => navigate('/therapists')} 
+            className={`transition-colors ${location.pathname === '/therapists' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'}`}
+          >
+            Find a Therapist
           </button>
         </nav>
         
@@ -130,6 +136,12 @@ const Header = () => {
               >
                 Start a Session
               </button>
+              <button 
+                onClick={() => navigate('/therapists')} 
+                className={`transition-colors ${location.pathname === '/therapists' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'} text-lg py-2`}
+              >
+                Find a Therapist
+              </button>
               
               <button onClick={() => navigate('/')} className={`transition-colors ${location.pathname === '/' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'} text-lg py-2`}>
                 Landing
@@ -154,6 +166,10 @@ const Header = () => {
                   </Button>
                   <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/sessions')}>
                     Session History
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/therapists')}>
+                    <Search className="mr-2 h-4 w-4" />
+                    Find a Therapist
                   </Button>
                   <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
