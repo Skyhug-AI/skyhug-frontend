@@ -406,14 +406,10 @@ def process_tts():
                         put_response.raise_for_status()
                     print("✅ Upload succeeded")
 
-                    # Step 4 (optional): Debug playback URL
+                    # Step 4: playback URL
                     signed_playback = supabase_admin.storage.from_("tts-audio").create_signed_url(path, 60)
                     print("🔊 Signed playback URL:", signed_playback.get("signed_url") or signed_playback.get("signedUrl"))
 
-
-            # ✅ Create a signed playback URL (optional but useful for debugging)
-            signed_playback = supabase_admin.storage.from_("tts-audio").create_signed_url(path, 60)
-            print("🔊 Signed playback URL (for debug):", signed_playback.get("signed_url") or signed_playback.get("signedUrl"))
 
             # ✅ Update the DB record
             print("✅ Updating tts_path and tts_status...")
