@@ -30,6 +30,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const { toast } = useToast();
   const silenceSentRef = useRef(false);
   const cleanupVadRef = useRef<() => void>()
+  const prevRecordingRef = useRef(isRecording)
 
 
 
@@ -87,6 +88,14 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       resumeRecognition();
     }
   }, []);
+
+  useEffect(() => {
+    // if we *were* recording, and now we're *not*, fire the paused callback
+    if (prevRecordingRef.current && !isRecording) {
+      onRecognitionPaused?.()
+    }
+    prevRecordingRef.current = isRecording
+  }, [isRecording, onRecognitionPaused])
 
   const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -201,22 +210,20 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const pauseRecognition = () => {
-    // 1) tear down your voice-activity-detection
-    cleanupVadRef.current?.();
-    cleanupVadRef.current = undefined;
+    // tear down VAD…
+    cleanupVadRef.current?.()
+    cleanupVadRef.current = undefined
   
-    // 2) stop the SpeechRecognition instance
     if (recognitionInstance) {
-      recognitionInstance.onend = null;
-      recognitionInstance.stop();
+      recognitionInstance.onend = null
+      recognitionInstance.stop()
     }
   
-    // 3) update UI state & notify parent
-    setIsRecording(false);
-    setRecognitionManuallyPaused(true);
-    onRecognitionPaused?.();
-  };
-
+    setIsRecording(false)
+    setRecognitionManuallyPaused(true)
+    onRecognitionPaused?.()
+  }
+  
   const resumeRecognition = () => {
     silenceSentRef.current = false;
     if (recognitionInstance && !isRecording) {
