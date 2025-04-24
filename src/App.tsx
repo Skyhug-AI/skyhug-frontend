@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,21 @@ import { TherapistProvider } from "@/context/TherapistContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
+
+// Import all page components
+import Index from "@/pages/Index";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import BlogPage from "@/pages/BlogPage";
+import HomePage from "@/pages/HomePage";
+import ProfilePage from "@/pages/ProfilePage";
+import ChatPage from "@/pages/ChatPage";
+import VoicePage from "@/pages/VoicePage";
+import PastSessionsPage from "@/pages/PastSessionsPage";
+import SettingsPage from "@/pages/SettingsPage";
+import SessionPage from "@/pages/SessionPage";
+import SessionSummaryPage from "@/pages/SessionSummaryPage";
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
