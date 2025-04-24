@@ -1,12 +1,15 @@
-
 import React, { useState } from 'react';
-import { BookText, Cloud, Sun, Repeat, Brain, Target, FileText, ChevronDown } from 'lucide-react';
+import { BookText, Cloud, Sun, Repeat, Brain, Target, FileText, ChevronDown, CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const prompts = [
   { icon: <Cloud className="w-4 h-4" />, text: "What felt heavy today?", emoji: "🌥️" },
@@ -51,6 +54,7 @@ const FloatingJournalButton = () => {
   const [moodTag, setMoodTag] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [showEncouragement, setShowEncouragement] = useState(false);
+  const [date, setDate] = useState<Date>(new Date());
 
   const handlePromptSelect = (promptText: string) => {
     setSelectedPrompt(promptText);
@@ -78,6 +82,7 @@ const FloatingJournalButton = () => {
       setSelectedMood("");
       setMoodTag("");
       setJournalContent("");
+      setDate(new Date());
     }, 3000);
   };
 
@@ -94,7 +99,32 @@ const FloatingJournalButton = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-2xl font-medium tracking-tight text-gray-900">Add Journal Entry</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-medium tracking-tight text-gray-900">Add Journal Entry</DialogTitle>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[180px] pl-3 text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  {format(date, "PPP")}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(newDate) => setDate(newDate || new Date())}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </DialogHeader>
         <div className="px-6 py-4 space-y-6">
           <div className="grid grid-cols-[1fr,1.5fr] gap-6">
