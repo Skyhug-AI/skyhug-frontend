@@ -11,28 +11,29 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-[90vh] flex items-center py-20 px-4 md:px-8 overflow-hidden">
-      {/* Dynamic background with floating elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-serenity-50/50 to-background -z-10">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-orb-periwinkle/20 rounded-full blur-3xl animate-pulse-gentle"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orb-lavender/20 rounded-full blur-3xl animate-pulse-gentle" style={{ animationDelay: '1s' }}></div>
+      {/* Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#fdfcfb] to-[#e2d1c3] opacity-50 -z-10" />
+      
+      {/* Floating Clouds Background */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-white/20 rounded-full blur-3xl animate-pulse-gentle"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-100/30 rounded-full blur-3xl animate-pulse-gentle" style={{ animationDelay: '1s' }}></div>
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Text Content */}
         <div className="flex flex-col gap-8 relative z-10">
-          {/* Small highlight text */}
-          <div className="inline-flex items-center gap-2 text-sm font-medium text-serenity-600 bg-serenity-50 py-1 px-3 rounded-full w-fit">
+          <div className="inline-flex items-center gap-2 text-sm font-medium text-serenity-600 bg-white/80 backdrop-blur-sm py-1 px-3 rounded-full w-fit">
             <Cloud className="h-4 w-4" />
             AI-Powered Therapy
           </div>
 
           <div className="space-y-6">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight bg-gradient-to-r from-serenity-900 via-serenity-700 to-serenity-800 bg-clip-text text-transparent">
-              Your Personal AI Therapist in the Cloud
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+              Find Calm in Every Moment
             </h1>
             <p className="text-xl text-serenity-600 max-w-xl">
-              Experience therapeutic conversations powered by advanced AI. 
-              Available 24/7, completely private, and personalized to you.
+              Personalized therapy conversations to help you reduce stress and improve mental clarity. Available 24/7, completely private.
             </p>
           </div>
           
@@ -63,16 +64,19 @@ const HeroSection = () => {
             <AudioWavePreview />
           </div>
           
-          {/* Floating message bubbles */}
-          <div className="absolute top-1/4 left-10 md:left-20 animate-float">
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg max-w-xs border border-serenity-100">
-              <p className="text-lg">How are you feeling today?</p>
-            </div>
-          </div>
-          
-          <div className="absolute bottom-1/4 right-10 md:right-20 animate-float" style={{ animationDelay: '1s' }}>
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg max-w-xs border border-serenity-100">
-              <p className="text-lg">I'm here to listen and support you.</p>
+          {/* App Preview */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-lg max-w-sm border border-serenity-100">
+              <h3 className="text-xl font-semibold mb-4">Take a Moment to Breathe</h3>
+              <p className="text-serenity-600 mb-4">Calm your mind and restore balance</p>
+              {/* Placeholder for mood tracking UI */}
+              <div className="flex justify-between items-center mt-4">
+                <div className="flex space-x-4">
+                  {['😊', '😌', '😔', '😢', '😡'].map((emoji, i) => (
+                    <span key={i} className="text-2xl cursor-pointer hover:scale-110 transition-transform">{emoji}</span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
