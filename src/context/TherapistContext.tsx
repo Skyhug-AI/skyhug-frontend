@@ -378,13 +378,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         },
         (payload) => {
           const msg = formatMessage(payload.new);
-          if (msg.isUser /* only user messages on INSERT */) {
-            setMessages(prev => {
-              if (prev.some(m => m.id === msg.id)) return prev;
-              return [...prev, msg];
-            });
-            setIsProcessing(false);
-          }
+          setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
+          setIsProcessing(false);
         }
       )
       .on(
@@ -396,15 +394,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const msg = formatMessage(payload.new);
-          // only add assistant messages once they have audio
-          if (!msg.isUser && msg.ttsHasArrived) {
-            setMessages(prev => {
-              if (prev.some(m => m.id === msg.id)) return prev;
-              return [...prev, msg];
-            });
-            setIsProcessing(false);
-          }
+          const updated = formatMessage(payload.new);
+          setMessages(prev =>
+            prev.map(m => m.id === updated.id ? updated : m)
+          );
+          setIsProcessing(false);
         }
       )
       .subscribe();

@@ -40,6 +40,18 @@ const SessionRoom = () => {
   const [waitingForResponse, setWaitingForResponse] = useState(false);
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);
+  const playedTtsRef = useRef<Set<string>>(new Set());
+
+  // only hide assistant bubbles until tts arrives *when* voice mode is on
+  const displayedMessages = messages.filter(msg =>
+    // always show user
+    msg.isUser ||
+    // always show assistant in chat mode
+    !isVoiceMode ||
+    // in voice mode, only once audio is ready
+    Boolean(msg.ttsHasArrived)
+  );
+
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -108,21 +120,24 @@ const SessionRoom = () => {
     };
   }, []);
 
-  const prevCountRef = useRef<number>(messages.length);
 
-useEffect(() => {
-  // if we’ve added at least one more message…
-  if (messages.length > prevCountRef.current) {
-    const lastMsg = messages[messages.length - 1];
-    // only auto-play when that new message is an assistant reply
-    if (!lastMsg.isUser && lastMsg.tts_path) {
-      lastPlayedRef.current = lastMsg.id;
-      handlePlayAudio(lastMsg.tts_path);
+  useEffect(() => {
+    for (const msg of displayedMessages) {
+      // only auto-play new assistant messages whose TTS just arrived
+      if (
+        !msg.isUser &&
+        msg.ttsHasArrived &&
+        msg.tts_path &&
+        !playedTtsRef.current.has(msg.id)
+      ) {
+        playedTtsRef.current.add(msg.id);
+        // clear the "thinking" spinner
+        setWaitingForResponse(false);
+        handlePlayAudio(msg.tts_path);
+        break; // only play the first new one
+      }
     }
-  }
-  // update for next diff
-  prevCountRef.current = messages.length;
-}, [messages]);
+  }, [displayedMessages]);
   
   
 
@@ -307,14 +322,13 @@ const interruptPlayback = () => {
       >
         <div className="space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
-          {messages.map((message, index) => (
-            <div key={index} className="relative group">
-              <ChatBubble
-                key={index}
-                message={message.content}
-                isUser={message.isUser}
-                timestamp={message.timestamp}
-              />
+          {displayedMessages.map((message) => (
+          <div key={message.id} className="relative group">
+            <ChatBubble
+              message={message.content}
+              isUser={message.isUser}
+              timestamp={message.timestamp}
+            />
               {!message.isUser && message.tts_path && (
                 <Button
                   variant="ghost"
