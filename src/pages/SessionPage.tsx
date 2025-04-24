@@ -45,7 +45,7 @@ const SessionPage = () => {
           zIndex: -3,
         }}
       />
-      {/* Sun orb gradient as a decorative accent at the bottom */}
+      {/* Removed sun orb gradient accent */}
       <div
         className="fixed pointer-events-none"
         style={{
@@ -55,10 +55,7 @@ const SessionPage = () => {
           width: 300,
           height: 140,
           borderRadius: "50%",
-          background:
-            "radial-gradient(ellipse at 50% 100%, #fde1d3 0%, #ffe29f 50%, rgba(252,242,217,0.11) 100%)",
-          boxShadow: "0 0 70px 58px #fde1d399, 0 0 220px 120px #ffd5b2cc",
-          filter: "blur(5px)",
+          background: "linear-gradient(to bottom right, #EEF2FF, #F7F8FD, #EEF4FD)",
           opacity: 0.8,
           zIndex: -2,
         }}
