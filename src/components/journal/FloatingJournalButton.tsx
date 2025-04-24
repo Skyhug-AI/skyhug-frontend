@@ -97,7 +97,7 @@ const FloatingJournalButton = () => {
           <BookText className="h-6 w-6 text-skyhug-500" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
+      <DialogContent className="max-w-[95vw] h-[95vh] p-0 gap-0 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-medium tracking-tight text-gray-900">Add Journal Entry</DialogTitle>
@@ -126,8 +126,8 @@ const FloatingJournalButton = () => {
             </Popover>
           </div>
         </DialogHeader>
-        <div className="px-6 py-4 space-y-6">
-          <div className="grid grid-cols-[1fr,1.5fr] gap-6">
+        <div className="px-6 py-4 space-y-6 h-[calc(95vh-120px)] overflow-y-auto">
+          <div className="grid grid-cols-[1fr,1.5fr] gap-6 h-full">
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-600 font-medium mb-2">Choose your writing style:</p>
@@ -166,12 +166,12 @@ const FloatingJournalButton = () => {
               </div>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-4 h-full">
               <Textarea
                 placeholder="Start writing here..."
                 value={journalContent}
                 onChange={(e) => setJournalContent(e.target.value)}
-                className="min-h-[300px] resize-none rounded-xl border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-base"
+                className="h-[calc(100%-100px)] resize-none rounded-xl border-gray-200/80 focus:border-gray-300 focus:ring focus:ring-gray-200/50 text-base"
               />
               
               <div className="space-y-3">
