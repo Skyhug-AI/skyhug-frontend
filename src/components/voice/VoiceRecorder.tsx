@@ -32,14 +32,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const cleanupVadRef = useRef<() => void>()
   const prevRecordingRef = useRef(isRecording)
 
-  const handleVoiceActivity = useCallback((isSpeaking: boolean) => {
+  const handleVoiceActivity = useCallback((isSpeaking: boolean, volume: number) => {
+    console.log(`[VAD] speaking=${isSpeaking} volume=${volume}`);
     if (isSpeaking) {
       setHasSpeechStarted(true);
       setLastSpeechTime(Date.now());
     }
   }, []);
 
-  const { initVoiceDetection } = useVoiceDetection(handleVoiceActivity, 0.1);
+  const { initVoiceDetection } = useVoiceDetection(handleVoiceActivity, 0.05);
 
   useEffect(() => {
     let silenceTimeout: NodeJS.Timeout;
