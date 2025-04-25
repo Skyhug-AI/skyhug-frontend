@@ -76,9 +76,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   }, [isDisabled, shouldPauseRecognition]);
   
-  
-  
-  
   useEffect(() => {
     // On mount, if we're allowed to listen, go through resumeRecognition()
     if (!isDisabled && !shouldPauseRecognition && !isRecording) {

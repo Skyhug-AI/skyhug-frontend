@@ -36,7 +36,7 @@ MAX_HISTORY = 10
 tts_executor = ThreadPoolExecutor(max_workers=10)
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
-SYSTEM_PROMPT = """
+SKY_SYSTEM_PROMPT = """
 You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care. 
 Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language. 
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
@@ -54,7 +54,7 @@ Your structure for each response should be:
 Stay gentle, grounded, and curious.
 """.strip()
 
-EXAMPLE_DIALOG = [
+SLY_EXAMPLE_DIALOG = [
     {"role":"user", "content":"I feel like I’m falling apart and no one understands me."},
     {"role":"assistant", "content":"I’m really sorry you’re feeling this way. It makes so much sense that you’d feel overwhelmed when it seems like no one truly sees what you’re going through. You’re not alone — many people carry this kind of invisible weight. Sometimes writing down your feelings or talking out loud can help bring a bit of clarity or relief. Would you like to explore that together?"},
     {"role":"user", "content":"My anxiety has been through the roof lately."},
@@ -143,49 +143,67 @@ def schedule_cleanup(interval_hours=1):
         threading.Timer(interval_hours * 3600, job).start()
     job()
 
-def build_chat_payload(conv_id: str) -> list:
-    # reuse your SYSTEM_PROMPT and EXAMPLE_DIALOG from above
-    SYSTEM_PROMPT = """You are a compassionate…(your prompt)…"""
-    EXAMPLE_DIALOG = [
-      {"role":"user","content":"…"},
-      {"role":"assistant","content":"…"},
-      # etc
-    ]
-
+def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
+    # Fetch any saved memory
     meta = supabase.table("conversations") \
         .select("memory_summary") \
-        .eq("id", conv_id).single().execute().data or {}
+        .eq("id", conv_id) \
+        .single().execute().data or {}
     memory = meta.get("memory_summary")
 
+    # Fetch the message history
     history = supabase.table("messages") \
         .select("sender_role,transcription,assistant_text,created_at") \
         .eq("conversation_id", conv_id) \
         .order("created_at").execute().data or []
 
-    messages = [{"role":"system","content":SYSTEM_PROMPT}] + EXAMPLE_DIALOG
+    # Start with system prompt(s)
+    if voice_mode:
+        # Enforce concise replies up front
+        messages = [
+            {
+                "role": "system",
+                "content": "Please keep your reply under 60 words, preserving the key points."
+            },
+            {"role": "system", "content": SKY_SYSTEM_PROMPT}
+        ] + SLY_EXAMPLE_DIALOG
+    else:
+        messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SLY_EXAMPLE_DIALOG
+
+    # If this is a brand-new session with a memory summary, inject it
     if memory and not history:
         messages.append({
-            "role":"assistant",
+            "role": "assistant",
             "content": f"Last time we spoke, we talked about: {memory}. Would you like to continue?"
         })
 
-    turns = [
-        {"role":"user","content":m["transcription"]} if m["sender_role"]=="user"
-        else {"role":"assistant","content":m["assistant_text"]}
-        for m in history
-    ]
+    # Turn the DB rows into chat turns
+    turns = []
+    for m in history:
+        if m["sender_role"] == "user":
+            turns.append({"role": "user", "content": m["transcription"]})
+        else:
+            turns.append({"role": "assistant", "content": m["assistant_text"]})
 
+    # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
-        summary = openai_client.chat.completions.create(
+        summary_resp = openai_client.chat.completions.create(
             model="gpt-4-turbo",
-            messages=messages + [{"role":"assistant","content":"Please summarize earlier conversation briefly."}] + turns[:-MAX_HISTORY],
-            temperature=0.3, max_tokens=200
-        ).choices[0].message.content
-        messages += [{"role":"assistant","content":f"Summary of earlier conversation: {summary}"}] + turns[-MAX_HISTORY:]
+            messages=messages + [
+                {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
+            ] + turns[:-MAX_HISTORY],
+            temperature=0.3,
+            max_tokens=200
+        )
+        summary = summary_resp.choices[0].message.content
+        messages += [
+            {"role": "assistant", "content": f"Summary of earlier conversation: {summary}"}
+        ] + turns[-MAX_HISTORY:]
     else:
         messages += turns
 
     return messages
+
 
 def handle_transcription_record(msg):
     print(f"📝 ⏳ Transcribing message {msg['id']}…")
@@ -208,8 +226,19 @@ def handle_transcription_record(msg):
 def handle_ai_record(msg):
     print(f"💬 ⏳ Generating AI reply for message {msg['id']}…")
     try:
-        payload = build_chat_payload(msg["conversation_id"])
-        resp    = openai_client.chat.completions.create(
+        # 1) See if this conversation has voice mode on
+        record = supabase_admin.table("conversations") \
+            .select("voice_enabled") \
+            .eq("id", msg["conversation_id"]) \
+            .single() \
+            .execute().data or {}
+        voice_mode = bool(record.get("voice_enabled"))
+
+        # 2) Build the payload, which will inject a 60-word limit if voice_mode is True
+        payload = build_chat_payload(msg["conversation_id"], voice_mode=voice_mode)
+
+        # 3) Call OpenAI once
+        resp = openai_client.chat.completions.create(
             model="gpt-4-turbo",
             messages=payload,
             temperature=0.7,
@@ -218,6 +247,7 @@ def handle_ai_record(msg):
         )
         choice = resp.choices[0].message
 
+        # 4) Extract the assistant text
         if getattr(choice, "function_call", None):
             args    = json.loads(choice.function_call.arguments)
             content = (
@@ -227,52 +257,73 @@ def handle_ai_record(msg):
         else:
             content = choice.content
 
+        # 5) Store the assistant reply
+        #    — only schedule TTS if voice_mode is enabled
+        tts_status = "pending" if voice_mode else "done"
+        if tts_status == "done":
+            print("✅ Skip TTS because not in voice mode")
         supabase.table("messages").insert({
             "conversation_id": msg["conversation_id"],
             "sender_role":     "assistant",
             "assistant_text":  content,
             "ai_status":       "done",
-            "tts_status":      "pending"
+            "tts_status":      tts_status
         }).execute()
 
         update_status("messages", msg["id"], {"ai_status": "done"})
         print(f"✅ Assistant response created for message {msg['id']}")
+
     except Exception as e:
         update_status("messages", msg["id"], {"ai_status": "error"})
         print(f"❌ AI error for {msg['id']}:", e)
 
 
+
 def handle_tts_record(msg):
     print(f"🔊 ⏳ Starting streamed TTS for {msg['id']}…")
     url     = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
-    headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY"), "Content-Type": "application/json"}
-    body    = {
-        "text": msg["assistant_text"],
+    headers = {
+        "xi-api-key":   os.getenv("ELEVENLABS_API_KEY"),
+        "Content-Type": "application/json"
+    }
+    body = {
+        "text":           msg["assistant_text"],
         "voice_settings": {"stability": 0.75, "similarity_boost": 0.75},
-        "stream": True             # tell ElevenLabs to chunk it
+        "stream":         True
     }
 
-    # short connect timeout, but no read timeout
-    with requests.post(url, json=body, headers=headers, stream=True, timeout=(5, None)) as r:
-        r.raise_for_status()
-        buf = io.BytesIO()
-        for chunk in r.iter_content(chunk_size=8192):
-            if chunk:
-                buf.write(chunk)
-        buf.seek(0)
+    try:
+        # Stream the audio bytes back
+        with requests.post(url, json=body, headers=headers, stream=True, timeout=(5, None)) as r:
+            r.raise_for_status()
+            buf = io.BytesIO()
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    buf.write(chunk)
+            buf.seek(0)
 
-    path = f"{msg['conversation_id']}/{msg['id']}.mp3"
-    print(f"📤 Uploading streamed MP3 to Supabase at {path}…")
-    supabase_admin.storage.from_("tts-audio").upload(
-        file=buf.getvalue(),
-        path=path,
-        file_options={"content-type":"audio/mpeg"}
-    )
-    supabase_admin.table("messages").update({
-        "tts_path": path,
-        "tts_status": "done"
-    }).eq("id", msg["id"]).execute()
-    print(f"✅ Finished TTS for {msg['id']}")
+        # Upload to Supabase
+        path = f"{msg['conversation_id']}/{msg['id']}.mp3"
+        print(f"📤 Uploading streamed MP3 to Supabase at {path}…")
+        supabase_admin.storage.from_("tts-audio").upload(
+            file=buf.getvalue(),
+            path=path,
+            file_options={"content-type":"audio/mpeg"}
+        )
+        supabase_admin.table("messages").update({
+            "tts_path":   path,
+            "tts_status": "done"
+        }).eq("id", msg["id"]).execute()
+
+        print(f"✅ Finished TTS for {msg['id']}")
+
+    except Exception as e:
+        # Mark as errored so your realtime loop won’t keep retrying forever
+        supabase_admin.table("messages").update({
+            "tts_status": "error"
+        }).eq("id", msg["id"]).execute()
+        print(f"❌ TTS/upload error for {msg['id']}:", e)
+
 
 
 
