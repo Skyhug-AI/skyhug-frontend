@@ -13,6 +13,7 @@ from supabase._async.client import create_client as create_client_async  # async
 from openai import OpenAI
 from realtime import RealtimeSubscribeStates
 from supabase._async.client import create_client as create_client_async
+from concurrent.futures import ThreadPoolExecutor
 
 # ─── CONFIG & CLIENTS ────────────────────────────────────────────────────────
 load_dotenv()
@@ -32,7 +33,7 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 START_TS    = datetime.now(timezone.utc).isoformat()
 MAX_HISTORY = 10
-
+tts_executor = ThreadPoolExecutor(max_workers=10)
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
 SYSTEM_PROMPT = """
@@ -242,57 +243,36 @@ def handle_ai_record(msg):
 
 
 def handle_tts_record(msg):
-    print(f"🔊 ⏳ Generating TTS for assistant message {msg['id']}…")
-    try:
-        # fetch voice flag
-        conv     = supabase_admin.table("conversations") \
-                        .select("voice_enabled") \
-                        .eq("id", msg["conversation_id"]) \
-                        .single().execute().data or {}
-        voice_on = conv.get("voice_enabled", True)
-        print(f"🎚 Voice enabled? {voice_on}")
+    print(f"🔊 ⏳ Starting streamed TTS for {msg['id']}…")
+    url     = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+    headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY"), "Content-Type": "application/json"}
+    body    = {
+        "text": msg["assistant_text"],
+        "voice_settings": {"stability": 0.75, "similarity_boost": 0.75},
+        "stream": True             # tell ElevenLabs to chunk it
+    }
 
-        if not voice_on:
-            print(f"⏭ Skipping TTS for {msg['id']} (voice off)")
-            supabase_admin.table("messages") \
-                .update({"tts_status": "done"}) \
-                .eq("id", msg["id"]).execute()
-            return
+    # short connect timeout, but no read timeout
+    with requests.post(url, json=body, headers=headers, stream=True, timeout=(5, None)) as r:
+        r.raise_for_status()
+        buf = io.BytesIO()
+        for chunk in r.iter_content(chunk_size=8192):
+            if chunk:
+                buf.write(chunk)
+        buf.seek(0)
 
-        # call ElevenLabs
-        print("🎤 Sending TTS request to ElevenLabs…")
-        url     = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
-        headers = {"xi-api-key": os.getenv("ELEVENLABS_API_KEY"), "Content-Type": "application/json"}
-        body    = {"text": msg["assistant_text"], "voice_settings": {"stability":0.75,"similarity_boost":0.75}}
-
-        with requests.post(url, json=body, headers=headers, stream=True, timeout=15) as r:
-            r.raise_for_status()
-            buf = io.BytesIO()
-            for chunk in r.iter_content(8192):
-                if chunk:
-                    buf.write(chunk)
-            # … after you’ve filled `buf` with the audio …
-            buf.seek(0)
-            path = f"{msg['conversation_id']}/{msg['id']}.mp3"
-            print(f"📤 Uploading TTS mp3 to Supabase at {path}…")
-
-            # pass buf.getvalue() (bytes) or buf (file-like) as `file=`, and path as `path=`
-            supabase_admin.storage.from_("tts-audio").upload(
-                file=buf.getvalue(), 
-                path=path, 
-                file_options={"content-type": "audio/mpeg"}
-)
-
-        # mark done
-        supabase_admin.table("messages") \
-            .update({"tts_path": path, "tts_status": "done"}) \
-            .eq("id", msg["id"]).execute()
-        print(f"✅ TTS succeeded for {msg['id']}")
-    except Exception as e:
-        print(f"❌ TTS error for {msg['id']}:", e)
-        supabase_admin.table("messages") \
-            .update({"tts_status": "done"}) \
-            .eq("id", msg["id"]).execute()
+    path = f"{msg['conversation_id']}/{msg['id']}.mp3"
+    print(f"📤 Uploading streamed MP3 to Supabase at {path}…")
+    supabase_admin.storage.from_("tts-audio").upload(
+        file=buf.getvalue(),
+        path=path,
+        file_options={"content-type":"audio/mpeg"}
+    )
+    supabase_admin.table("messages").update({
+        "tts_path": path,
+        "tts_status": "done"
+    }).eq("id", msg["id"]).execute()
+    print(f"✅ Finished TTS for {msg['id']}")
 
 
 
@@ -322,7 +302,7 @@ async def start_realtime():
         # 3) Finally, when the assistant row appears with tts_status pending:
         elif msg["sender_role"] == "assistant" \
         and msg.get("tts_status") == "pending":
-            loop.run_in_executor(None, handle_tts_record, msg)
+            loop.run_in_executor(tts_executor, handle_tts_record, msg)
 
     def on_subscribe(status, err):
         if status == RealtimeSubscribeStates.SUBSCRIBED:
