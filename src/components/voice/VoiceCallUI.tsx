@@ -89,46 +89,54 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   };
   
 
-  const handlePlayAudio = async (tts_path?: string | null) => {
-    if (!tts_path) return;
+const handlePlayAudio = (messageId?: string | null) => {
+  if (!messageId) return;
 
-    // If we’re already playing *this* clip, toggle pause/resume on the single instance
-    if (currentlyPlayingPath === tts_path && audioRef.current) {
-      if (!isPaused) {
-        audioRef.current.pause();
-        setIsPaused(true);
-      } else {
-        await audioRef.current.play();
-        setIsPaused(false);
-      }
-      return;
-    }
-
-    // Otherwise, either it's a different clip or first time—tear down the old one
-    if (audioRef.current) {
+  // If already playing this clip, toggle pause/resume
+  if (currentlyPlayingPath === messageId && audioRef.current) {
+    if (!isPaused) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-
-    // set up the new clip
-    const signedUrl = await getSignedURL(tts_path);
-    const audio = new Audio(signedUrl);
-    audioRef.current = audio;
-    audio.preload = 'auto';
-    audio.onended = () => {
-      setCurrentlyPlayingPath(null);
+      setIsPaused(true);
+    } else {
+      audioRef.current.play();
       setIsPaused(false);
-      // any mic‐resume logic here...
-    };
-    audio.onerror = () => {
-      console.error('Audio playback error');
-    };
+    }
+    return;
+  }
 
-    // kick it off
-    setCurrentlyPlayingPath(tts_path);
+  // Tear down any previous player
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+  }
+
+  // 1) Create a streaming <audio>
+  const streamUrl = `http://localhost:8000/tts-stream/${messageId}`; 
+  // ↪️ adjust host/origin for production
+
+  const audio = new Audio(streamUrl);
+  audio.preload = 'auto';  // start buffering immediately
+  audioRef.current = audio;
+  setCurrentlyPlayingPath(messageId);
+  setIsPaused(false);
+
+  // 2) when it ends…
+  audio.onended = () => {
+    setCurrentlyPlayingPath(null);
     setIsPaused(false);
-    await audio.play();
+    // any mic-resume or UI logic…
   };
+  audio.onerror = () => {
+    console.error("Audio playback error");
+    // optionally toast an error
+  };
+
+  // 3) kick it off
+  audio.play().catch(err => {
+    console.error("Play() failed:", err);
+  });
+};
+
   
   
   
