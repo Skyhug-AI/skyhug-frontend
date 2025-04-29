@@ -33,7 +33,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const prevRecordingRef = useRef(isRecording)
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean, volume: number) => {
-    console.log(`[VAD] speaking=${isSpeaking} volume=${volume}`);
+    //console.log(`[VAD] speaking=${isSpeaking} volume=${volume}`);
     if (isSpeaking) {
       setHasSpeechStarted(true);
       setLastSpeechTime(Date.now());

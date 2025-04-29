@@ -70,25 +70,19 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
       .from("messages")
-      .select(
-        "id, sender_role, transcription, assistant_text, created_at, tts_path, tts_status"
-      )
+      .select("id, sender_role, transcription, assistant_text, created_at")
       .eq("conversation_id", convId)
       .order("created_at");
+  
     if (error) {
       console.error("Error loading conversation history:", error);
       return;
     }
-    setMessages(
-      rows
-        .map(formatMessage)
-        .filter(msg =>
-                msg.isUser ||
-                msg.isGreeting ||               
-                (msg.ttsHasArrived && !msg.isUser)
-              )
-    );
+  
+    // No more ttsHasArrived check—just show every assistant row immediately
+    setMessages(rows.map(formatMessage));
   };
+  
 
   const createConversation = async () => {
     if (!user) {
@@ -285,85 +279,26 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = async (tts_path: string): Promise<HTMLAudioElement | null> => {
-    if (!tts_path) return;
+  const playMessageAudio = (messageId: string) => {
+    // tear down any old audio
+    currentAudio?.pause()
+    currentAudio && (currentAudio.currentTime = 0)
   
-    if (currentAudio?.src.includes(tts_path)) {
-      if (!currentAudio.paused) {
-        currentAudio.pause();
-        setIsAudioPaused(true);
-        console.log("⏸️ Audio paused");
-        return;
-      } else {
-        setIsAudioPaused(false);
-        try {
-          await currentAudio.play();
-          return;
-        } catch (err) {
-          console.error("Error resuming audio:", err);
-        }
-      }
+    // stream directly from your FastAPI proxy
+    const streamUrl = `http://localhost:8000/tts-stream/${messageId}`
+  
+    const audio = new Audio(streamUrl)
+    audio.preload = 'auto'
+    audio.onplay = () => setIsAudioPaused(false)
+    audio.onended = () => setIsAudioPaused(true)
+    audio.onerror = e => {
+      console.error("Stream playback error", e)
+      toast({ title: "Audio error", description: "Could not play stream", variant: "destructive" })
     }
   
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-    }
-  
-    try {
-      const { data, error } = await supabase.storage
-        .from("tts-audio")
-        .createSignedUrl(tts_path, 60);
-  
-      if (error || !data?.signedUrl) {
-        toast({
-          title: "Could not play audio",
-          description: "Unable to generate signed URL",
-          variant: "destructive",
-        });
-        console.error("Signed URL error:", error);
-        return;
-      }
-  
-      const audio = new Audio(data.signedUrl);
-      audio.preload = "auto";
-  
-      audio.onloadeddata = () => {
-        console.log("✅ Audio loaded successfully");
-      };
-      audio.onplay = () => {
-        setIsAudioPaused(false);
-        toast({
-          title: "🎧 Playing audio",
-          description: "Serenity's response is playing now",
-        });
-      };
-      audio.onended = () => {
-        setIsAudioPaused(true);
-      };
-      audio.onerror = (e) => {
-        console.error("Audio playback error:", e);
-        toast({
-          title: "Audio error",
-          description: "Could not play the audio",
-          variant: "destructive",
-        });
-      };
-  
-      setCurrentAudio(audio);
-      setIsAudioPaused(false);
-      await audio.play();
-      return audio;
-  
-    } catch (err) {
-      console.error("TTS playback exception:", err);
-      toast({
-        title: "Playback error",
-        description: "An error occurred while playing audio",
-        variant: "destructive",
-      });
-    }
-  };
+    setCurrentAudio(audio)
+    audio.play().catch(err => console.error("Play() failed:", err))
+  }
 
   useEffect(() => {
     if (!conversationId) return;
