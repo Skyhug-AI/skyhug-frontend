@@ -43,6 +43,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
 
 
 
@@ -79,7 +80,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   
 
 const handlePlayAudio = (messageId?: string | null) => {
-  if (!messageId) return;
+  if (!messageId || streamedMap[messageId]) return;
 
   const STREAM_BASE = "http://localhost:8000";
 
@@ -118,7 +119,7 @@ const handlePlayAudio = (messageId?: string | null) => {
   audio.onended = () => {
     setCurrentlyPlayingPath(null);
     setIsPaused(false);
-    // any mic-resume or UI logic…
+    setStreamedMap(prev => ({ ...prev, [messageId]: true }));
   };
   audio.onerror = () => {
     console.error("Audio playback error");
@@ -201,7 +202,7 @@ const handlePlayAudio = (messageId?: string | null) => {
                   message={message.text} 
                   isUser={message.isUser} 
                 />
-                {!message.isUser && message.id && (
+                {!message.isUser && message.id && !streamedMap[message.id] && (
                 <Button
                   variant="ghost"
                   size="sm"

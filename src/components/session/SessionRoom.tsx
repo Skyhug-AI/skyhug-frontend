@@ -41,6 +41,7 @@ const SessionRoom = () => {
   const hasPrimedRef   = useRef(false);
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const voiceTimeoutRef = useRef<number | null>(null);
+  const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
 
   const STREAM_BASE = "http://localhost:8000";
 
@@ -192,7 +193,7 @@ const SessionRoom = () => {
   };
   
 const handlePlayAudio = (messageId?: string | null) => {
-  if (!messageId) return;
+  if (!messageId || streamedMap[messageId]) return;
 
   // if re-clicking the same clip, toggle pause/resume
   if (currentlyPlayingPath === messageId && audioRef.current) {
@@ -241,6 +242,8 @@ const handlePlayAudio = (messageId?: string | null) => {
     setCurrentlyPlayingPath(null);
     setIsPaused(false);
     audioRef.current = null;
+    // mark this message as done
+    setStreamedMap(prev => ({ ...prev, [messageId]: true }));
   };
   audio.onerror = (e) => {
     console.error("🔊 stream playback error", e);
@@ -324,7 +327,7 @@ const interruptPlayback = () => {
               isUser={message.isUser}
               timestamp={message.timestamp}
             />
-              {!message.isUser && isVoiceMode && (
+              {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
                 <Button
                   variant="ghost"
                   size="sm"
