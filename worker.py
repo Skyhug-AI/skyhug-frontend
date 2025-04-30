@@ -160,10 +160,6 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     if voice_mode:
         # Enforce concise replies up front
         messages = [
-            {
-                "role": "system",
-                "content": "Please keep your reply under 60 words, preserving the key points."
-            },
             {"role": "system", "content": SKY_SYSTEM_PROMPT}
         ] + SKY_EXAMPLE_DIALOG
     else:
