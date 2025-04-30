@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
+from worker import summarize_and_store, close_inactive_conversations
 
 # bring in your worker’s summary logic
 from worker import summarize_and_store
@@ -27,7 +28,18 @@ async def summarize_conversation(req: SummarizeRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/cleanup_inactive")
+async def cleanup_inactive():
+    """
+    Manually trigger auto-ending and summarizing any conversation
+    that has been idle >1h.
+    """
+    try:
+        close_inactive_conversations()
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
-    # switch to port 8000 so React on 8080 stays free
-    uvicorn.run("summarizer_api:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("summarizer_api:app", host="0.0.0.0", port=8001, reload=True)

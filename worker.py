@@ -1,7 +1,6 @@
 import os
 import io
 import json
-import time
 import threading
 import requests
 import asyncio
@@ -54,7 +53,7 @@ Your structure for each response should be:
 Stay gentle, grounded, and curious.
 """.strip()
 
-SLY_EXAMPLE_DIALOG = [
+SKY_EXAMPLE_DIALOG = [
     {"role":"user", "content":"I feel like I’m falling apart and no one understands me."},
     {"role":"assistant", "content":"I’m really sorry you’re feeling this way. It makes so much sense that you’d feel overwhelmed when it seems like no one truly sees what you’re going through. You’re not alone — many people carry this kind of invisible weight. Sometimes writing down your feelings or talking out loud can help bring a bit of clarity or relief. Would you like to explore that together?"},
     {"role":"user", "content":"My anxiety has been through the roof lately."},
@@ -115,7 +114,7 @@ def summarize_and_store(conv_id: str):
         "of the conversation as a noun or gerund phrase (≤12 words)."
     )
     resp = openai_client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-3.5-turbo",
         messages=[{"role":"system","content":prompt}] + msgs,
         temperature=0.5, max_tokens=30
     )
@@ -166,9 +165,9 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
                 "content": "Please keep your reply under 60 words, preserving the key points."
             },
             {"role": "system", "content": SKY_SYSTEM_PROMPT}
-        ] + SLY_EXAMPLE_DIALOG
+        ] + SKY_EXAMPLE_DIALOG
     else:
-        messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SLY_EXAMPLE_DIALOG
+        messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
 
     # If this is a brand-new session with a memory summary, inject it
     if memory and not history:
@@ -188,7 +187,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
         summary_resp = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+            model = "gpt-3.5-turbo" if voice_mode else "gpt-4-turbo",
             messages=messages + [
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
@@ -239,9 +238,10 @@ def handle_ai_record(msg):
 
         # 3) Call OpenAI once
         resp = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+            model = "gpt-3.5-turbo" if voice_mode else "gpt-4-turbo",
             messages=payload,
             temperature=0.7,
+            max_tokens=200, #CHANGE THIS IF YOU WANT LONGER REPLIES   
             functions=FUNCTION_DEFS,
             function_call="auto"
         )
@@ -258,10 +258,9 @@ def handle_ai_record(msg):
             content = choice.content
 
         # 5) Store the assistant reply
-        #    — only schedule TTS if voice_mode is enabled
         tts_status = "pending" if voice_mode else "done"
-        if tts_status == "done":
-            print("✅ Skip TTS because not in voice mode")
+        if not voice_mode:
+            print("ℹ️  Chat mode: skipping TTS call")
         supabase.table("messages").insert({
             "conversation_id": msg["conversation_id"],
             "sender_role":     "assistant",
@@ -276,55 +275,6 @@ def handle_ai_record(msg):
     except Exception as e:
         update_status("messages", msg["id"], {"ai_status": "error"})
         print(f"❌ AI error for {msg['id']}:", e)
-
-
-
-def handle_tts_record(msg):
-    print(f"🔊 ⏳ Starting streamed TTS for {msg['id']}…")
-    url     = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
-    headers = {
-        "xi-api-key":   os.getenv("ELEVENLABS_API_KEY"),
-        "Content-Type": "application/json"
-    }
-    body = {
-        "text":           msg["assistant_text"],
-        "voice_settings": {"stability": 0.75, "similarity_boost": 0.75},
-        "stream":         True
-    }
-
-    try:
-        # Stream the audio bytes back
-        with requests.post(url, json=body, headers=headers, stream=True, timeout=(5, None)) as r:
-            r.raise_for_status()
-            buf = io.BytesIO()
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    buf.write(chunk)
-            buf.seek(0)
-
-        # Upload to Supabase
-        path = f"{msg['conversation_id']}/{msg['id']}.mp3"
-        print(f"📤 Uploading streamed MP3 to Supabase at {path}…")
-        supabase_admin.storage.from_("tts-audio").upload(
-            file=buf.getvalue(),
-            path=path,
-            file_options={"content-type":"audio/mpeg"}
-        )
-        supabase_admin.table("messages").update({
-            "tts_path":   path,
-            "tts_status": "done"
-        }).eq("id", msg["id"]).execute()
-
-        print(f"✅ Finished TTS for {msg['id']}")
-
-    except Exception as e:
-        # Mark as errored so your realtime loop won’t keep retrying forever
-        supabase_admin.table("messages").update({
-            "tts_status": "error"
-        }).eq("id", msg["id"]).execute()
-        print(f"❌ TTS/upload error for {msg['id']}:", e)
-
-
 
 
 # ─── ASYNC REALTIME SUBSCRIPTION ─────────────────────────────────────────────
@@ -350,10 +300,7 @@ async def start_realtime():
         and msg.get("ai_status") == "pending":
             loop.run_in_executor(None, handle_ai_record, msg)
 
-        # 3) Finally, when the assistant row appears with tts_status pending:
-        elif msg["sender_role"] == "assistant" \
-        and msg.get("tts_status") == "pending":
-            loop.run_in_executor(tts_executor, handle_tts_record, msg)
+        # 3) No longer store MP3 
 
     def on_subscribe(status, err):
         if status == RealtimeSubscribeStates.SUBSCRIBED:
@@ -432,8 +379,8 @@ or extra punctuation. Examples:
   • basketball strategies and team dynamics
   • anxiety about work deadlines
 """
-    resp = client.chat.completions.create(
-        model="gpt-4-turbo",
+    resp = openai_client.chat.completions.create(
+        model="gpt-3.5-turbo",
         messages=[{"role":"system", "content": prompt.strip()}] + msgs,
         temperature=0.5,
         max_tokens=30,
@@ -501,7 +448,7 @@ def build_chat_payload(conv_id):
 
     # — build the standard messages list —
     # Start with system + examples
-    messages = [{"role":"system","content":SYSTEM_PROMPT}] + EXAMPLE_DIALOG
+    messages = [{"role":"system","content":SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
 
     # — if brand‑new session and we have a memory, inject it —
     if memory and len(history) == 0:
@@ -522,7 +469,7 @@ def build_chat_payload(conv_id):
     if len(user_msgs) > MAX_HISTORY:
         to_summarize = user_msgs[:-MAX_HISTORY]
         summary_resp = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-3.5-turbo",
             messages=messages + [
                 {"role":"assistant","content":"Please summarize the earlier conversation in a brief sentence."}
             ] + to_summarize,
@@ -563,9 +510,6 @@ if __name__ == "__main__":
         ai_status="pending"
     ):
         handle_ai_record(msg)
-
-    for msg in fetch_pending("messages", sender_role="assistant", tts_status="pending"):
-        handle_tts_record(msg)
 
     # 3) Start your realtime listener
     try:
