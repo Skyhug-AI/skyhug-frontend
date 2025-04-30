@@ -31,6 +31,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const silenceSentRef = useRef(false);
   const cleanupVadRef = useRef<() => void>()
   const prevRecordingRef = useRef(isRecording)
+  const finalSegments = useRef<string[]>([]);
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean, volume: number) => {
     //console.log(`[VAD] speaking=${isSpeaking} volume=${volume}`);
@@ -106,7 +107,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       
         // kick off VAD and keep its cleanup fn
         cleanupVadRef.current = await initVoiceDetection();
-      
+        finalSegments.current = [];
         setTranscript('');
         setLastSpeechTime(Date.now());
         setHasSpeechStarted(false);
@@ -116,11 +117,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let currentTranscript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          currentTranscript = event.results[i][0].transcript;
+          // collect any newly-finalized bits
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalSegments.current.push(result[0].transcript);
         }
-        setTranscript(currentTranscript);
+      }
+      // grab the most recent interim if there is one
+      const last = event.results[event.results.length - 1];
+      const interim = last.isFinal ? '' : last[0].transcript;
+
+      const full = finalSegments.current.join('') + interim;
+      setTranscript(full);
         setLastSpeechTime(Date.now());
       };
 
