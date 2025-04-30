@@ -268,7 +268,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     console.log("✅ Conversation ended successfully.");
 
     try {
-      await fetch("http://localhost:8000/summarize_conversation", {
+      await fetch("http://localhost:8001/summarize_conversation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversation_id: conversationId }),
