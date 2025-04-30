@@ -177,6 +177,7 @@ const SessionRoom = () => {
     setHasStartedChat(true);
     // start showing “Sky is thinking...” immediately
     setWaitingForResponse(true);
+    setVoiceUnavailable(false);
 
     // kick off the timer
     if (voiceTimeoutRef.current) {
@@ -185,7 +186,7 @@ const SessionRoom = () => {
     voiceTimeoutRef.current = window.setTimeout(() => {
       setWaitingForResponse(false);
       setVoiceUnavailable(true);
-    }, 15_000);
+    }, 60_000);
 
     sendMessage(trimmed);
   };
@@ -228,6 +229,10 @@ const handlePlayAudio = (messageId?: string | null) => {
   });
   audio.addEventListener("play", () => {
     console.log("▶️ playback started");
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current);
+      voiceTimeoutRef.current = null;
+    }
   });
 
   // 3) clean up on end / error
@@ -239,8 +244,14 @@ const handlePlayAudio = (messageId?: string | null) => {
   };
   audio.onerror = (e) => {
     console.error("🔊 stream playback error", e);
+    // on a real playback error, show the unavailable banner immediately
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current);
+      voiceTimeoutRef.current = null;
+    }
     setIsMicLocked(false);
     setCurrentlyPlayingPath(null);
+    setVoiceUnavailable(true);
   };
 
   audioRef.current = audio;
