@@ -76,21 +76,13 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
     onEndCall();
     navigate('/schedule');
   };
-
-  const getSignedURL = async (tts_path: string) => {
-    const { data, error } = await supabase.storage
-      .from("tts-audio")
-      .createSignedUrl(tts_path, 60);
-    if (error || !data?.signedUrl) {
-      toast({ title: "Audio Error", description: "Could not get signed URL", variant: "destructive" });
-      return "";
-    }
-    return data.signedUrl;
-  };
   
 
 const handlePlayAudio = (messageId?: string | null) => {
   if (!messageId) return;
+
+  const STREAM_BASE = "http://localhost:8000";
+
 
   // If already playing this clip, toggle pause/resume
   if (currentlyPlayingPath === messageId && audioRef.current) {
@@ -115,6 +107,8 @@ const handlePlayAudio = (messageId?: string | null) => {
   // ↪️ adjust host/origin for production
 
   const audio = new Audio(streamUrl);
+  audio.crossOrigin = "anonymous"; 
+  audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
   audio.preload = 'auto';  // start buffering immediately
   audioRef.current = audio;
   setCurrentlyPlayingPath(messageId);
@@ -131,14 +125,36 @@ const handlePlayAudio = (messageId?: string | null) => {
     // optionally toast an error
   };
 
-  // 3) kick it off
-  audio.play().catch(err => {
-    console.error("Play() failed:", err);
+  audio.addEventListener("error", (e) => {
+    console.error("🔊 <audio> error:", {
+      networkState:   audio.networkState,
+      readyState:     audio.readyState,
+      currentSrc:     audio.currentSrc,
+      event:          e,
+    });
   });
-};
+  audio.addEventListener("stalled", () => {
+    console.warn("🔊 <audio> stalled (no data arriving).");
+  });
 
+    // 3) kick it off
+    audio.play().catch(err => {
+      console.error("Play() failed:", err, "— falling back to fetch+blob");
+      // fallback: download the entire stream as a Blob
+      fetch(`${STREAM_BASE}/tts-stream/${messageId}`, { mode: "cors" })
+        .then(res => {
+          if (!res.ok) throw new Error(`status ${res.status}`);
+          return res.blob();
+        })
+        .then(blob => {
+          const objectUrl = URL.createObjectURL(blob);
+          const fallbackAudio = new Audio(objectUrl);
+          fallbackAudio.play().catch(e => console.error("Fallback play failed:", e));
+        })
+        .catch(e => console.error("Fallback fetch+blob error:", e));
+    });
   
-  
+};
   
   const handleAmbientSound = (sound: string) => {
     if (ambientSound === sound) {
@@ -185,14 +201,14 @@ const handlePlayAudio = (messageId?: string | null) => {
                   message={message.text} 
                   isUser={message.isUser} 
                 />
-                {!message.isUser && message.tts_path && (
+                {!message.isUser && message.id && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handlePlayAudio(message.tts_path)}
+                  onClick={() => handlePlayAudio(message.id)}
                 >
-                  {(currentlyPlayingPath === message.tts_path && !isPaused) ? (
+                  {(currentlyPlayingPath === message.id && !isPaused) ? (
                     <VolumeX className="h-4 w-4" /> // use Pause icon if you have one
                   ) : (
                     <Play className="h-4 w-4" />

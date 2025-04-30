@@ -32,7 +32,7 @@ const VoicePage = () => {
   const formattedMessages = therapistMessages.map(message => ({
     text: message.content,
     isUser: message.isUser,
-    tts_path: message.tts_path
+    tts_path: message.id
   }));
 
   useEffect(() => {

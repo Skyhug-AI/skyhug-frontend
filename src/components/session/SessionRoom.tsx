@@ -42,15 +42,10 @@ const SessionRoom = () => {
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const voiceTimeoutRef = useRef<number | null>(null);
 
-  // only hide assistant bubbles until tts arrives *when* voice mode is on
-  const displayedMessages = messages.filter(msg =>
-    // always show user
-    msg.isUser ||
-    // always show assistant in chat mode
-    !isVoiceMode ||
-    // in voice mode, only once audio is ready
-    Boolean(msg.ttsHasArrived)
-  );
+  const STREAM_BASE = "http://localhost:8000";
+
+
+  const displayedMessages = messages;
 
 
   const scrollToBottom = () => {
@@ -122,31 +117,30 @@ const SessionRoom = () => {
 
 
   useEffect(() => {
+    // 1) Prime existing messages so we don't replay history
     if (!hasPrimedRef.current) {
-      // on initial mount, mark everything that's already arrived as "played"
       displayedMessages.forEach(msg => {
-        if (!msg.isUser && msg.ttsHasArrived && msg.tts_path) {
+        if (!msg.isUser) {
           playedTtsRef.current.add(msg.id);
         }
       });
       hasPrimedRef.current = true;
-      return;  // skip the real play loop this first time
+      return;
     }
   
-    // your existing loop: only play the first unplayed msg
+    // 2) Play the first brand-new assistant message by ID
     for (const msg of displayedMessages) {
-      if (!msg.isUser &&
-          msg.ttsHasArrived &&
-          msg.tts_path &&
-          !playedTtsRef.current.has(msg.id)
-      ) {
+      if (!msg.isUser && !playedTtsRef.current.has(msg.id)) {
         playedTtsRef.current.add(msg.id);
         setWaitingForResponse(false);
-        handlePlayAudio(msg.tts_path);
+        handlePlayAudio(msg.id);
         break;
       }
     }
   }, [displayedMessages]);
+  
+  
+  
   
 
   const handleSendMessage = (message: string) => {
@@ -191,109 +185,63 @@ const SessionRoom = () => {
     sendMessage(trimmed);
   };
   
+const handlePlayAudio = (messageId?: string | null) => {
+  if (!messageId) return;
 
-  const handlePlayAudio = async (tts_path?: string | null) => {
-    if (!tts_path) {
-      toast({
-        title: "No audio available",
-        description: "This message doesn't have audio",
-        variant: "destructive",
-      });
-      return;
-    }
-  
-    // If we're clicking the same clip that's already loaded, toggle pause/play
-    if (currentlyPlayingPath === tts_path && audioRef.current) {
-      // If it's currently playing, pause it and immediately free the mic
-      if (!audioRef.current.paused) {
-        audioRef.current.pause();
-        setIsPaused(true);
-        setIsMicLocked(false);   // unlock mic as soon as user pauses
-      }
-      // If it's currently paused, resume playback and lock the mic again
-      else {
-        try {
-          await audioRef.current.play();
-          setIsPaused(false);
-          setIsMicLocked(true);  // lock mic while audio plays
-        } catch (e) {
-          console.error("Error resuming audio:", e);
-        }
-      }
-      return;
-    }
-  
-    // Otherwise, tearing down any previous audio and starting a new clip:
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  
-    setIsMicLocked(true);
-    setCurrentlyPlayingPath(tts_path);
-    setIsPaused(false);
-  
-    const { data, error } = await supabase
-      .storage
-      .from("tts-audio")
-      .createSignedUrl(tts_path, 60);
-  
-    if (error || !data?.signedUrl) {
-      toast({ title: "Audio error", description: "Could not load TTS audio", variant: "destructive" });
-      setWaitingForResponse(false);
-      setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
-      return;
-    }
-  
-    const audio = new Audio(data.signedUrl);
-    audioRef.current = audio;
-    audio.preload = 'auto';
-  
-    // stop “thinking…” as soon as we have audio buffered
-    audio.onloadeddata = () => {
-      setWaitingForResponse(false);
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current);
-        voiceTimeoutRef.current = null;
-      }
-    };
-    // also in case play begins right away
-    audio.onplay = () => {
-      setWaitingForResponse(false);
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current);
-        voiceTimeoutRef.current = null;
-      }
-    };
-  
-    audio.onended = () => {
-      setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
+  // if re-clicking the same clip, toggle pause/resume
+  if (currentlyPlayingPath === messageId && audioRef.current) {
+    if (audioRef.current.paused) {
+      audioRef.current.play();
       setIsPaused(false);
-      audioRef.current = null;
-    };
-    audio.onerror = () => {
-      console.error("Audio playback error");
-      setWaitingForResponse(false);
+      setIsMicLocked(true);
+    } else {
+      audioRef.current.pause();
+      setIsPaused(true);
       setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current);
-        voiceTimeoutRef.current = null;
-      }
-      setVoiceUnavailable(true);
-    };
-  
-    try {
-      await audio.play();
-    } catch (e) {
-      console.error("Error starting audio:", e);
-      setWaitingForResponse(false);
-      setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
     }
+    return;
+  }
+
+  // tear down any old
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current = null;
+  }
+
+  setIsMicLocked(true);
+  setCurrentlyPlayingPath(messageId);
+  setIsPaused(false);
+
+  // 1) point at your streaming endpoint
+  const url = `${STREAM_BASE}/tts-stream/${messageId}`;
+  const audio = new Audio(url);
+  audio.preload = "auto";
+
+  // 2) verify streaming is chunked
+  audio.addEventListener("progress", () => {
+    console.log("⏳ buffered:", audio.buffered);
+  });
+  audio.addEventListener("play", () => {
+    console.log("▶️ playback started");
+  });
+
+  // 3) clean up on end / error
+  audio.onended = () => {
+    setIsMicLocked(false);
+    setCurrentlyPlayingPath(null);
+    setIsPaused(false);
+    audioRef.current = null;
   };
+  audio.onerror = (e) => {
+    console.error("🔊 stream playback error", e);
+    setIsMicLocked(false);
+    setCurrentlyPlayingPath(null);
+  };
+
+  audioRef.current = audio;
+  audio.play().catch(console.error);
+};
+
   
 
 
@@ -360,15 +308,15 @@ const interruptPlayback = () => {
               isUser={message.isUser}
               timestamp={message.timestamp}
             />
-              {!message.isUser && message.tts_path && (
+              {!message.isUser && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handlePlayAudio(message.tts_path)}
-                  disabled={isMicLocked && currentlyPlayingPath !== message.tts_path}
+                  onClick={() => handlePlayAudio(message.id)}
+                  disabled={isMicLocked && currentlyPlayingPath !== message.id}
                 >
-                  {currentlyPlayingPath === message.tts_path && !isPaused
+                  {currentlyPlayingPath === message.id && !isPaused
                     ? <Pause className="h-4 w-4" />
                     : <Play className="h-4 w-4" />
                   }
