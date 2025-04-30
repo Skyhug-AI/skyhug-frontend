@@ -127,6 +127,11 @@ const SessionRoom = () => {
       hasPrimedRef.current = true;
       return;
     }
+
+      // **only** auto-play in voice mode**
+    if (!isVoiceMode) {
+      return;
+    }
   
     // 2) Play the first brand-new assistant message by ID
     for (const msg of displayedMessages) {
@@ -308,7 +313,7 @@ const interruptPlayback = () => {
               isUser={message.isUser}
               timestamp={message.timestamp}
             />
-              {!message.isUser && (
+              {!message.isUser && isVoiceMode && (
                 <Button
                   variant="ghost"
                   size="sm"
