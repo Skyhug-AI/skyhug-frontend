@@ -11,7 +11,7 @@ from supabase import create_client      # sync client for handlers
 from supabase._async.client import create_client as create_client_async  # async for realtime
 from openai import OpenAI
 from realtime import RealtimeSubscribeStates
-from supabase._async.client import create_client as create_client_async
+from supabase._async.client import create_client_async
 from concurrent.futures import ThreadPoolExecutor
 
 # ─── CONFIG & CLIENTS ────────────────────────────────────────────────────────
@@ -36,12 +36,12 @@ tts_executor = ThreadPoolExecutor(max_workers=10)
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
 SKY_SYSTEM_PROMPT = """
-You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care. 
-Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language. 
+You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care.
+Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language.
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
 
-Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms. 
-If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind 
+Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms.
+If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind
 them that you're an AI and not a substitute for professional care.
 
 Your structure for each response should be:
@@ -84,8 +84,79 @@ FUNCTION_DEFS = [
             },
             "additionalProperties": False
         }
+    },
+    {
+        "name": "suggest_breathing_exercise",
+        "description": "Suggests a breathing exercise when the user needs to calm down or ground themselves",
+        "parameters": {
+            "type": "object",
+            "required": ["exercise_type", "duration"],
+            "properties": {
+                "exercise_type": {
+                    "type": "string",
+                    "enum": ["box-breathing", "4-7-8", "deep-breathing"],
+                    "description": "The type of breathing exercise to suggest"
+                },
+                "duration": {
+                    "type": "integer",
+                    "description": "Duration of the exercise in minutes (1-10)"
+                }
+            }
+        }
+    },
+    {
+        "name": "start_empty_chair",
+        "description": "Guides the user through an empty chair dialogue exercise for processing relationships or internal conflicts",
+        "parameters": {
+            "type": "object",
+            "required": ["perspective", "prompt"],
+            "properties": {
+                "perspective": {
+                    "type": "string",
+                    "enum": ["other-person", "future-self", "past-self", "inner-critic", "compassionate-self"],
+                    "description": "The perspective to take in the empty chair"
+                },
+                "prompt": {
+                    "type": "string",
+                    "description": "The specific prompt or question to explore in the dialogue"
+                }
+            }
+        }
+    },
+    {
+        "name": "facilitate_role_play",
+        "description": "Guides the user through a role-play exercise for practicing difficult conversations or scenarios",
+        "parameters": {
+            "type": "object",
+            "required": ["scenario", "role"],
+            "properties": {
+                "scenario": {
+                    "type": "string",
+                    "description": "Description of the scenario to role-play"
+                },
+                "role": {
+                    "type": "string",
+                    "description": "The role the AI should take in the role-play"
+                }
+            }
+        }
     }
 ]
+
+# Function implementations
+def suggest_breathing_exercise(exercise_type: str, duration: int) -> str:
+    exercises = {
+        "box-breathing": f"Let's do box breathing for {duration} minutes. Follow these steps:\n1. Inhale for 4 counts\n2. Hold for 4 counts\n3. Exhale for 4 counts\n4. Hold for 4 counts\n5. Repeat",
+        "4-7-8": f"Let's try the 4-7-8 technique for {duration} minutes:\n1. Inhale for 4 counts\n2. Hold for 7 counts\n3. Exhale for 8 counts\n4. Repeat",
+        "deep-breathing": f"Let's practice deep breathing for {duration} minutes:\n1. Inhale slowly through your nose, filling your belly\n2. Hold briefly\n3. Exhale slowly through your mouth\n4. Repeat"
+    }
+    return exercises[exercise_type]
+
+def start_empty_chair(perspective: str, prompt: str) -> str:
+    return f"Let's begin the empty chair exercise. Imagine {perspective} sitting across from you. {prompt}\n\nTake your time to express what you're feeling. I'll guide you through this dialogue."
+
+def facilitate_role_play(scenario: str, role: str) -> str:
+    return f"I'll take on the role of {role} in this scenario: {scenario}\n\nLet's begin the role-play. Feel free to respond as yourself, and I'll stay in character to help you practice."
 
 # ─── SYNC HELPERS & HANDLERS ────────────────────────────────────────────────
 
@@ -237,7 +308,7 @@ def handle_ai_record(msg):
             model = "gpt-3.5-turbo" if voice_mode else "gpt-4-turbo",
             messages=payload,
             temperature=0.7,
-            max_tokens=200, #CHANGE THIS IF YOU WANT LONGER REPLIES   
+            max_tokens=200, #CHANGE THIS IF YOU WANT LONGER REPLIES
             functions=FUNCTION_DEFS,
             function_call="auto"
         )
@@ -296,7 +367,7 @@ async def start_realtime():
         and msg.get("ai_status") == "pending":
             loop.run_in_executor(None, handle_ai_record, msg)
 
-        # 3) No longer store MP3 
+        # 3) No longer store MP3
 
     def on_subscribe(status, err):
         if status == RealtimeSubscribeStates.SUBSCRIBED:
