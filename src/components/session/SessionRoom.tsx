@@ -42,6 +42,8 @@ const SessionRoom = () => {
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const voiceTimeoutRef = useRef<number | null>(null);
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
+  const playedSnippetsRef = useRef<Set<string>>(new Set());
+
 
   const STREAM_BASE = "http://localhost:8000";
 
@@ -118,32 +120,33 @@ const SessionRoom = () => {
 
 
   useEffect(() => {
-    // 1) Prime existing messages so we don't replay history
-    if (!hasPrimedRef.current) {
-      displayedMessages.forEach(msg => {
-        if (!msg.isUser) {
-          playedTtsRef.current.add(msg.id);
-        }
-      });
-      hasPrimedRef.current = true;
-      return;
-    }
+    if (!isVoiceMode) return;
 
-      // **only** auto-play in voice mode**
-    if (!isVoiceMode) {
-      return;
-    }
-  
-    // 2) Play the first brand-new assistant message by ID
     for (const msg of displayedMessages) {
-      if (!msg.isUser && !playedTtsRef.current.has(msg.id)) {
-        playedTtsRef.current.add(msg.id);
+      if (msg.isUser) continue;
+
+      // 1) Snippet available?
+      if (msg.snippet_url && !playedSnippetsRef.current.has(msg.id)) {
+        // stop the thinking spinner
         setWaitingForResponse(false);
+        playedSnippetsRef.current.add(msg.id);
+        const introAudio = new Audio(msg.snippet_url);
+        introAudio.play().catch(console.error);
         handlePlayAudio(msg.id);
-        break;
+        return;
+      }
+
+      // 2) Fallback to full stream
+      if (!playedSnippetsRef.current.has(msg.id) && !streamedMap[msg.id]) {
+        setWaitingForResponse(false);
+        playedSnippetsRef.current.add(msg.id);
+        handlePlayAudio(msg.id);
+        return;
       }
     }
-  }, [displayedMessages]);
+  }, [displayedMessages, isVoiceMode]);
+
+  
   
   
   

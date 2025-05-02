@@ -20,6 +20,7 @@ load_dotenv()
 SUPABASE_URL        = os.getenv("SUPABASE_URL")
 SERVICE_ROLE_KEY    = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
+ELEVENLABS_API_KEY       = os.getenv("ELEVENLABS_API_KEY")
 
 
 # sync clients for your existing handlers
@@ -89,6 +90,33 @@ FUNCTION_DEFS = [
 ]
 
 # ─── SYNC HELPERS & HANDLERS ────────────────────────────────────────────────
+def generate_snippet_tts(message_id: str, text: str):
+    # 1) non-streaming ElevenLabs call
+    r = eleven_sess.post(
+      f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
+      json={
+        "text": text,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.5,
+          "latency_boost": True
+        },
+        "stream": False
+      },
+      timeout=10
+    )
+    r.raise_for_status()
+    mp3 = r.content
+
+    # 2) upload & get signed URL
+    snippet_path = f"{message_id}-snippet.mp3"
+    url = upload_snippet(snippet_path, mp3)
+
+    # 3) write it back into the row
+    supabase.table("messages") \
+      .update({"snippet_url": url}) \
+      .eq("id", message_id).execute()
+
 
 def update_status(table: str, record_id: str, fields: dict):
     supabase.table(table).update(fields).eq("id", record_id).execute()
@@ -320,15 +348,31 @@ def handle_ai_record(msg):
                 )
             else:
                 content = choice.content
+                # split off first sentence
+                parts = re.split(r"([.!?]\s+)", content, maxsplit=1)
+                snippet = "".join(parts[:2])            # "I hear you. "
+                # leave the full content in assistant_text so your streaming TTS still works
 
             # store full text and mark for TTS
-            supabase.table("messages").insert({
+            resp = supabase.table("messages").insert({
                 "conversation_id": msg["conversation_id"],
                 "sender_role":     "assistant",
                 "assistant_text":  content,
                 "ai_status":       "done",
-                "tts_status":      "pending"
+                "tts_status":      "pending",
+                # snippet_url will be filled in asynchronously
             }).execute()
+            mid = resp.data[0]["id"]
+
+            # extract the first sentence as our “lead-in” snippet
+            parts   = re.split(r"([.!?]\s+)", content, maxsplit=1)
+            snippet = "".join(parts[:2])    # e.g. "I hear you. "
+
+            # background-generate & upload that snippet
+            try:
+                tts_executor.submit(generate_snippet_tts, mid, snippet)
+            except Exception as e:
+                print("❌ failed to enqueue snippet task:", e)
 
         # finally, clear the incoming message’s ai_status
         update_status("messages", msg["id"], {"ai_status": "done"})
@@ -401,6 +445,18 @@ def download_audio(path, bucket="raw-audio"):
 
 def upload_audio(path, data, bucket="tts-audio"):
     supabase.storage.from_(bucket).upload(path, io.BytesIO(data), {"content-type":"audio/mpeg"})
+
+def upload_snippet(path: str, data: bytes, bucket="tts-snippets") -> str:
+    supabase.storage.from_(bucket).upload(path, io.BytesIO(data),
+                                         {"content-type": "audio/mpeg"})
+    url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
+    return url
+
+eleven_sess = requests.Session()
+eleven_sess.headers.update({
+    "xi-api-key": ELEVENLABS_API_KEY,
+    "Content-Type": "application/json",
+})
 
 def summarize_and_store(conv_id):
     """
