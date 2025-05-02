@@ -195,83 +195,59 @@ const SessionRoom = () => {
   const handlePlayAudio = (messageId?: string | null) => {
     if (!messageId || streamedMap[messageId]) return;
   
-    // if re-clicking the same clip, toggle pause/resume
-    if (currentlyPlayingPath === messageId && audioRef.current) {
-      if (audioRef.current.paused) {
-        audioRef.current.play();
-        setIsPaused(false);
-        setIsMicLocked(true);
-      } else {
-        audioRef.current.pause();
-        setIsPaused(true);
-        setIsMicLocked(false);
-      }
-      return;
-    }
-  
-    // tear down any old
+    // 1) tear down any old audio
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
-  
     setIsMicLocked(true);
     setCurrentlyPlayingPath(messageId);
     setIsPaused(false);
   
-    // 1) point at your streaming endpoint
     const url = `${STREAM_BASE}/tts-stream/${messageId}`;
+    console.log("🔊 creating new Audio()", url);
+  
     const audio = new Audio();
-    audio.src = url;
-    audio.preload = "auto";
+    audio.crossOrigin = "anonymous";
+    audio.preload   = "auto";
+    audio.src       = url;
   
-    // **NEW** force the browser to begin fetching & decoding immediately
-    audio.load();
+    // 2) inside the user gesture, kick off a muted play() so the browser remembers your gesture
+    audio.muted = true;
+    audio.play()
+      .then(() => console.log("🔈 muted playback started (unlocking)"))
+      .catch(err => console.warn("🔈 initial play() failed (buffering):", err));
   
-    // 2) verify streaming is chunked
-    audio.addEventListener("progress", () => {
-      console.log("⏳ buffered:", audio.buffered);
-    });
-    // **NEW** listen for first decode-ready event
-    audio.addEventListener("canplay", () => {
-      console.log("🎵 first frame decoded, starting playback");
-      // only start once
-      if (audioRef.current === audio) {
-        audio.play().catch(console.error);
-        if (voiceTimeoutRef.current) {
-          clearTimeout(voiceTimeoutRef.current);
-          voiceTimeoutRef.current = null;
-        }
-      }
-    });
+    // 3) as soon as we know the stream is ready to play, unmute
+    audio.addEventListener("loadedmetadata", () => {
+      console.log("🔖 loadedmetadata — duration =", audio.duration);
+      audio.muted = false;
+      // no need to call play() again; this same request will continue
+    }, { once: true });
   
-    audio.addEventListener("play", () => {
-      console.log("▶️ playback started");
-    });
-  
-    // 3) clean up on end / error
+    // 4) cleanup
     audio.onended = () => {
+      console.log("🏁 audio ended");
       setIsMicLocked(false);
       setCurrentlyPlayingPath(null);
       setIsPaused(false);
       audioRef.current = null;
-      setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+      setStreamedMap(m => ({ ...m, [messageId]: true }));
     };
     audio.onerror = (e) => {
-      console.error("🔊 stream playback error", e);
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current);
-        voiceTimeoutRef.current = null;
-      }
+      console.error("❌ audio.onerror", e, "code:", audio.error?.code, audio.error?.message);
       setIsMicLocked(false);
       setCurrentlyPlayingPath(null);
       setVoiceUnavailable(true);
     };
   
-    // stash and kick off load+play
+    // stash and go
     audioRef.current = audio;
-    // note: we no longer call play() here directly—play() will be invoked in `canplay`
   };
+  
+  
+  
+  
   
   const handleRecognitionPaused = () => {
     console.log("Voice recognition paused");

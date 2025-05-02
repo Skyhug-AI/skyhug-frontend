@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import time 
 import threading
 import requests
 import asyncio
@@ -177,7 +178,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
         summary_resp = openai_client.chat.completions.create(
-            model = "gpt-4-turbo" if voice_mode else "gpt-4-turbo",
+            model = "gpt-4-turbo",
             messages=messages + [
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
@@ -272,36 +273,87 @@ def handle_ai_record(msg):
         else:
             # —— VOICE MODE: full GPT → TTS path  ——
 
-            resp = openai_client.chat.completions.create(
+        #     resp = openai_client.chat.completions.create(
+        #         model="gpt-4-turbo",
+        #         messages=payload,
+        #         temperature=0.7,
+        #         max_tokens=600,
+        #         functions=FUNCTION_DEFS,
+        #         function_call="auto"
+        #     )
+        #     choice = resp.choices[0].message
+        #     if getattr(choice, "function_call", None):
+        #         args    = json.loads(choice.function_call.arguments)
+        #         content = (
+        #             "I'm so sorry you’re feeling this way. "
+        #             f"If you ever think about harming yourself, call {args['hotline_number']}."
+        #         )
+        #     else:
+        #         content = choice.content
+
+        #     # store full text and mark for TTS
+        #     supabase.table("messages").insert({
+        #         "conversation_id": msg["conversation_id"],
+        #         "sender_role":     "assistant",
+        #         "assistant_text":  content,
+        #         "ai_status":       "done",
+        #         "tts_status":      "pending"
+        #     }).execute()
+
+        # # finally, clear the incoming message’s ai_status
+        # update_status("messages", msg["id"], {"ai_status": "done"})
+        # print(f"✅ Assistant response created for message {msg['id']}")
+
+
+            # 1) insert placeholder assistant row (empty text, pending TTS)
+            ins = supabase.table("messages").insert({
+                "conversation_id": msg["conversation_id"],
+                "sender_role":     "assistant",
+                "assistant_text":  "",
+                "ai_status":       "pending",
+                "tts_status":      "pending"
+            }).execute()
+            mid = ins.data[0]["id"]
+
+            # 2) stream GPT-4-turbo
+            stream = openai_client.chat.completions.create(
                 model="gpt-4-turbo",
                 messages=payload,
                 temperature=0.7,
-                max_tokens=600,
-                functions=FUNCTION_DEFS,
-                function_call="auto"
+                stream=True
             )
-            choice = resp.choices[0].message
-            if getattr(choice, "function_call", None):
-                args    = json.loads(choice.function_call.arguments)
-                content = (
-                    "I'm so sorry you’re feeling this way. "
-                    f"If you ever think about harming yourself, call {args['hotline_number']}."
-                )
-            else:
-                content = choice.content
 
-            # store full text and mark for TTS
-            supabase.table("messages").insert({
-                "conversation_id": msg["conversation_id"],
-                "sender_role":     "assistant",
-                "assistant_text":  content,
-                "ai_status":       "done",
-                "tts_status":      "pending"
-            }).execute()
+            # 3) accumulate and write back each token delta
+            accumulated = ""
+            last_write = time.time()
+            chars_since = 0
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content or ""
+                accumulated += delta
+                chars_since += len(delta)
 
-        # finally, clear the incoming message’s ai_status
-        update_status("messages", msg["id"], {"ai_status": "done"})
-        print(f"✅ Assistant response created for message {msg['id']}")
+                # OPTION A: time-based throttle (once every 0.1s)
+                # now = time.time()
+                # if now - last_write < 0.1:
+                #     continue
+                # last_write = now
+
+                # OPTION B: char-count throttle (once every 32 chars)
+                # if chars_since < 32:
+                #     continue
+                # chars_since = 0
+
+                # throttle these writes if needed (e.g. every 100ms or every N chars)
+                supabase.table("messages") \
+                    .update({"assistant_text": accumulated}) \
+                    .eq("id", mid) \
+                    .execute()
+
+            # 4) mark AI done (leave tts_status == pending)
+            supabase.table("messages") \
+                .update({"ai_status": "done"}) \
+                .eq("id", mid) \
+                .execute()
 
     except Exception as e:
         update_status("messages", msg["id"], {"ai_status": "error"})

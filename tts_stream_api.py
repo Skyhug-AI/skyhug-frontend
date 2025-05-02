@@ -5,31 +5,41 @@ from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 import os, requests
 import re
-
-load_dotenv()
 from supabase import create_client
 
+load_dotenv()
+
+# ─── CONFIG ───────────────────────────────────────────────────────────────
 SUPABASE_URL             = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 ELEVENLABS_VOICE_ID      = os.getenv("ELEVENLABS_VOICE_ID")
+ELEVENLABS_API_KEY       = os.getenv("ELEVENLABS_API_KEY")
 
-# ─── HTTP SESSION FOR ELEVENLABS ─────────────────────────────────────────────
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+# ─── HTTP SESSIONS & CLIENTS ───────────────────────────────────────────────
 eleven_sess = requests.Session()
 eleven_sess.headers.update({
     "xi-api-key": ELEVENLABS_API_KEY,
     "Content-Type": "application/json",
 })
-
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # your React dev server
+    allow_origins=["*"],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+# ─── WARM-UP POOL ───────────────────────────────────────────────────────────
+@app.on_event("startup")
+def warmup_elevenlabs_pool():
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+    for _ in range(3):
+        try:
+            eleven_sess.head(url, timeout=1)
+        except:
+            pass
 
 @app.get("/tts-stream/{message_id}")
 async def tts_stream(message_id: str):
@@ -42,11 +52,11 @@ async def tts_stream(message_id: str):
         .single()
         .execute()
     )
-    if not msg_resp.data or not msg_resp.data.get("assistant_text"):
+    if not msg_resp.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND,
                             "No assistant_text for that message")
 
-    text = msg_resp.data["assistant_text"]
+    text = msg_resp.data["assistant_text"] or ""
     # remove all of: * / { } [ ] < > & # @ _ \ | + = % so TTS does not say them 
     sanitized_text = re.sub(r"[*/{}\[\]<>&#@_\\|+=%]", "", text)
     conversation_id = msg_resp.data["conversation_id"]
@@ -87,9 +97,4 @@ async def tts_stream(message_id: str):
     return StreamingResponse(
         upstream.iter_content(chunk_size=16_384),
         media_type="audio/mpeg",
-        headers={
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Transfer-Encoding": "chunked",
-        }
     )
-
