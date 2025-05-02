@@ -12,7 +12,14 @@ from supabase import create_client
 SUPABASE_URL             = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 ELEVENLABS_VOICE_ID      = os.getenv("ELEVENLABS_VOICE_ID")
-ELEVENLABS_API_KEY       = os.getenv("ELEVENLABS_API_KEY")
+
+# ─── HTTP SESSION FOR ELEVENLABS ─────────────────────────────────────────────
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+eleven_sess = requests.Session()
+eleven_sess.headers.update({
+    "xi-api-key": ELEVENLABS_API_KEY,
+    "Content-Type": "application/json",
+})
 
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
@@ -60,7 +67,7 @@ async def tts_stream(message_id: str):
 
     # 3) Proxy ElevenLabs exactly as before
     print(f"🔊 Proxying streamed TTS for {message_id}…")   
-    upstream = requests.post(
+    upstream = eleven_sess.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
         json={
             "text": sanitized_text,
@@ -70,10 +77,6 @@ async def tts_stream(message_id: str):
                 "latency_boost": True,
             },
             "stream": True,
-        },
-        headers={
-            "xi-api-key": ELEVENLABS_API_KEY,
-            "Content-Type": "application/json",
         },
         stream=True,
         timeout=(5, None),

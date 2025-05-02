@@ -4,7 +4,6 @@ import json
 import threading
 import requests
 import asyncio
-
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from supabase import create_client      # sync client for handlers
@@ -20,6 +19,7 @@ load_dotenv()
 SUPABASE_URL        = os.getenv("SUPABASE_URL")
 SERVICE_ROLE_KEY    = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
+
 
 # sync clients for your existing handlers
 supabase       = create_client(SUPABASE_URL, SERVICE_ROLE_KEY)
@@ -270,13 +270,13 @@ def handle_ai_record(msg):
                 .execute()
 
         else:
-            # —— VOICE MODE: full GPT → TTS path (unchanged) ——
+            # —— VOICE MODE: full GPT → TTS path  ——
 
             resp = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4-turbo",
                 messages=payload,
                 temperature=0.7,
-                max_tokens=200,
+                max_tokens=600,
                 functions=FUNCTION_DEFS,
                 function_call="auto"
             )
