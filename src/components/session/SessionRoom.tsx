@@ -192,78 +192,86 @@ const SessionRoom = () => {
     sendMessage(trimmed);
   };
   
-const handlePlayAudio = (messageId?: string | null) => {
-  if (!messageId || streamedMap[messageId]) return;
-
-  // if re-clicking the same clip, toggle pause/resume
-  if (currentlyPlayingPath === messageId && audioRef.current) {
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-      setIsPaused(false);
-      setIsMicLocked(true);
-    } else {
-      audioRef.current.pause();
-      setIsPaused(true);
-      setIsMicLocked(false);
-    }
-    return;
-  }
-
-  // tear down any old
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current = null;
-  }
-
-  setIsMicLocked(true);
-  setCurrentlyPlayingPath(messageId);
-  setIsPaused(false);
-
-  // 1) point at your streaming endpoint
-  const url = `${STREAM_BASE}/tts-stream/${messageId}`;
-  const audio = new Audio(url);
-  audio.preload = "auto";
-
-  // 2) verify streaming is chunked
-  audio.addEventListener("progress", () => {
-    console.log("⏳ buffered:", audio.buffered);
-  });
-  audio.addEventListener("play", () => {
-    console.log("▶️ playback started");
-    if (voiceTimeoutRef.current) {
-      clearTimeout(voiceTimeoutRef.current);
-      voiceTimeoutRef.current = null;
-    }
-  });
-
-  // 3) clean up on end / error
-  audio.onended = () => {
-    setIsMicLocked(false);
-    setCurrentlyPlayingPath(null);
-    setIsPaused(false);
-    audioRef.current = null;
-    // mark this message as done
-    setStreamedMap(prev => ({ ...prev, [messageId]: true }));
-  };
-  audio.onerror = (e) => {
-    console.error("🔊 stream playback error", e);
-    // on a real playback error, show the unavailable banner immediately
-    if (voiceTimeoutRef.current) {
-      clearTimeout(voiceTimeoutRef.current);
-      voiceTimeoutRef.current = null;
-    }
-    setIsMicLocked(false);
-    setCurrentlyPlayingPath(null);
-    setVoiceUnavailable(true);
-  };
-
-  audioRef.current = audio;
-  audio.play().catch(console.error);
-};
-
+  const handlePlayAudio = (messageId?: string | null) => {
+    if (!messageId || streamedMap[messageId]) return;
   
-
-
+    // if re-clicking the same clip, toggle pause/resume
+    if (currentlyPlayingPath === messageId && audioRef.current) {
+      if (audioRef.current.paused) {
+        audioRef.current.play();
+        setIsPaused(false);
+        setIsMicLocked(true);
+      } else {
+        audioRef.current.pause();
+        setIsPaused(true);
+        setIsMicLocked(false);
+      }
+      return;
+    }
+  
+    // tear down any old
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  
+    setIsMicLocked(true);
+    setCurrentlyPlayingPath(messageId);
+    setIsPaused(false);
+  
+    // 1) point at your streaming endpoint
+    const url = `${STREAM_BASE}/tts-stream/${messageId}`;
+    const audio = new Audio();
+    audio.src = url;
+    audio.preload = "auto";
+  
+    // **NEW** force the browser to begin fetching & decoding immediately
+    audio.load();
+  
+    // 2) verify streaming is chunked
+    audio.addEventListener("progress", () => {
+      console.log("⏳ buffered:", audio.buffered);
+    });
+    // **NEW** listen for first decode-ready event
+    audio.addEventListener("canplay", () => {
+      console.log("🎵 first frame decoded, starting playback");
+      // only start once
+      if (audioRef.current === audio) {
+        audio.play().catch(console.error);
+        if (voiceTimeoutRef.current) {
+          clearTimeout(voiceTimeoutRef.current);
+          voiceTimeoutRef.current = null;
+        }
+      }
+    });
+  
+    audio.addEventListener("play", () => {
+      console.log("▶️ playback started");
+    });
+  
+    // 3) clean up on end / error
+    audio.onended = () => {
+      setIsMicLocked(false);
+      setCurrentlyPlayingPath(null);
+      setIsPaused(false);
+      audioRef.current = null;
+      setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+    };
+    audio.onerror = (e) => {
+      console.error("🔊 stream playback error", e);
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
+      setIsMicLocked(false);
+      setCurrentlyPlayingPath(null);
+      setVoiceUnavailable(true);
+    };
+  
+    // stash and kick off load+play
+    audioRef.current = audio;
+    // note: we no longer call play() here directly—play() will be invoked in `canplay`
+  };
   
   const handleRecognitionPaused = () => {
     console.log("Voice recognition paused");
