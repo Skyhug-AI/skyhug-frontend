@@ -12,6 +12,7 @@ from openai import OpenAI
 from realtime import RealtimeSubscribeStates
 from supabase._async.client import create_client as create_client_async
 from concurrent.futures import ThreadPoolExecutor
+import re 
 
 # ─── CONFIG & CLIENTS ────────────────────────────────────────────────────────
 load_dotenv()
@@ -226,6 +227,35 @@ def handle_ai_record(msg):
         # 2) Build the payload
         payload = build_chat_payload(msg["conversation_id"], voice_mode=voice_mode)
 
+        # ── MODEL-SELECTION HEURISTICS ────────────────────────────────────
+        user_text = (msg.get("transcription") or "").strip()
+        lc_text   = user_text.lower()
+
+        # a) Factual lookup / definitions → GPT-3.5
+        if lc_text.startswith(("what is ", "define ")):
+            model_name, max_tokens = "gpt-3.5-turbo", 150
+
+        # b) Emotional reflection → GPT-4
+        elif lc_text.startswith(("i feel", "i’m feeling", "i am feeling", "i am", "i'm")):
+            model_name, max_tokens = "gpt-4-turbo", 600
+
+        # c) Complex question triggers → GPT-4
+        elif lc_text.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
+            model_name, max_tokens = "gpt-4-turbo", 600
+
+        # d) Multi-sentence user text → GPT-4
+        else:
+            # count sentences naively on punctuation
+            sentences = [s for s in re.split(r"[.!?]\s*", user_text) if s]
+            if len(sentences) > 1:
+                model_name, max_tokens = "gpt-4-turbo", 600
+            else:
+                # fallback to GPT-3.5 for single-sentence non-trigger turns
+                model_name, max_tokens = "gpt-3.5-turbo", 150
+
+        print("Selected model:", model_name)
+        # ────────────────────────────────────────────────────────────────
+
         if not voice_mode:
             # —— CHAT MODE: stream GPT deltas into the DB ——
 
@@ -245,10 +275,11 @@ def handle_ai_record(msg):
 
             # c) call OpenAI with stream=True
             stream = openai_client.chat.completions.create(
-                model="gpt-4-turbo",
+                model=model_name,
                 messages=payload,
                 temperature=0.7,
-                stream=True
+                stream=True,
+                max_tokens=max_tokens
             )
 
             # d) accumulate and update DB with each delta
@@ -273,10 +304,10 @@ def handle_ai_record(msg):
             # —— VOICE MODE: full GPT → TTS path  ——
 
             resp = openai_client.chat.completions.create(
-                model="gpt-4-turbo",
+                model=model_name,
                 messages=payload,
                 temperature=0.7,
-                max_tokens=600,
+                max_tokens=max_tokens,
                 functions=FUNCTION_DEFS,
                 function_call="auto"
             )
