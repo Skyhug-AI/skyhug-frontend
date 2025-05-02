@@ -157,13 +157,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
         .order("created_at").execute().data or []
 
     # Start with system prompt(s)
-    if voice_mode:
-        # Enforce concise replies up front
-        messages = [
-            {"role": "system", "content": SKY_SYSTEM_PROMPT}
-        ] + SKY_EXAMPLE_DIALOG
-    else:
-        messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
+    messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
 
     # If this is a brand-new session with a memory summary, inject it
     if memory and not history:
@@ -183,12 +177,12 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
         summary_resp = openai_client.chat.completions.create(
-            model = "gpt-3.5-turbo" if voice_mode else "gpt-4-turbo",
+            model = "gpt-4-turbo" if voice_mode else "gpt-4-turbo",
             messages=messages + [
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
             temperature=0.3,
-            max_tokens=200
+            max_tokens=600
         )
         summary = summary_resp.choices[0].message.content
         messages += [
@@ -229,42 +223,83 @@ def handle_ai_record(msg):
             .execute().data or {}
         voice_mode = bool(record.get("voice_enabled"))
 
-        # 2) Build the payload, which will inject a 60-word limit if voice_mode is True
+        # 2) Build the payload
         payload = build_chat_payload(msg["conversation_id"], voice_mode=voice_mode)
 
-        # 3) Call OpenAI once
-        resp = openai_client.chat.completions.create(
-            model = "gpt-3.5-turbo" if voice_mode else "gpt-4-turbo",
-            messages=payload,
-            temperature=0.7,
-            max_tokens=200, #CHANGE THIS IF YOU WANT LONGER REPLIES   
-            functions=FUNCTION_DEFS,
-            function_call="auto"
-        )
-        choice = resp.choices[0].message
-
-        # 4) Extract the assistant text
-        if getattr(choice, "function_call", None):
-            args    = json.loads(choice.function_call.arguments)
-            content = (
-                "I'm so sorry you’re feeling this way. "
-                f"If you ever think about harming yourself, call {args['hotline_number']}."
-            )
-        else:
-            content = choice.content
-
-        # 5) Store the assistant reply
-        tts_status = "pending" if voice_mode else "done"
         if not voice_mode:
-            print("ℹ️  Chat mode: skipping TTS call")
-        supabase.table("messages").insert({
-            "conversation_id": msg["conversation_id"],
-            "sender_role":     "assistant",
-            "assistant_text":  content,
-            "ai_status":       "done",
-            "tts_status":      tts_status
-        }).execute()
+            # —— CHAT MODE: stream GPT deltas into the DB ——
 
+            # a) insert a placeholder assistant message
+            resp = supabase.table("messages") \
+                .insert({
+                    "conversation_id": msg["conversation_id"],
+                    "sender_role":     "assistant",
+                    "assistant_text":  "",
+                    "ai_status":       "pending",
+                    "tts_status":      "done"
+                }) \
+                .execute()
+
+            # b) pull the new row’s ID out of resp.data
+            mid = resp.data[0]["id"]
+
+            # c) call OpenAI with stream=True
+            stream = openai_client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=payload,
+                temperature=0.7,
+                stream=True
+            )
+
+            # d) accumulate and update DB with each delta
+            accumulated = ""
+            for chunk in stream:
+                # ChoiceDelta has a .content attribute, not a dict
+                delta = chunk.choices[0].delta.content or ""
+                accumulated += delta
+                supabase.table("messages") \
+                    .update({"assistant_text": accumulated}) \
+                    .eq("id", mid) \
+                    .execute()
+
+
+            # e) mark AI done
+            supabase.table("messages") \
+                .update({"ai_status": "done"}) \
+                .eq("id", mid) \
+                .execute()
+
+        else:
+            # —— VOICE MODE: full GPT → TTS path (unchanged) ——
+
+            resp = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=payload,
+                temperature=0.7,
+                max_tokens=200,
+                functions=FUNCTION_DEFS,
+                function_call="auto"
+            )
+            choice = resp.choices[0].message
+            if getattr(choice, "function_call", None):
+                args    = json.loads(choice.function_call.arguments)
+                content = (
+                    "I'm so sorry you’re feeling this way. "
+                    f"If you ever think about harming yourself, call {args['hotline_number']}."
+                )
+            else:
+                content = choice.content
+
+            # store full text and mark for TTS
+            supabase.table("messages").insert({
+                "conversation_id": msg["conversation_id"],
+                "sender_role":     "assistant",
+                "assistant_text":  content,
+                "ai_status":       "done",
+                "tts_status":      "pending"
+            }).execute()
+
+        # finally, clear the incoming message’s ai_status
         update_status("messages", msg["id"], {"ai_status": "done"})
         print(f"✅ Assistant response created for message {msg['id']}")
 
