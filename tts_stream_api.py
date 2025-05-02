@@ -81,8 +81,8 @@ async def tts_stream(message_id: str):
         json={
             "text": sanitized_text,
             "voice_settings": {
-                "stability": 0.75,
-                "similarity_boost": 0.75,
+                "stability": 0.4,
+                "similarity_boost": 0.4,
                 "latency_boost": True,
             },
             "stream": True,
@@ -94,7 +94,7 @@ async def tts_stream(message_id: str):
     print(f"✅ ElevenLabs proxy succeeded for {message_id}") 
 
     return StreamingResponse(
-        upstream.iter_content(chunk_size=16_384),
+        upstream.iter_content(chunk_size=8_192),
         media_type="audio/mpeg",
         headers={
             "Cache-Control": "no-cache, no-store, must-revalidate",
