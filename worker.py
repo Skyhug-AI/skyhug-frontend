@@ -97,8 +97,8 @@ def generate_snippet_tts(message_id: str, text: str):
       json={
         "text": text,
         "voice_settings": {
-          "stability": 0.5,
-          "similarity_boost": 0.5,
+          "stability": 0.2,
+          "similarity_boost": 0.2,
           "latency_boost": True
         },
         "stream": False

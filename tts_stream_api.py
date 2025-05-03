@@ -81,8 +81,8 @@ async def tts_stream(message_id: str):
         json={
             "text": sanitized_text,
             "voice_settings": {
-                "stability": 0.4,
-                "similarity_boost": 0.4,
+                "stability": 0.2,
+                "similarity_boost": 0.2,
                 "latency_boost": True,
             },
             "stream": True,
