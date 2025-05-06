@@ -125,46 +125,6 @@ def download_audio(path: str, bucket="raw-audio") -> bytes:
     url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
     return requests.get(url).content
 
-def summarize_and_store(conv_id: str):
-    history = supabase.table("messages") \
-        .select("sender_role,transcription,assistant_text") \
-        .eq("conversation_id", conv_id) \
-        .order("created_at").execute().data or []
-    if sum(1 for m in history if m["sender_role"]=="assistant") < 4:
-        return
-
-    msgs = [
-        {"role":"user" if m["sender_role"]=="user" else "assistant",
-         "content": m["transcription"] if m["sender_role"]=="user" else m["assistant_text"]}
-        for m in history
-    ]
-    prompt = (
-        "You are a concise summarizer. Extract the single main theme "
-        "of the conversation as a noun or gerund phrase (≤12 words)."
-    )
-    resp = openai_client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role":"system","content":prompt}] + msgs,
-        temperature=0.5, max_tokens=30
-    )
-    summary = resp.choices[0].message.content.strip().rstrip(".")
-    supabase.table("conversations") \
-        .update({"memory_summary": summary}) \
-        .eq("id", conv_id).execute()
-
-def close_inactive_conversations():
-    cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
-    stale = supabase.table("conversations") \
-        .select("id") \
-        .eq("ended", False) \
-        .lt("updated_at", cutoff) \
-        .execute().data or []
-    for rec in stale:
-        summarize_and_store(rec["id"])
-        supabase.table("conversations") \
-            .update({"ended": True}) \
-            .eq("id", rec["id"]).execute()
-
 def schedule_cleanup(interval_hours=1):
     def job():
         close_inactive_conversations()
@@ -242,66 +202,64 @@ def handle_transcription_record(msg):
 
 
 def handle_ai_record(msg):
+    """
+    Fetch a transcription-complete user message, generate an AI reply,
+    and write either a streaming chat-mode record or a voice-mode
+    record with a streaming snippet URL baked in.
+    """
     print(f"💬 ⏳ Generating AI reply for message {msg['id']}…")
-    try:
-        # 1) See if this conversation has voice mode on
-        record = supabase_admin.table("conversations") \
-            .select("voice_enabled") \
-            .eq("id", msg["conversation_id"]) \
-            .single() \
-            .execute().data or {}
-        voice_mode = bool(record.get("voice_enabled"))
 
-        # 2) Build the payload
+    try:
+        # 1) Figure out if Voice Mode is on
+        conv = (
+            supabase_admin
+            .table("conversations")
+            .select("voice_enabled")
+            .eq("id", msg["conversation_id"])
+            .single()
+            .execute()
+        )
+        voice_mode = bool(conv.data.get("voice_enabled", False))
+
+        # 2) Build the chat payload
         payload = build_chat_payload(msg["conversation_id"], voice_mode=voice_mode)
 
-        # ── MODEL-SELECTION HEURISTICS ────────────────────────────────────
+        # ── MODEL SELECTION ──────────────────────────────────────────────
         user_text = (msg.get("transcription") or "").strip()
-        lc_text   = user_text.lower()
+        lc = user_text.lower()
 
-        # a) Factual lookup / definitions → GPT-3.5
-        if lc_text.startswith(("what is ", "define ")):
+        if lc.startswith(("what is ", "define ")):
             model_name, max_tokens = "gpt-3.5-turbo", 150
-
-        # b) Emotional reflection → GPT-4
-        elif lc_text.startswith(("i feel", "i’m feeling", "i am feeling", "i am", "i'm")):
+        elif lc.startswith(("i feel", "i’m feeling", "i am feeling", "i am", "i'm")):
             model_name, max_tokens = "gpt-4-turbo", 600
-
-        # c) Complex question triggers → GPT-4
-        elif lc_text.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
+        elif lc.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
             model_name, max_tokens = "gpt-4-turbo", 600
-
-        # d) Multi-sentence user text → GPT-4
         else:
-            # count sentences naively on punctuation
             sentences = [s for s in re.split(r"[.!?]\s*", user_text) if s]
             if len(sentences) > 1:
                 model_name, max_tokens = "gpt-4-turbo", 600
             else:
-                # fallback to GPT-3.5 for single-sentence non-trigger turns
                 model_name, max_tokens = "gpt-3.5-turbo", 150
 
         print("Selected model:", model_name)
-        # ────────────────────────────────────────────────────────────────
 
         if not voice_mode:
-            # —— CHAT MODE: stream GPT deltas into the DB ——
-
-            # a) insert a placeholder assistant message
-            resp = supabase.table("messages") \
+            # —— CHAT MODE: stream deltas into the DB ——
+            insert_resp = (
+                supabase
+                .table("messages")
                 .insert({
                     "conversation_id": msg["conversation_id"],
                     "sender_role":     "assistant",
                     "assistant_text":  "",
                     "ai_status":       "pending",
                     "tts_status":      "done"
-                }) \
+                })
                 .execute()
+            )
+            mid = insert_resp.data[0]["id"]
 
-            # b) pull the new row’s ID out of resp.data
-            mid = resp.data[0]["id"]
-
-            # c) call OpenAI with stream=True
+            # stream GPT
             stream = openai_client.chat.completions.create(
                 model=model_name,
                 messages=payload,
@@ -310,10 +268,8 @@ def handle_ai_record(msg):
                 max_tokens=max_tokens
             )
 
-            # d) accumulate and update DB with each delta
             accumulated = ""
             for chunk in stream:
-                # ChoiceDelta has a .content attribute, not a dict
                 delta = chunk.choices[0].delta.content or ""
                 accumulated += delta
                 supabase.table("messages") \
@@ -321,17 +277,15 @@ def handle_ai_record(msg):
                     .eq("id", mid) \
                     .execute()
 
-
-            # e) mark AI done
+            # mark AI done
             supabase.table("messages") \
                 .update({"ai_status": "done"}) \
                 .eq("id", mid) \
                 .execute()
 
         else:
-            # —— VOICE MODE: full GPT → TTS path  ——
-
-            resp = openai_client.chat.completions.create(
+            # —— VOICE MODE: full GPT → streaming snippet URL ——
+            gpt = openai_client.chat.completions.create(
                 model=model_name,
                 messages=payload,
                 temperature=0.7,
@@ -339,7 +293,8 @@ def handle_ai_record(msg):
                 functions=FUNCTION_DEFS,
                 function_call="auto"
             )
-            choice = resp.choices[0].message
+            choice = gpt.choices[0].message
+
             if getattr(choice, "function_call", None):
                 args    = json.loads(choice.function_call.arguments)
                 content = (
@@ -347,40 +302,53 @@ def handle_ai_record(msg):
                     f"If you ever think about harming yourself, call {args['hotline_number']}."
                 )
             else:
-                content = choice.content
-                # split off first sentence
-                parts = re.split(r"([.!?]\s+)", content, maxsplit=1)
-                snippet = "".join(parts[:2])            # "I hear you. "
-                # leave the full content in assistant_text so your streaming TTS still works
+                content = choice.content or ""
 
-            # store full text and mark for TTS
-            resp = supabase.table("messages").insert({
-                "conversation_id": msg["conversation_id"],
-                "sender_role":     "assistant",
-                "assistant_text":  content,
-                "ai_status":       "done",
-                "tts_status":      "pending",
-                # snippet_url will be filled in asynchronously
-            }).execute()
-            mid = resp.data[0]["id"]
+            # 1) insert the full assistant_text, leave snippet_url blank for now
+            insert_resp = (
+                supabase
+                .table("messages")
+                .insert({
+                    "conversation_id": msg["conversation_id"],
+                    "sender_role":     "assistant",
+                    "assistant_text":  content,
+                    "ai_status":       "done",
+                    "tts_status":      "pending",
+                    "snippet_url":     ""
+                })
+                .execute()
+            )
+            mid = insert_resp.data[0]["id"]
 
-            # extract the first sentence as our “lead-in” snippet
-            parts   = re.split(r"([.!?]\s+)", content, maxsplit=1)
-            snippet = "".join(parts[:2])    # e.g. "I hear you. "
-
-            # background-generate & upload that snippet
+            # 2) Immediately patch in the streaming snippet URL
+            snippet_url = f"/tts-stream/{mid}?snippet=1"
             try:
-                tts_executor.submit(generate_snippet_tts, mid, snippet)
+                supabase.table("messages") \
+                    .update({"snippet_url": snippet_url}) \
+                    .eq("id", mid) \
+                    .execute()
             except Exception as e:
-                print("❌ failed to enqueue snippet task:", e)
+                print("❌ Failed to write snippet_url:", e)
+                supabase.table("messages") \
+                    .update({"tts_status": "error"}) \
+                    .eq("id", mid) \
+                    .execute()
 
-        # finally, clear the incoming message’s ai_status
-        update_status("messages", msg["id"], {"ai_status": "done"})
+        # 3) Finally, clear the original user‐message’s ai_status
+        supabase.table("messages") \
+            .update({"ai_status": "done"}) \
+            .eq("id", msg["id"]) \
+            .execute()
+
         print(f"✅ Assistant response created for message {msg['id']}")
 
     except Exception as e:
-        update_status("messages", msg["id"], {"ai_status": "error"})
-        print(f"❌ AI error for {msg['id']}:", e)
+        print(f"❌ AI error for {msg['id']}: {e}")
+        supabase.table("messages") \
+            .update({"ai_status": "error"}) \
+            .eq("id", msg["id"]) \
+            .execute()
+
 
 
 # ─── ASYNC REALTIME SUBSCRIPTION ─────────────────────────────────────────────
