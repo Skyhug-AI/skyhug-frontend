@@ -334,60 +334,73 @@ const interruptPlayback = () => {
         <div className="space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
           {displayedMessages.map((message) => (
-  <div key={message.id} className="relative group">
-    {editingId === message.id ? (
-      /* ───────────── EDIT MODE ───────────── */
-      <ChatInput
-        initialValue={message.content}
-        onEditMessage={async newText => {
-          await invalidateFrom(message.id);           // ① drop downstream chats
-          await editMessage(message.id, newText);     // ② update this turn’s text
-          setEditingId(null);
-        }}
-        onSendMessage={handleSendMessage}
-        isDisabled={isProcessing}
+            <div key={message.id} className="relative group">
+  {editingId === message.id ? (
+    /* ───────────── EDIT MODE ───────────── */
+    <ChatInput
+      initialValue={message.content}
+      onEditMessage={async newText => {
+        await invalidateFrom(message.id);           // ① drop downstream chats
+        await editMessage(message.id, newText);     // ② update this turn’s text
+        setEditingId(null);
+      }}
+      onSendMessage={handleSendMessage}
+      isDisabled={isProcessing}
+    />
+  ) : (
+    /* ─────────── NORMAL CHAT BUBBLE ─────────── */
+    <>
+      <ChatBubble
+        message={message.content}
+        isUser={message.isUser}
       />
-    ) : (
-      /* ─────────── NORMAL CHAT BUBBLE ─────────── */
-      <>
-        <ChatBubble
-          message={message.content}
-          isUser={message.isUser}
-          timestamp={message.timestamp}
-        />
 
-        {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-        {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => handlePlayAudio(message.id)}
-            disabled={isMicLocked && currentlyPlayingPath !== message.id}
-          >
-            {currentlyPlayingPath === message.id && !isPaused
-              ? <Pause className="h-4 w-4" />
-              : <Play className="h-4 w-4" />
-            }
-          </Button>
-        )}
-
-        {/* ─────────── USER EDIT BUTTON ─────────── */}
-        {message.isUser && (
+      {message.isUser && (
+        <div
+          className="
+            mt-1 
+            flex items-center justify-end gap-1 
+            text-xs text-gray-500 
+            opacity-0 group-hover:opacity-100 
+            transition-opacity
+            pr-4
+          "
+        >
           <button
-           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1"
+            className="p-1"
             onClick={() => {
               setEditingId(message.id);
-              setIsVoiceMode(false);         // turn off ASR
-              setRecognitionPaused(true);    // pause recognition UI
+              setIsVoiceMode(false);
+              setRecognitionPaused(true);
             }}
           >
             <Edit2 className="h-4 w-4 text-gray-500" />
           </button>
-        )}
-      </>
-    )}
-  </div>
+          <span>{message.timestamp}</span>
+        </div>
+      )}
+
+      {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
+      {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => handlePlayAudio(message.id)}
+          disabled={isMicLocked && currentlyPlayingPath !== message.id}
+        >
+          {currentlyPlayingPath === message.id && !isPaused
+            ? <Pause className="h-4 w-4" />
+            : <Play className="h-4 w-4" />
+          }
+        </Button>
+      )}
+
+
+    </>
+  )}
+</div>
+
 ))}
 
 

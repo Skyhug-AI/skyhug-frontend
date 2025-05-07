@@ -134,10 +134,19 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
         .single().execute().data or {}
     memory = meta.get("memory_summary")
 
+    conv = supabase.table("conversations") \
+    .select("needs_resummarization") \
+    .eq("id", conv_id).single().execute().data
+    if conv and conv["needs_resummarization"]:
+        supabase.table("conversations") \
+        .update({"memory_summary": "", "needs_resummarization": False}) \
+        .eq("id", conv_id).execute()
+
     # Fetch the message history
     history = supabase.table("messages") \
         .select("sender_role,transcription,assistant_text,created_at") \
         .eq("conversation_id", conv_id) \
+        .eq("invalidated", False)  \
         .order("created_at").execute().data or []
 
     # Start with system prompt(s)
@@ -147,7 +156,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     if memory and not history:
         messages.append({
             "role": "assistant",
-            "content": f"Last time we spoke, we talked about: {memory}. Would you like to continue?"
+            "content": f"Last time we spoke, we discussed {memory}. Would you like to continue?"
         })
 
     # Turn the DB rows into chat turns
@@ -202,6 +211,11 @@ def handle_ai_record(msg):
     and write either a streaming chat-mode record or a voice-mode
     record with a streaming snippet URL baked in.
     """
+    # skip anything we’ve already started
+    if msg.get("ai_started"):
+        return
+    # mark it so no one else will re-run it
+    supabase_admin.table("messages").update({"ai_started": True}).eq("id", msg["id"]).execute()
     print(f"💬 ⏳ Generating AI reply for message {msg['id']}…")
 
     try:
@@ -248,6 +262,7 @@ def handle_ai_record(msg):
                     "sender_role":     "assistant",
                     "assistant_text":  "",
                     "ai_status":       "pending",
+                    "ai_started": "false",  
                     "tts_status":      "done"
                 })
                 .execute()
@@ -351,41 +366,59 @@ async def start_realtime():
     supabase_async = await create_client_async(SUPABASE_URL, SERVICE_ROLE_KEY)
 
     def on_insert(payload):
-        # supabase-py async realtime wraps the change under payload["data"]
-        change = payload.get("data", {})
-        msg    = change.get("record")
-        if not msg:
-            return
-
-        loop = asyncio.get_event_loop()
-
-        # 1) If this is a new user message awaiting transcription:
-        if msg["sender_role"] == "user" and msg["transcription_status"] == "pending":
-            loop.run_in_executor(None, handle_transcription_record, msg)
-
-        # 2) If this user message has been transcribed and now awaits an AI reply:
-        elif msg["sender_role"] == "user" \
-        and msg["transcription_status"] == "done" \
-        and msg.get("ai_status") == "pending":
+        msg = payload["data"]["record"]
+        # only text messages (or audio after transcription) should trigger
+        if (
+        msg["sender_role"] == "user"
+        and msg.get("ai_status") == "pending"
+        and msg.get("transcription_status") == "done"
+        and not msg.get("ai_started")
+        ):
+            loop = asyncio.get_event_loop()
             loop.run_in_executor(None, handle_ai_record, msg)
 
-        # 3) No longer store MP3 
+    def on_update(payload):
+        msg = payload["data"]["record"]
+        # only fire on a true client edit
+        if (
+        msg["sender_role"] == "user"
+        and msg.get("ai_status") == "pending"
+        and msg.get("edited_at")   # only set by your editMessage call
+        and not msg.get("ai_started")
+        ):
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, handle_ai_record, msg)
 
     def on_subscribe(status, err):
         if status == RealtimeSubscribeStates.SUBSCRIBED:
             print("🔌 SUBSCRIBED to messages_changes")
         else:
             print("❗ Realtime status:", status, err)
+    
+    def on_change(payload):
+        msg = payload["data"]["record"]
+        # only new user turns, never ones we’ve already kicked off
+        if (
+        msg["sender_role"] == "user"
+        and msg.get("ai_status") == "pending"
+        and not msg.get("ai_started")
+        ):
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, handle_ai_record, msg)
 
     channel = supabase_async.channel("messages_changes")
-    channel.on_postgres_changes("INSERT", schema="public", table="messages", callback=on_insert)
+    channel.on_postgres_changes(event="INSERT", schema="public", table="messages", callback=on_insert)
+    channel.on_postgres_changes(event="UPDATE", schema="public", table="messages", callback=on_update)
     await channel.subscribe(on_subscribe)
 
-    # never exit
+    # Never close 
     await asyncio.Event().wait()
+
+
 
 if __name__ == "__main__":
     asyncio.run(start_realtime())
+
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 def fetch_pending(table, **conds):
@@ -436,13 +469,8 @@ def summarize_and_store(conv_id):
 
     # 4) ask GPT for a very brief topic phrase
     prompt = """
-You are a concise summarizer. Extract the single main theme of the conversation
-as a noun or gerund phrase (no more than 12 words). Do NOT include any suggestions
-or extra punctuation. Examples:
-  • political issues and feeling like nobody cares
-  • basketball strategies and team dynamics
-  • anxiety about work deadlines
-"""
+    You are a concise summarizer. Return a single plain noun phrase (≤8 words)that captures the conversation topic. Do NOT return a full sentence, no punctuation, no articles like “the” or “a”.
+    """
     resp = openai_client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role":"system", "content": prompt.strip()}] + msgs,
@@ -451,7 +479,7 @@ or extra punctuation. Examples:
     )
     raw = resp.choices[0].message.content.strip()
     # strip trailing period if any
-    summary = raw.rstrip(".").strip()
+    summary = raw.rstrip(".!?,;").strip()
 
     # 5) store it
     supabase.table("conversations") \
