@@ -111,7 +111,7 @@ async def tts_stream(message_id: str):
     upstream.raise_for_status()
 
     return StreamingResponse(
-        upstream.iter_content(chunk_size=8_192),
+        upstream.iter_content(chunk_size=4_096),
         media_type="audio/mpeg",
         headers={
             "Cache-Control": "no-cache, no-store, must-revalidate",
