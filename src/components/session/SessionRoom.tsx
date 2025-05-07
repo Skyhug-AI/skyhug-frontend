@@ -80,13 +80,16 @@ const SessionRoom = () => {
 
   useEffect(() => {
     // helper to pause & clear our single Audio instance
-    const stopAudio = () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = audioRef.current.duration;
-        audioRef.current = null;
-      }
-    };
+      const stopAudio = () => {
+          if (!audioRef.current) return;
+          const audio = audioRef.current;
+          audio.pause();
+          // only set currentTime if duration is a valid finite number
+          if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
+            audio.currentTime = audio.duration;
+          }
+          audioRef.current = null;
+        };
   
     // 1) When the browser is about to unload (close/refresh), stop audio
     window.addEventListener("beforeunload", stopAudio);
@@ -285,11 +288,14 @@ const SessionRoom = () => {
 
 const interruptPlayback = () => {
   // If there’s a clip still loaded, stop & skip it
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current.currentTime = audioRef.current.duration;
-    audioRef.current = null;
-  }
+    if (audioRef.current) {
+        const audio = audioRef.current;
+        audio.pause();
+        if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
+          audio.currentTime = audio.duration;
+       }
+        audioRef.current = null;
+      }
 
   // Unlock the mic immediately
   setIsMicLocked(false);
