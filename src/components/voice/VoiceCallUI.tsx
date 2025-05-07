@@ -209,7 +209,9 @@ const handlePlayAudio = (messageId?: string | null) => {
               <ChatInput
                 initialValue={msg.text}
                 onEditMessage={async newText => {
-                  await editMessage(msg.id, newText);
+                  await invalidateFrom(message.id);           // ① drop downstream chats
+                  await editMessage(message.id, newText);     // ② update this turn’s text
+                  await regenerateAfter(message.id);          // ③ re-queue it for AI
                   setEditingId(null);
                 }}
                 onSendMessage={sendMessage}
