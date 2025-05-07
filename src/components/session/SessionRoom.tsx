@@ -60,15 +60,20 @@ const SessionRoom = () => {
   );
 
   useEffect(() => {
-    // build a sentence-count lookup for each assistant message
+    // for every new assistant message, figure out how many snippets it needs
     displayedMessages.forEach(msg => {
       if (!msg.isUser && snippetCountMap.current[msg.id] == null) {
-        // split on end-of-sentence punctuation (includes the delimiter)
-        const sentences = msg.content.split(/(?<=[.!?])\s+/);
-        snippetCountMap.current[msg.id] = sentences.length;
+        const sentences = msg.content.split(/(?<=[.!?])\s+/)
+        snippetCountMap.current[msg.id] = sentences.length
+  
+        // seed the very first snippet URL so your UI sees it immediately
+        setSnippetUrls(prev => ({
+          ...prev,
+          [msg.id]: `${STREAM_BASE}/tts-stream/${msg.id}?snippet=0`
+        }))
       }
-    });
-  }, [displayedMessages]);
+    })
+  }, [displayedMessages])
 
 
   const scrollToBottom = () => {
@@ -182,6 +187,7 @@ const SessionRoom = () => {
   };
 
   const handleVoiceRecorded = (transcript: string) => {
+    console.log("🎤 ASR returned:", transcript)
     const trimmed = transcript.trim();
     if (!trimmed) return;
   
@@ -207,8 +213,11 @@ const SessionRoom = () => {
     sendMessage(trimmed);
   };
   
-  const handlePlayAudio = (messageId?: string | null, snippetIndex: number = 0) => {
-    if (!messageId || streamedMap[messageId]) return;
+  const handlePlayAudio = (messageId?: string|null, snippetIndex = 0) => {
+    if (!messageId || streamedMap[messageId]) return
+  
+    const streamUrl = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`
+    console.log(`▶️  play snippet ${snippetIndex} of ${messageId}:`, streamUrl)
   
     // if re-clicking the same clip, toggle pause/resume
     if (currentlyPlayingPath === messageId && audioRef.current) {
