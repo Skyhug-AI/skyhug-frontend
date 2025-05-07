@@ -30,6 +30,7 @@ interface TherapistContextType {
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
   playMessageAudio: (tts_path: string) => Promise<void>;
+  editMessage: (id: string, newContent: string) => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -48,6 +49,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     null
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
+  
 
   const formatMessage = (msg: any): Message & { ttsHasArrived?: boolean, isGreeting?: boolean } => {
     return {
@@ -210,6 +212,20 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const editMessage = async (id: string, content: string) => {
+    if (!conversationId) return;
+    setIsProcessing(true);
+    const { error } = await supabase
+      .from("messages")
+      .update({ transcription: content })
+      .eq("id", id);
+    if (error) {
+      console.error("Error editing message:", error);
+    }
+    // supabase subscription will push the updated row into setMessages
+    setIsProcessing(false);
+  };
+
   const sendAudioMessage = async (blob: Blob) => {
     if (!conversationId || !user) return;
     setIsProcessing(true);
@@ -357,6 +373,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         setVoiceEnabled,
         endConversation,
         playMessageAudio,
+        editMessage,
       }}
     >
       {children}
