@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 
 const SessionRoom = () => {
@@ -18,15 +17,13 @@ const SessionRoom = () => {
     messages = [],
     sendMessage,
     isProcessing,
-    clearMessages,
     setVoiceEnabled,
     endConversation,
-    playMessageAudio,
+    conversationId
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
-  const [audioStates, setAudioStates] = useState<{[key: string]: boolean}>({});
   const [isMicLocked, setIsMicLocked] = useState(false);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,18 +34,23 @@ const SessionRoom = () => {
   const [waitingForResponse, setWaitingForResponse] = useState(false);
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);
-  const playedTtsRef = useRef<Set<string>>(new Set());
-  const hasPrimedRef   = useRef(false);
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const voiceTimeoutRef = useRef<number | null>(null);
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const playedSnippetsRef = useRef<Set<string>>(new Set());
+  const [snippetUrls, setSnippetUrls] = useState<Record<string, string>>({});
 
 
   const STREAM_BASE = "http://localhost:8000";
 
 
-  const displayedMessages = messages;
+  const displayedMessages = messages.map(m =>
+    m.snippet_url
+      ? m
+      : snippetUrls[m.id]
+      ? { ...m, snippet_url: snippetUrls[m.id] }
+      : m
+  );
 
 
   const scrollToBottom = () => {
@@ -58,16 +60,7 @@ const SessionRoom = () => {
   };
 
   useEffect(() => {
-    if (messages.length > 0) {
-      setHasStartedChat(true);
-    }
-
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
-  }, []);
-
-  useEffect(() => {
+    if (messages.length > 0) setHasStartedChat(true)
     scrollToBottom();
   }, [messages]);
 
@@ -78,25 +71,6 @@ const SessionRoom = () => {
     }
   }, [currentlyPlayingPath]);
 
-  useEffect(() => {
-    // helper to pause & clear our single Audio instance
-    const stopAudio = () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = audioRef.current.duration;
-        audioRef.current = null;
-      }
-    };
-  
-    // 1) When the browser is about to unload (close/refresh), stop audio
-    window.addEventListener("beforeunload", stopAudio);
-  
-    return () => {
-      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
-      stopAudio();
-      window.removeEventListener("beforeunload", stopAudio);
-    };
-  }, []);
 
   useEffect(() => {
     // helper to pause & clear our single Audio instance
@@ -146,11 +120,28 @@ const SessionRoom = () => {
     }
   }, [displayedMessages, isVoiceMode]);
 
+  useEffect(() => {
+    if (!conversationId) return;
+    const channel = supabase
+      .channel(`snippet-updates-${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        ({ new: updated }) => {
+          if (updated.snippet_url) {
+            setSnippetUrls(s => ({ ...s, [updated.id]: updated.snippet_url }));
+          }
+        }
+      )
+      .subscribe();
   
-  
-  
-  
-  
+    return () => supabase.removeChannel(channel);
+  }, [conversationId]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -299,7 +290,6 @@ const interruptPlayback = () => {
 
   // Clear your UI “playing” flags
   if (currentlyPlayingPath) {
-    setAudioStates(prev => ({ ...prev, [currentlyPlayingPath]: false }));
     setCurrentlyPlayingPath(null);
   }
 };
