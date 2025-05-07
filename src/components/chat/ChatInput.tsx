@@ -1,11 +1,11 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 type ChatInputProps = {
   onSendMessage: (message: string) => void;
+  onEditMessage?: (newText: string) => void;
+  initialValue?: string;
   onStartVoice?: (blob: Blob) => void;
   isVoiceEnabled?: boolean;
   placeholder?: string;
@@ -14,22 +14,33 @@ type ChatInputProps = {
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
+  onEditMessage,
+  initialValue = "",
   onStartVoice,
   isVoiceEnabled = false,
   placeholder = "Type your message...",
   isDisabled = false,
 }) => {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<string>(initialValue);
+
+  // Whenever initialValue changes (e.g. entering edit-mode), reset the input
+  useEffect(() => {
+    setMessage(initialValue);
+  }, [initialValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage("");
+    const trimmed = message.trim();
+    if (!trimmed) return;
+
+    if (onEditMessage) {
+      onEditMessage(trimmed);
+    } else {
+      onSendMessage(trimmed);
     }
+    setMessage("");
   };
 
-  // Voice recording logic
   const startRecording = async () => {
     if (!onStartVoice) return;
     try {
@@ -44,7 +55,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       };
 
       recorder.start();
-      // Stop after 5 seconds (or you could tie this to a UI button)
       setTimeout(() => recorder.stop(), 5000);
     } catch (err) {
       console.error("Microphone access error:", err);
@@ -56,16 +66,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
       onSubmit={handleSubmit}
       className="flex items-center gap-2 border-t border-border p-4 bg-white/50 backdrop-blur-sm"
     >
-      <div className="relative flex-grow">
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder={placeholder}
-          disabled={isDisabled}
-          className="w-full p-3 pr-10 rounded-full border border-input bg-background focus:outline-none focus:ring-2 focus:ring-serenity-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        />
-      </div>
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder={placeholder}
+        disabled={isDisabled}
+        className="flex-grow p-3 pr-10 rounded-full border border-input bg-background focus:outline-none focus:ring-2 focus:ring-serenity-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      />
 
       {isVoiceEnabled && (
         <Button

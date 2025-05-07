@@ -6,7 +6,7 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause, X } from "lucide-react";
+import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause, X, Edit2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,10 +16,13 @@ const SessionRoom = () => {
   const {
     messages = [],
     sendMessage,
+    editMessage,
     isProcessing,
     setVoiceEnabled,
     endConversation,
-    conversationId
+    conversationId,
+    invalidateFrom,
+    regenerateAfter
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
@@ -39,6 +42,9 @@ const SessionRoom = () => {
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const playedSnippetsRef = useRef<Set<string>>(new Set());
   const [snippetUrls, setSnippetUrls] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+
 
 
   const STREAM_BASE = "http://localhost:8000";
@@ -322,28 +328,62 @@ const interruptPlayback = () => {
         <div className="space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
           {displayedMessages.map((message) => (
-          <div key={message.id} className="relative group">
-            <ChatBubble
-              message={message.content}
-              isUser={message.isUser}
-              timestamp={message.timestamp}
-            />
-              {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handlePlayAudio(message.id)}
-                  disabled={isMicLocked && currentlyPlayingPath !== message.id}
-                >
-                  {currentlyPlayingPath === message.id && !isPaused
-                    ? <Pause className="h-4 w-4" />
-                    : <Play className="h-4 w-4" />
-                  }
-                </Button>
-              )}
-            </div>
-          ))}
+  <div key={message.id} className="relative group">
+    {editingId === message.id ? (
+      /* ───────────── EDIT MODE ───────────── */
+      <ChatInput
+        initialValue={message.content}
+        onEditMessage={async newText => {
+          await invalidateFrom(message.id);           // ① drop downstream chats
+          await editMessage(message.id, newText);     // ② update this turn’s text
+          setEditingId(null);
+        }}
+        onSendMessage={handleSendMessage}
+        isDisabled={isProcessing}
+      />
+    ) : (
+      /* ─────────── NORMAL CHAT BUBBLE ─────────── */
+      <>
+        <ChatBubble
+          message={message.content}
+          isUser={message.isUser}
+          timestamp={message.timestamp}
+        />
+
+        {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
+        {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => handlePlayAudio(message.id)}
+            disabled={isMicLocked && currentlyPlayingPath !== message.id}
+          >
+            {currentlyPlayingPath === message.id && !isPaused
+              ? <Pause className="h-4 w-4" />
+              : <Play className="h-4 w-4" />
+            }
+          </Button>
+        )}
+
+        {/* ─────────── USER EDIT BUTTON ─────────── */}
+        {message.isUser && (
+          <button
+           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1"
+            onClick={() => {
+              setEditingId(message.id);
+              setIsVoiceMode(false);         // turn off ASR
+              setRecognitionPaused(true);    // pause recognition UI
+            }}
+          >
+            <Edit2 className="h-4 w-4 text-gray-500" />
+          </button>
+        )}
+      </>
+    )}
+  </div>
+))}
+
 
             {voiceUnavailable ? (
               <div className="px-4 py-2 text-sm text-red-500">
@@ -423,18 +463,18 @@ const interruptPlayback = () => {
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
                 isDisabled={isProcessing}
-                shouldPauseRecognition={ isMicLocked || waitingForResponse }
+                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse}
                 onRecognitionPaused={handleRecognitionPaused}
                 onRecognitionResumed={handleRecognitionResumed}
                 onInterruptPlayback={interruptPlayback} 
               />
             ) : (
               <div className="flex-grow">
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  placeholder="Write your answer"
-                  isDisabled={isProcessing}
-                />
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                placeholder="Write your answer"
+                isDisabled={isProcessing}
+              />
               </div>
             )}
           </div>

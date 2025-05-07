@@ -30,6 +30,8 @@ interface TherapistContextType {
   setVoiceEnabled: (on: boolean) => Promise<void>;
   endConversation: () => Promise<void>;
   playMessageAudio: (tts_path: string) => Promise<void>;
+  invalidateFrom: (messageId: string) => Promise<void>;
+  regenerateAfter: (messageId: string) => Promise<void>;
 }
 
 const TherapistContext = createContext<TherapistContextType | undefined>(
@@ -67,11 +69,90 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     };
   };
 
+  const editMessage = async (id: string, newContent: string) => {
+    if (!conversationId) return;
+  
+    setIsProcessing(true);
+  
+    // 1) Update the edited message
+    await supabase
+      .from("messages")
+      .update({
+        transcription: newContent,
+        edited_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+  
+    // 2) Invalidate every downstream message
+    //    (those with created_at > the edited one)
+    const { data: orig } = await supabase
+      .from("messages")
+      .select("created_at")
+      .eq("id", id)
+      .single();
+  
+    if (orig?.created_at) {
+      await supabase
+        .from("messages")
+        .update({ invalidated: true })
+        .eq("conversation_id", conversationId)
+        .gt("created_at", orig.created_at);
+    }
+  
+    // 3) Mark conversation to re-summarize
+    await supabase
+      .from("conversations")
+      .update({ needs_resummarization: true })
+      .eq("id", conversationId);
+  
+    // 4) Re-enqueue this message for AI reply
+    //    by resetting its ai_status to “pending”
+    await supabase
+      .from("messages")
+      .update({
+        transcription: newContent,
+        edited_at: new Date().toISOString(),
+        ai_status: "pending",
+        invalidated: false,
+        ai_started: false,        // ← reset here too
+      })
+      .eq("id", id);
+  
+    setIsProcessing(false);
+  };
+
+  /** Invalidate all messages created after the given one (so they drop out of UI) */
+  const invalidateFrom = async (id: string) => {
+    if (!conversationId) return;
+    // 1) lookup the pivot message’s timestamp
+    const { data: orig } = await supabase
+      .from("messages")
+      .select("created_at")
+      .eq("id", id)
+      .single();
+    if (!orig?.created_at) return;
+    // 2) mark everything after that as invalidated
+    await supabase
+      .from("messages")
+      .update({ invalidated: true })
+      .eq("conversation_id", conversationId)
+      .gt("created_at", orig.created_at);
+  };
+
+  /** Reset a single message to pending so the AI will re-process it */
+  const regenerateAfter = async (id: string) => {
+    await supabase
+      .from("messages")
+      .update({ ai_status: "pending", invalidated: false })
+      .eq("id", id);
+  };
+
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
       .from("messages")
       .select("id, sender_role, transcription, assistant_text, created_at")
       .eq("conversation_id", convId)
+      .eq("invalidated", false)    
       .order("created_at");
   
     if (error) {
@@ -329,14 +410,32 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
-          const updated = formatMessage(payload.new);
-          setMessages(prev =>
-            prev.map(m => m.id === updated.id ? updated : m)
-          );
-          setIsProcessing(false);
-        }
+                (payload) => {
+                    const n = payload.new as any;
+          
+                    // 1) if this row was invalidated, drop it entirely
+                    if (n.invalidated) {
+                      setMessages(prev => prev.filter(m => m.id !== n.id));
+                      setIsProcessing(false);
+                      return;
+                    }
+          
+                    // 2) only update when we actually got new text
+                    //    (a) user edits => payload.new.transcription
+                    //    (b) AI streams => payload.new.assistant_text
+                    if (n.transcription !== undefined || n.assistant_text !== undefined) {
+                      const msg = formatMessage(n);
+                      setMessages(prev =>
+                        prev.map(m => m.id === msg.id ? msg : m)
+                      );
+                  }
+          
+                    // any other UPDATE (ai_status flip, etc.) we ignore
+                    setIsProcessing(false);
+                  }
       )
+
+
       .subscribe();
   
     return () => {
@@ -357,6 +456,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         setVoiceEnabled,
         endConversation,
         playMessageAudio,
+        editMessage,
+        invalidateFrom,
+        regenerateAfter,
       }}
     >
       {children}

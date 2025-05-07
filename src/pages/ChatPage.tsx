@@ -103,6 +103,12 @@ const ChatPage = () => {
 
             <ChatInput
               onSendMessage={sendMessage}
+              onEditMessage={async newText => {
+                await invalidateFrom(message.id);           // ① drop downstream chats
+                await editMessage(message.id, newText);     // ② update this turn’s text
+                await regenerateAfter(message.id);          // ③ re-queue it for AI
+                setEditingId(null);
+              }}
               onStartVoice={sendAudioMessage}
               isVoiceEnabled={true}
             />

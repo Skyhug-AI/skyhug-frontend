@@ -8,12 +8,14 @@ type ChatBubbleProps = {
   message: string;
   isUser: boolean;
   timestamp?: string;
+  editedAt?: string;
   hasInitialSunIcon?: boolean;
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ 
   message, 
   isUser, 
+  editedAt, 
   timestamp,
   hasInitialSunIcon = false 
 }) => {
@@ -48,6 +50,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           )}>
             {message}
           </p>
+          {editedAt && (
+            <span className="text-xs italic opacity-60 ml-2">(edited)</span>
+          )}
         </div>
         {timestamp && (
           <span className={cn(
