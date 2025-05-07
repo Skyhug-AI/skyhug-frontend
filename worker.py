@@ -10,8 +10,6 @@ from supabase import create_client      # sync client for handlers
 from supabase._async.client import create_client as create_client_async  # async for realtime
 from openai import OpenAI
 from realtime import RealtimeSubscribeStates
-from supabase._async.client import create_client as create_client_async
-from concurrent.futures import ThreadPoolExecutor
 import re 
 
 # ─── CONFIG & CLIENTS ────────────────────────────────────────────────────────
@@ -32,9 +30,38 @@ supabase_admin = create_client(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+def warmup_openai_models():
+    for model in ("gpt-3.5-turbo", "gpt-4-turbo"):
+        try:
+            openai_client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role":"system", "content":" "},
+                    {"role":"user",   "content":" "}
+                ],
+                max_tokens=1
+            )
+        except Exception:
+            pass
+
+
+
+
 START_TS    = datetime.now(timezone.utc).isoformat()
 MAX_HISTORY = 10
-tts_executor = ThreadPoolExecutor(max_workers=10)
+
+# Regex compilation 
+_SENT_SPLIT = re.compile(r"([.!?]\s+)")
+_SANITIZE  = re.compile(r"[*/{}\[\]<>&#@_\\|+=%]")
+_SENT_COUNT= re.compile(r"[.!?]\s*")
+
+# Initialize sessions 
+storage_sess = requests.Session()
+eleven_sess = requests.Session()
+eleven_sess.headers.update({
+    "xi-api-key": ELEVENLABS_API_KEY,
+    "Content-Type": "application/json",
+})
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
 SKY_SYSTEM_PROMPT = """
@@ -90,40 +117,8 @@ FUNCTION_DEFS = [
 ]
 
 # ─── SYNC HELPERS & HANDLERS ────────────────────────────────────────────────
-def generate_snippet_tts(message_id: str, text: str):
-    # 1) non-streaming ElevenLabs call
-    r = eleven_sess.post(
-      f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
-      json={
-        "text": text,
-        "voice_settings": {
-          "stability": 0.2,
-          "similarity_boost": 0.2,
-          "latency_boost": True
-        },
-        "stream": False
-      },
-      timeout=10
-    )
-    r.raise_for_status()
-    mp3 = r.content
-
-    # 2) upload & get signed URL
-    snippet_path = f"{message_id}-snippet.mp3"
-    url = upload_snippet(snippet_path, mp3)
-
-    # 3) write it back into the row
-    supabase.table("messages") \
-      .update({"snippet_url": url}) \
-      .eq("id", message_id).execute()
-
-
-def update_status(table: str, record_id: str, fields: dict):
+def update_status(table, record_id, fields):
     supabase.table(table).update(fields).eq("id", record_id).execute()
-
-def download_audio(path: str, bucket="raw-audio") -> bytes:
-    url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
-    return requests.get(url).content
 
 def schedule_cleanup(interval_hours=1):
     def job():
@@ -166,7 +161,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
         summary_resp = openai_client.chat.completions.create(
-            model = "gpt-4-turbo" if voice_mode else "gpt-4-turbo",
+            model = "gpt-4-turbo" if voice_mode else "gpt-3.5-turbo",
             messages=messages + [
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
@@ -235,7 +230,7 @@ def handle_ai_record(msg):
         elif lc.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
             model_name, max_tokens = "gpt-4-turbo", 600
         else:
-            sentences = [s for s in re.split(r"[.!?]\s*", user_text) if s]
+            sentences = [s for s in _SENT_SPLIT.split(user_text) if s.strip()]
             if len(sentences) > 1:
                 model_name, max_tokens = "gpt-4-turbo", 600
             else:
@@ -404,27 +399,10 @@ def fetch_pending(table, **conds):
         q = q.gt("created_at", START_TS)
     return q.execute().data or []
 
-def update_status(table, record_id, fields):
-    supabase.table(table).update(fields).eq("id", record_id).execute()
 
 def download_audio(path, bucket="raw-audio"):
     url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
-    return requests.get(url).content
-
-def upload_audio(path, data, bucket="tts-audio"):
-    supabase.storage.from_(bucket).upload(path, io.BytesIO(data), {"content-type":"audio/mpeg"})
-
-def upload_snippet(path: str, data: bytes, bucket="tts-snippets") -> str:
-    supabase.storage.from_(bucket).upload(path, io.BytesIO(data),
-                                         {"content-type": "audio/mpeg"})
-    url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
-    return url
-
-eleven_sess = requests.Session()
-eleven_sess.headers.update({
-    "xi-api-key": ELEVENLABS_API_KEY,
-    "Content-Type": "application/json",
-})
+    return storage_sess.get(url).content
 
 def summarize_and_store(conv_id):
     """
@@ -515,62 +493,6 @@ def close_inactive_conversations():
             .execute()
         print(f"✅ Auto-ended and summarized conversation {conv_id}")
 
-# ─── Summarization to Keep Context Small ─────────────────────────────────────
-def build_chat_payload(conv_id):
-    # — fetch any prior memory —
-    conv_meta = supabase.table("conversations") \
-        .select("memory_summary") \
-        .eq("id", conv_id) \
-        .single() \
-        .execute().data or {}
-    memory = conv_meta.get("memory_summary")
-
-    # — now fetch in‑progress history —
-    history = supabase.table("messages") \
-        .select("sender_role,transcription,assistant_text,created_at") \
-        .eq("conversation_id", conv_id) \
-        .order("created_at") \
-        .execute().data or []
-
-    # — build the standard messages list —
-    # Start with system + examples
-    messages = [{"role":"system","content":SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
-
-    # — if brand‑new session and we have a memory, inject it —
-    if memory and len(history) == 0:
-        messages.append({
-            "role": "assistant",
-            "content": f"Last time we spoke, we talked about: {memory} Would you like to pick up where we left off?"
-        })
-
-    # — map actual turns —
-    user_msgs = []
-    for m in history:
-        if m["sender_role"] == "user":
-            user_msgs.append({"role":"user","content": m["transcription"]})
-        else:
-            user_msgs.append({"role":"assistant","content": m["assistant_text"]})
-
-    # — summarization of old turns if needed —
-    if len(user_msgs) > MAX_HISTORY:
-        to_summarize = user_msgs[:-MAX_HISTORY]
-        summary_resp = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages + [
-                {"role":"assistant","content":"Please summarize the earlier conversation in a brief sentence."}
-            ] + to_summarize,
-            temperature=0.3,
-            max_tokens=200
-        )
-        summary = summary_resp.choices[0].message.content
-        messages += [
-            {"role":"assistant","content": f"Summary of earlier conversation: {summary}"}
-        ] + user_msgs[-MAX_HISTORY:]
-    else:
-        messages += user_msgs
-
-    return messages
-
 # ─── ENTRYPOINT ─────────────────────────────────────────────────────────────
 
 
@@ -579,6 +501,8 @@ if __name__ == "__main__":
     print("  SUPABASE_URL =", SUPABASE_URL)
     print("  OPENAI_API_KEY set?", bool(os.getenv("OPENAI_API_KEY")))
     print("  ELEVENLABS_API_KEY set?", bool(os.getenv("ELEVENLABS_API_KEY")))
+
+    warmup_openai_models()
 
     # 1) One-off cleanup + schedule hourly
     close_inactive_conversations()
