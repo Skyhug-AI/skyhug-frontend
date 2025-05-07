@@ -123,7 +123,7 @@ def update_status(table, record_id, fields):
 def schedule_cleanup(interval_hours=1):
     def job():
         close_inactive_conversations()
-        threading.Timer(interval_hours * 3600, job).start()
+        threading.Timer(interval_hours * 3500, job).start()
     job()
 
 def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
@@ -175,7 +175,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
             temperature=0.3,
-            max_tokens=600
+            max_tokens=500
         )
         summary = summary_resp.choices[0].message.content
         messages += [
@@ -240,13 +240,13 @@ def handle_ai_record(msg):
         if lc.startswith(("what is ", "define ")):
             model_name, max_tokens = "gpt-3.5-turbo", 150
         elif lc.startswith(("i feel", "i’m feeling", "i am feeling", "i am", "i'm")):
-            model_name, max_tokens = "gpt-4-turbo", 600
+            model_name, max_tokens = "gpt-4-turbo", 500
         elif lc.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
-            model_name, max_tokens = "gpt-4-turbo", 600
+            model_name, max_tokens = "gpt-4-turbo", 500
         else:
             sentences = [s for s in _SENT_SPLIT.split(user_text) if s.strip()]
             if len(sentences) > 1:
-                model_name, max_tokens = "gpt-4-turbo", 600
+                model_name, max_tokens = "gpt-4-turbo", 500
             else:
                 model_name, max_tokens = "gpt-3.5-turbo", 150
 
