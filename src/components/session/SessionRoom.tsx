@@ -370,7 +370,8 @@ const interruptPlayback = () => {
             className="p-1"
             onClick={() => {
               setEditingId(message.id);
-              setIsVoiceMode(false);
+              interruptPlayback(); 
+              // setIsVoiceMode(false);
               setRecognitionPaused(true);
             }}
           >
