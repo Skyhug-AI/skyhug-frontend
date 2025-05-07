@@ -1,11 +1,13 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type ChatInputProps = {
   onSendMessage: (message: string) => void;
+  onEditMessage?: (newText: string) => void;  
+  initialValue?: string;  
   onStartVoice?: (blob: Blob) => void;
   isVoiceEnabled?: boolean;
   placeholder?: string;
@@ -14,19 +16,29 @@ type ChatInputProps = {
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
+  onEditMessage,
   onStartVoice,
+  initialValue = "",
   isVoiceEnabled = false,
   placeholder = "Type your message...",
   isDisabled = false,
 }) => {
   const [message, setMessage] = useState("");
 
+  // reset if initialValue changes
+  useEffect(() => setMessage(initialValue), [initialValue]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage("");
-    }
+        const trimmed = message.trim();
+        if (!trimmed) return;
+    
+        if (onEditMessage) {
+          onEditMessage(trimmed);
+        } else {
+          onSendMessage(trimmed);
+        }
+        setMessage("");
   };
 
   // Voice recording logic

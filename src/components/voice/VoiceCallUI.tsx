@@ -1,8 +1,9 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2 } from 'lucide-react';
+import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2, Edit2 } from 'lucide-react';
 import ChatBubble from '@/components/chat/ChatBubble';
+import ChatInput from '@/components/chat/ChatInput';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +13,12 @@ import { useTherapist } from '@/context/TherapistContext';
 import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceCallUIProps {
-  messages: { text: string; isUser: boolean; tts_path?: string | null }[];
+    messages: Array<{
+        id: string;            
+        text: string;
+        isUser: boolean;
+        tts_path?: string | null;
+      }>;
   isProcessing: boolean;
   onVoiceRecorded: (transcript: string) => void;
   onEndCall: () => void;
@@ -35,7 +41,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { playMessageAudio } = useTherapist();
+  const { editMessage, sendMessage } = useTherapist();
   const [showReminder, setShowReminder] = useState(false);
   const [ambientSound, setAmbientSound] = useState<string | null>(null);
   const reminderTimeoutRef = useRef<number | null>(null);
@@ -44,6 +50,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
 
 
 
@@ -197,26 +204,48 @@ const handlePlayAudio = (messageId?: string | null) => {
         <div className="max-w-3xl mx-auto flex-grow flex flex-col p-4">
           <div className="space-y-4 flex-grow overflow-y-auto">
             {messages.map((message, index) => (
-              <div key={index} className="relative group">
-                <ChatBubble 
-                  message={message.text} 
-                  isUser={message.isUser} 
-                />
-                {!message.isUser && message.id && !streamedMap[message.id] && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handlePlayAudio(message.id)}
-                >
-                  {(currentlyPlayingPath === message.id && !isPaused) ? (
-                    <VolumeX className="h-4 w-4" /> // use Pause icon if you have one
-                  ) : (
-                    <Play className="h-4 w-4" />
+               <div key={index} className="relative group">
+               {editingId === message.id ? (
+                 // EDIT MODE
+                 <ChatInput
+                    initialValue={message.text}
+                    onEditMessage={async (newText) => {
+                      await editMessage(message.id, newText);
+                      setEditingId(null);
+                    }}
+                    onSendMessage={sendMessage}           
+                    isDisabled={isProcessing}
+                  />
+               ) : (
+                 // NORMAL BUBBLE
+                 <>
+                   <ChatBubble message={message.text} isUser={message.isUser} />
+                   {/* Edit button for user's own messages */}
+                   {message.isUser && (
+                     <button
+                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1"
+                       onClick={() => {
+                         setEditingId(message.id);
+                       }}
+                     >
+                       <Edit2 className="h-4 w-4 text-gray-500" />
+                     </button>
+                   )}
+                   {/* ← Regenerate button: */}
+                  {!message.isUser && (
+                    <button
+                      className="text-sm text-skyhug-500 ml-4"
+                      onClick={async () => {
+                        await invalidateFrom(message.id);
+                        await regenerateAfter(message.id);
+                      }}
+                    >
+                      Regenerate from here
+                    </button>
                   )}
-                </Button>
-              )}
-              </div>
+                 </>
+               )}
+             </div>
             ))}
             {isProcessing && <TypingIndicator />}
             {showReminder && (
@@ -232,7 +261,7 @@ const handlePlayAudio = (messageId?: string | null) => {
            <VoiceRecorder
             onVoiceRecorded={onVoiceRecorded}
             isDisabled={isProcessing}
-            shouldPauseRecognition={isPlayingAudio}
+            shouldPauseRecognition={Boolean(editingId) || isPlayingAudio}
             onRecognitionPaused={() => console.log("mic paused")}
             onRecognitionResumed={() => console.log("mic resumed")}
           />

@@ -212,17 +212,49 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const editMessage = async (id: string, content: string) => {
+  const editMessage = async (id: string, newContent: string) => {
     if (!conversationId) return;
+  
     setIsProcessing(true);
-    const { error } = await supabase
+  
+    // 1) Update the edited message
+    await supabase
       .from("messages")
-      .update({ transcription: content })
+      .update({
+        transcription: newContent,
+        edited_at: new Date().toISOString(),
+      })
       .eq("id", id);
-    if (error) {
-      console.error("Error editing message:", error);
+  
+    // 2) Invalidate every downstream message
+    //    (those with created_at > the edited one)
+    const { data: orig } = await supabase
+      .from("messages")
+      .select("created_at")
+      .eq("id", id)
+      .single();
+  
+    if (orig?.created_at) {
+      await supabase
+        .from("messages")
+        .update({ invalidated: true })
+        .eq("conversation_id", conversationId)
+        .gt("created_at", orig.created_at);
     }
-    // supabase subscription will push the updated row into setMessages
+  
+    // 3) Mark conversation to re-summarize
+    await supabase
+      .from("conversations")
+      .update({ needs_resummarization: true })
+      .eq("id", conversationId);
+  
+    // 4) Re-enqueue this message for AI reply
+    //    by resetting its ai_status to “pending”
+    await supabase
+      .from("messages")
+      .update({ ai_status: "pending", invalidated: false })
+      .eq("id", id);
+  
     setIsProcessing(false);
   };
 
