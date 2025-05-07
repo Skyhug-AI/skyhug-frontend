@@ -40,6 +40,7 @@ const SessionRoom = () => {
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const voiceTimeoutRef = useRef<number | null>(null);
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
+  const snippetCountMap = useRef<Record<string, number>>({});
   const playedSnippetsRef = useRef<Set<string>>(new Set());
   const [snippetUrls, setSnippetUrls] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,6 +58,17 @@ const SessionRoom = () => {
       ? { ...m, snippet_url: snippetUrls[m.id] }
       : m
   );
+
+  useEffect(() => {
+    // build a sentence-count lookup for each assistant message
+    displayedMessages.forEach(msg => {
+      if (!msg.isUser && snippetCountMap.current[msg.id] == null) {
+        // split on end-of-sentence punctuation (includes the delimiter)
+        const sentences = msg.content.split(/(?<=[.!?])\s+/);
+        snippetCountMap.current[msg.id] = sentences.length;
+      }
+    });
+  }, [displayedMessages]);
 
 
   const scrollToBottom = () => {
@@ -195,7 +207,7 @@ const SessionRoom = () => {
     sendMessage(trimmed);
   };
   
-  const handlePlayAudio = (messageId?: string | null) => {
+  const handlePlayAudio = (messageId?: string | null, snippetIndex: number = 0) => {
     if (!messageId || streamedMap[messageId]) return;
   
     // if re-clicking the same clip, toggle pause/resume
@@ -223,7 +235,7 @@ const SessionRoom = () => {
     setIsPaused(false);
   
     // 1) point at your streaming endpoint
-    const url = `${STREAM_BASE}/tts-stream/${messageId}`;
+    const url = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`;
     const audio = new Audio();
     audio.src = url;
     audio.preload = "auto";
@@ -254,12 +266,18 @@ const SessionRoom = () => {
   
     // 3) clean up on end / error
     audio.onended = () => {
-      setIsMicLocked(false);
-      setCurrentlyPlayingPath(null);
-      setIsPaused(false);
-      audioRef.current = null;
-      setStreamedMap(prev => ({ ...prev, [messageId]: true }));
-    };
+            // if there’s another snippet, play it
+            const total = snippetCountMap.current[messageId] || 0;
+            if (snippetIndex + 1 < total) {
+              handlePlayAudio(messageId, snippetIndex + 1);
+            } else {
+              setIsMicLocked(false);
+              setCurrentlyPlayingPath(null);
+              setIsPaused(false);
+              audioRef.current = null;
+              setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+            }
+          };
     audio.onerror = (e) => {
       console.error("🔊 stream playback error", e);
       if (voiceTimeoutRef.current) {
