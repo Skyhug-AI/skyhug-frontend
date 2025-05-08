@@ -44,7 +44,7 @@ const SessionRoom = () => {
   const playedSnippetsRef = useRef<Set<string>>(new Set());
   const [snippetUrls, setSnippetUrls] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
+  const initialAssistantCount = useRef(0);
 
 
 
@@ -58,6 +58,32 @@ const SessionRoom = () => {
       ? { ...m, snippet_url: snippetUrls[m.id] }
       : m
   );
+
+  useEffect(() => {
+    initialAssistantCount.current = displayedMessages.filter(m => !m.isUser).length;
+
+    // helper to pause & clear our single Audio instance
+      const stopAudio = () => {
+          if (!audioRef.current) return;
+          const audio = audioRef.current;
+          audio.pause();
+          // only set currentTime if duration is a valid finite number
+          if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
+            audio.currentTime = audio.duration;
+          }
+          audioRef.current = null;
+        };
+  
+    // 1) When the browser is about to unload (close/refresh), stop audio
+    window.addEventListener("beforeunload", stopAudio);
+  
+    return () => {
+      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
+      stopAudio();
+      window.removeEventListener("beforeunload", stopAudio);
+    };
+  }, []);
+
 
   useEffect(() => {
     // for every new assistant message, figure out how many snippets it needs
@@ -94,40 +120,16 @@ const SessionRoom = () => {
     }
   }, [currentlyPlayingPath]);
 
-
-  useEffect(() => {
-    // helper to pause & clear our single Audio instance
-      const stopAudio = () => {
-          if (!audioRef.current) return;
-          const audio = audioRef.current;
-          audio.pause();
-          // only set currentTime if duration is a valid finite number
-          if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
-            audio.currentTime = audio.duration;
-          }
-          audioRef.current = null;
-        };
-  
-    // 1) When the browser is about to unload (close/refresh), stop audio
-    window.addEventListener("beforeunload", stopAudio);
-  
-    return () => {
-      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
-      stopAudio();
-      window.removeEventListener("beforeunload", stopAudio);
-    };
-  }, []);
-
-
   useEffect(() => {
     if (!isVoiceMode) return;
-
-    for (const msg of displayedMessages) {
-      if (msg.isUser) continue;
-
-      // 1) Snippet available?
+  
+    // only look at replies beyond what we started with
+    const assistants = displayedMessages.filter(m => !m.isUser);
+    for (let i = initialAssistantCount.current; i < assistants.length; i++) {
+      const msg = assistants[i];
+  
+      // Snippet available?
       if (msg.snippet_url && !playedSnippetsRef.current.has(msg.id)) {
-        // stop the thinking spinner
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
         const introAudio = new Audio(msg.snippet_url);
@@ -135,8 +137,8 @@ const SessionRoom = () => {
         handlePlayAudio(msg.id);
         return;
       }
-
-      // 2) Fallback to full stream
+  
+      // Fallback to full stream
       if (!playedSnippetsRef.current.has(msg.id) && !streamedMap[msg.id]) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
@@ -145,6 +147,7 @@ const SessionRoom = () => {
       }
     }
   }, [displayedMessages, isVoiceMode]);
+  
 
   useEffect(() => {
     if (!conversationId) return;
