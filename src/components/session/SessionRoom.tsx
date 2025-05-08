@@ -225,6 +225,8 @@ const SessionRoom = () => {
         audioRef.current.play();
         setIsPaused(false);
         setIsMicLocked(true);
+        // also resume ASR
+        handleRecognitionResumed();
       } else {
         audioRef.current.pause();
         setIsPaused(true);
@@ -242,6 +244,9 @@ const SessionRoom = () => {
     setIsMicLocked(true);
     setCurrentlyPlayingPath(messageId);
     setIsPaused(false);
+
+    // **PAUSE RECOGNITION NOW**
+    handleRecognitionPaused();
   
     // 1) point at your streaming endpoint
     const url = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`;
@@ -266,6 +271,8 @@ const SessionRoom = () => {
           clearTimeout(voiceTimeoutRef.current);
           voiceTimeoutRef.current = null;
         }
+        // ensure ASR is paused once we really start
+        handleRecognitionPaused();
       }
     });
   
@@ -285,6 +292,8 @@ const SessionRoom = () => {
               setIsPaused(false);
               audioRef.current = null;
               setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+              // **RESUME RECOGNITION NOW**
+              handleRecognitionResumed();
             }
           };
     audio.onerror = (e) => {
@@ -296,6 +305,8 @@ const SessionRoom = () => {
       setIsMicLocked(false);
       setCurrentlyPlayingPath(null);
       setVoiceUnavailable(true);
+      // if playback fails we still want to resume ASR
+      handleRecognitionResumed();
     };
   
     // stash and kick off load+play
