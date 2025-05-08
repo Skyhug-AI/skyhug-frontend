@@ -32,6 +32,8 @@ const SessionRoom = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const initialPlaybackRef = useRef(true);
+  const autoPlayRef = useRef(true);
   const [isPaused, setIsPaused] = useState(false);
   const lastSendRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
   const [waitingForResponse, setWaitingForResponse] = useState(false);
@@ -44,7 +46,9 @@ const SessionRoom = () => {
   const playedSnippetsRef = useRef<Set<string>>(new Set());
   const [snippetUrls, setSnippetUrls] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
+  const greetingPlayedRef = useRef(false);
+
+
 
 
 
@@ -59,21 +63,44 @@ const SessionRoom = () => {
       : m
   );
 
+  const aiMessages = displayedMessages.filter(m => !m.isUser);
+  const lastAIId = aiMessages.length ? aiMessages[aiMessages.length - 1].id : null;
+
   useEffect(() => {
-    // for every new assistant message, figure out how many snippets it needs
+    // ─── your existing snippet-seeding ───
     displayedMessages.forEach(msg => {
       if (!msg.isUser && snippetCountMap.current[msg.id] == null) {
-        const sentences = msg.content.split(/(?<=[.!?])\s+/)
-        snippetCountMap.current[msg.id] = sentences.length
+        const sentences = msg.content.split(/(?<=[.!?])\s+/);
+        snippetCountMap.current[msg.id] = sentences.length;
   
-        // seed the very first snippet URL so your UI sees it immediately
         setSnippetUrls(prev => ({
           ...prev,
           [msg.id]: `${STREAM_BASE}/tts-stream/${msg.id}?snippet=0`
-        }))
+        }));
       }
-    })
-  }, [displayedMessages])
+    });
+  
+    // ─── new: auto-play greeting only on first load ───
+    if (
+      isVoiceMode &&
+      conversationId &&
+      displayedMessages.length === 1 &&          
+      displayedMessages[0].isGreeting &&        
+      !greetingPlayedRef.current              
+    ) {
+      greetingPlayedRef.current = true;
+      sessionStorage.setItem(`greetingPlayed-${conversationId}`, 'true')
+      handlePlayAudio(displayedMessages[0].id);
+    }
+  }, [displayedMessages, isVoiceMode, conversationId]);
+  
+    // whenever you flip back into Voice Mode, skip playback once
+    useEffect(() => {
+      if (isVoiceMode) {
+        initialPlaybackRef.current = true;
+        autoPlayRef.current = true;
+      }
+    }, [isVoiceMode]);
 
 
   const scrollToBottom = () => {
@@ -96,38 +123,39 @@ const SessionRoom = () => {
 
 
   useEffect(() => {
-    // helper to pause & clear our single Audio instance
-      const stopAudio = () => {
-          if (!audioRef.current) return;
-          const audio = audioRef.current;
-          audio.pause();
-          // only set currentTime if duration is a valid finite number
-          if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
-            audio.currentTime = audio.duration;
-          }
-          audioRef.current = null;
-        };
+    const stopAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = audioRef.current.duration || 0;
+        audioRef.current = null;
+      }
+    };
   
-    // 1) When the browser is about to unload (close/refresh), stop audio
+    // also guard against full‐page reloads
     window.addEventListener("beforeunload", stopAudio);
   
     return () => {
-      // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
       stopAudio();
       window.removeEventListener("beforeunload", stopAudio);
     };
   }, []);
-
+  
 
   useEffect(() => {
     if (!isVoiceMode) return;
-
+    if (!autoPlayRef.current) return;
+  
+    // Skip the very first run on mount or voice-toggle
+    if (initialPlaybackRef.current) {
+      initialPlaybackRef.current = false;
+      return;
+    }
+  
     for (const msg of displayedMessages) {
       if (msg.isUser) continue;
-
-      // 1) Snippet available?
+  
+      // snippet available?
       if (msg.snippet_url && !playedSnippetsRef.current.has(msg.id)) {
-        // stop the thinking spinner
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
         const introAudio = new Audio(msg.snippet_url);
@@ -135,8 +163,8 @@ const SessionRoom = () => {
         handlePlayAudio(msg.id);
         return;
       }
-
-      // 2) Fallback to full stream
+  
+      // fallback to full stream
       if (!playedSnippetsRef.current.has(msg.id) && !streamedMap[msg.id]) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
@@ -144,10 +172,16 @@ const SessionRoom = () => {
         return;
       }
     }
-  }, [displayedMessages, isVoiceMode]);
+  }, [displayedMessages, isVoiceMode, streamedMap]);
+  
 
   useEffect(() => {
     if (!conversationId) return;
+
+    if (sessionStorage.getItem(`greetingPlayed-${conversationId}`)) {
+      greetingPlayedRef.current = true;
+    }
+
     const channel = supabase
       .channel(`snippet-updates-${conversationId}`)
       .on(
@@ -215,6 +249,7 @@ const SessionRoom = () => {
   
   const handlePlayAudio = (messageId?: string|null, snippetIndex = 0) => {
     if (!messageId || streamedMap[messageId]) return
+    autoPlayRef.current = false;         // turn off auto-play forever
   
     const streamUrl = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`
     console.log(`▶️  play snippet ${snippetIndex} of ${messageId}:`, streamUrl)
@@ -409,7 +444,7 @@ const interruptPlayback = () => {
       )}
 
       {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-      {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
+      {!message.isUser && isVoiceMode && message.id === lastAIId && !streamedMap[message.id] && (
         <Button
           variant="ghost"
           size="sm"
