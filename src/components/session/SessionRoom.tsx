@@ -376,9 +376,7 @@ const SessionRoom = () => {
           setVoiceActive(true);          // now show the VoiceRecorder
           setVoiceEnabled(true);         // update your TherapistContext
         }
-
-
-      }, 800);                             // ~800ms gives plenty of buffer
+      }, 1);                             
 
 
     };
