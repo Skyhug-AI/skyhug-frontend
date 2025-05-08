@@ -127,17 +127,21 @@ const SessionRoom = () => {
     // grab just the assistant messages
     const assistants = displayedMessages.filter(m => !m.isUser);
   
-    // 1) First time ever: silently "play" the history
+    // ────────────────────────────────────────────────────────────────────────────
+    // 1) First time ever: silently "play" only _history_, but skip the greeting
     if (!initialHistoryConsumed.current) {
-      assistants.forEach(m => {
+      // history = everything except the greeting
+      const historyAssistants = assistants.filter(m => !m.isGreeting);
+      historyAssistants.forEach(m => {
         playedSnippetsRef.current.add(m.id);
         setStreamedMap(prev => ({ ...prev, [m.id]: true }));
       });
-      // remember how many there were so we skip them next time
-      initialAssistantCount.current = assistants.length;
+      // record how many we consumed so we start _after_ them
+      initialAssistantCount.current = historyAssistants.length;
       initialHistoryConsumed.current = true;
       return;
     }
+    // ────────────────────────────────────────────────────────────────────────────
   
     // 2) Now for real: autoplay only the messages beyond that snapshot
     for (let i = initialAssistantCount.current; i < assistants.length; i++) {
@@ -146,8 +150,7 @@ const SessionRoom = () => {
       if (msg.snippet_url && !playedSnippetsRef.current.has(msg.id)) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
-        const introAudio = new Audio(msg.snippet_url);
-        introAudio.play().catch(console.error);
+        //new Audio(msg.snippet_url).play().catch(console.error);
         handlePlayAudio(msg.id);
         return;
       }
@@ -160,6 +163,7 @@ const SessionRoom = () => {
       }
     }
   }, [displayedMessages, isVoiceMode]);
+  
 
   useEffect(() => {
     if (!conversationId) return;
