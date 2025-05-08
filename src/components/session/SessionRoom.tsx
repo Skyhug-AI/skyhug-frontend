@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import ChatBubble from "@/components/chat/ChatBubble";
@@ -45,6 +45,7 @@ const SessionRoom = () => {
   const [snippetUrls, setSnippetUrls] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const initialAssistantCount = useRef(0);
+  const initialHistoryConsumed = useRef(false);
 
 
 
@@ -123,12 +124,25 @@ const SessionRoom = () => {
   useEffect(() => {
     if (!isVoiceMode) return;
   
-    // only look at replies beyond what we started with
+    // grab just the assistant messages
     const assistants = displayedMessages.filter(m => !m.isUser);
+  
+    // 1) First time ever: silently "play" the history
+    if (!initialHistoryConsumed.current) {
+      assistants.forEach(m => {
+        playedSnippetsRef.current.add(m.id);
+        setStreamedMap(prev => ({ ...prev, [m.id]: true }));
+      });
+      // remember how many there were so we skip them next time
+      initialAssistantCount.current = assistants.length;
+      initialHistoryConsumed.current = true;
+      return;
+    }
+  
+    // 2) Now for real: autoplay only the messages beyond that snapshot
     for (let i = initialAssistantCount.current; i < assistants.length; i++) {
       const msg = assistants[i];
   
-      // Snippet available?
       if (msg.snippet_url && !playedSnippetsRef.current.has(msg.id)) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
@@ -138,7 +152,6 @@ const SessionRoom = () => {
         return;
       }
   
-      // Fallback to full stream
       if (!playedSnippetsRef.current.has(msg.id) && !streamedMap[msg.id]) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
@@ -147,7 +160,6 @@ const SessionRoom = () => {
       }
     }
   }, [displayedMessages, isVoiceMode]);
-  
 
   useEffect(() => {
     if (!conversationId) return;
@@ -171,6 +183,27 @@ const SessionRoom = () => {
   
     return () => supabase.removeChannel(channel);
   }, [conversationId]);
+
+  // HIDE PLAY BUTTON FOR EARLIER MESSAGES   
+  // 1) compute last assistant ID
+    const assistantMessages = useMemo(
+      () => displayedMessages.filter(m => !m.isUser),
+      [displayedMessages]
+    );
+    const lastAssistantId = assistantMessages.length
+      ? assistantMessages[assistantMessages.length - 1].id
+      : null;
+  
+    // 2) on first load of history, mark every existing assistant as “already played”
+    useEffect(() => {
+      if (initialHistoryConsumed.current) return;
+      if (assistantMessages.length === 0) return;
+      assistantMessages.forEach(m => {
+        playedSnippetsRef.current.add(m.id);
+        setStreamedMap(prev => ({ ...prev, [m.id]: true }));
+      });
+      initialHistoryConsumed.current = true;
+    }, [assistantMessages]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -423,7 +456,7 @@ const interruptPlayback = () => {
       )}
 
       {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-      {!message.isUser && isVoiceMode && !streamedMap[message.id] && (
+      {!message.isUser && isVoiceMode && message.id === lastAssistantId && !streamedMap[message.id] && (
         <Button
           variant="ghost"
           size="sm"
