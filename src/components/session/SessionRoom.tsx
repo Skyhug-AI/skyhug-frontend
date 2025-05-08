@@ -262,15 +262,19 @@ const SessionRoom = () => {
     // if re-clicking the same clip, toggle pause/resume
     if (currentlyPlayingPath === messageId && audioRef.current) {
       if (audioRef.current.paused) {
+        // going from PAUSED -> PLAYING:
         audioRef.current.play();
         setIsPaused(false);
         setIsMicLocked(true);
-        // also resume ASR
-        handleRecognitionResumed();
+        // keep ASR paused
+        handleRecognitionPaused();
       } else {
+        // going from PLAYING -> PAUSED:
         audioRef.current.pause();
         setIsPaused(true);
         setIsMicLocked(false);
+        // let ASR pick back up
+        handleRecognitionResumed();
       }
       return;
     }
