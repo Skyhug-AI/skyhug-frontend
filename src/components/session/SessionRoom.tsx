@@ -46,6 +46,9 @@ const SessionRoom = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const initialAssistantCount = useRef(0);
   const initialHistoryConsumed = useRef(false);
+  const [voiceActive, setVoiceActive] = useState(false);
+  const greetingIdRef = useRef<string | null>(null);
+  const greetingPlayedRef = useRef(false);
 
 
 
@@ -163,6 +166,21 @@ const SessionRoom = () => {
       }
     }
   }, [displayedMessages, isVoiceMode]);
+
+  useEffect(() => {
+    // only in voice mode, only on first load, only when the greeting is the sole message:
+    if (
+      isVoiceMode &&
+      displayedMessages.length === 1 &&
+      displayedMessages[0].isGreeting &&
+      !greetingPlayedRef.current
+    ) {
+      const id = displayedMessages[0].id;
+      greetingPlayedRef.current = true;
+      greetingIdRef.current = id;
+      handlePlayAudio(id);
+    }
+  }, [displayedMessages, isVoiceMode]);
   
 
   useEffect(() => {
@@ -227,6 +245,9 @@ const SessionRoom = () => {
   };
 
   const handleVoiceRecorded = (transcript: string) => {
+    // ①  Drop any ASR interim results while TTS is playing
+    if (!voiceActive || currentlyPlayingPath) return;
+
     console.log("🎤 ASR returned:", transcript)
     const trimmed = transcript.trim();
     if (!trimmed) return;
@@ -255,6 +276,10 @@ const SessionRoom = () => {
   
   const handlePlayAudio = (messageId?: string|null, snippetIndex = 0) => {
     if (!messageId || streamedMap[messageId]) return
+
+    // LOCK the mic immediately (this will flip shouldPauseRecognition=true)
+    setIsMicLocked(true);
+    setCurrentlyPlayingPath(messageId);
   
     const streamUrl = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`
     console.log(`▶️  play snippet ${snippetIndex} of ${messageId}:`, streamUrl)
@@ -332,23 +357,32 @@ const SessionRoom = () => {
   
     // 3) clean up on end / error
     audio.onended = () => {
-            // if there’s another snippet, play it
-            const total = snippetCountMap.current[messageId] || 0;
-            if (snippetIndex + 1 < total) {
-              handlePlayAudio(messageId, snippetIndex + 1);
-            } else {
-              setIsMicLocked(false);
-              setCurrentlyPlayingPath(null);
-              setIsPaused(false);
-              audioRef.current = null;
-              setStreamedMap(prev => ({ ...prev, [messageId]: true }));
-              // **RESUME RECOGNITION NOW**
-                  // **DELAY** 
-            setTimeout(() => {
-              handleRecognitionResumed();
-            }, 1000);
-            }
-          };
+      const total = snippetCountMap.current[messageId] || 0;
+      if (snippetIndex + 1 < total) {
+        return handlePlayAudio(messageId, snippetIndex + 1);
+      }
+    
+      // final snippet has finished — gate everything behind a delay
+      setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+    
+      // wait a bit for the browser’s audio stack to fully tear down
+      setTimeout(() => {
+        setIsMicLocked(false);             // unlock mic
+        setIsPaused(false);
+        audioRef.current = null;           // drop your ref
+        setCurrentlyPlayingPath(null);     // now clear “playing” flag
+        handleRecognitionResumed();        // and finally let ASR resume
+        if (messageId === greetingIdRef.current) {
+          setVoiceActive(true);          // now show the VoiceRecorder
+          setVoiceEnabled(true);         // update your TherapistContext
+        }
+
+
+      }, 800);                             // ~800ms gives plenty of buffer
+
+
+    };
+    
     audio.onerror = (e) => {
       console.error("🔊 stream playback error", e);
       if (voiceTimeoutRef.current) {
@@ -372,7 +406,12 @@ const SessionRoom = () => {
   
   const handleRecognitionResumed = () => {
     console.log("Voice recognition resumed");
-    setRecognitionPaused(false);
+      // if there’s still audio playing, ignore this resume
+      // if (currentlyPlayingPath) {
+      //   console.log("Ignoring premature resume; audio still playing");
+      //   return;
+      // }
+      setRecognitionPaused(false);
   };
 
 const interruptPlayback = () => {
@@ -568,11 +607,11 @@ const interruptPlayback = () => {
           </div>
 
           <div className="flex gap-2">
-            {isVoiceMode ? (
+            {isVoiceMode && voiceActive? (
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
                 isDisabled={isProcessing}
-                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse || recognitionPaused }
+                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse || Boolean(currentlyPlayingPath) }
                 onRecognitionPaused={handleRecognitionPaused}
                 onRecognitionResumed={handleRecognitionResumed}
                 onInterruptPlayback={interruptPlayback} 
