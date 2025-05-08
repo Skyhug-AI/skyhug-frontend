@@ -13,6 +13,7 @@ import ChatPage from "./pages/ChatPage";
 import VoicePage from "./pages/VoicePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 import PastSessionsPage from "./pages/PastSessionsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route 
                 path="/therapists" 

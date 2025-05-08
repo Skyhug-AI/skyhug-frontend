@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +15,7 @@ import SocialLoginButton from '@/components/auth/SocialLoginButton';
 import Logo from '@/components/Logo';
 import CloudBackground from '@/components/CloudBackground';
 import SunriseGradientBackground from '@/components/SunriseGradientBackground';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -21,21 +23,26 @@ const loginSchema = z.object({
 });
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const resetSchema = z.object({
+  email: z.string().email('Please enter a valid email address')
+});
+type ResetFormValues = z.infer<typeof resetSchema>;
+
 const LoginPage = () => {
   const {
     login,
-    loading
+    loading,
+    resetPassword
   } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: {
-      errors
-    }
+    formState: { errors }
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -44,11 +51,21 @@ const LoginPage = () => {
     }
   });
 
+  const {
+    register: registerReset,
+    handleSubmit: handleResetSubmit,
+    formState: { errors: resetErrors },
+    reset: resetForm
+  } = useForm<ResetFormValues>({
+    resolver: zodResolver(resetSchema),
+    defaultValues: {
+      email: ''
+    }
+  });
+
   const handleGoogleSignIn = async () => {
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/home`
@@ -81,6 +98,27 @@ const LoginPage = () => {
     }
   };
 
+  const onResetSubmit = async (data: ResetFormValues) => {
+    setResettingPassword(true);
+    try {
+      await resetPassword(data.email);
+      toast({
+        title: 'Password reset email sent',
+        description: 'Please check your email for password reset instructions.'
+      });
+      setResetDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      toast({
+        title: 'Password reset failed',
+        description: 'Unable to send password reset email. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <SunriseGradientBackground />
@@ -108,10 +146,53 @@ const LoginPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2 text-[15px] text-[#616161] font-normal">
-                  <Lock className="h-4 w-4 text-[#9b9b9b]" />
-                  Password
-                </Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password" className="flex items-center gap-2 text-[15px] text-[#616161] font-normal">
+                    <Lock className="h-4 w-4 text-[#9b9b9b]" />
+                    Password
+                  </Label>
+                  <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                    <DialogTrigger asChild>
+                      <button type="button" className="text-sm text-serenity-600 hover:text-serenity-700 hover:underline transition-colors">
+                        Forgot password?
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px] bg-white/90 backdrop-blur-sm">
+                      <DialogHeader>
+                        <DialogTitle className="text-center">Reset Your Password</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleResetSubmit(onResetSubmit)} className="space-y-4 pt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="reset-email" className="text-[15px]">
+                            Email Address
+                          </Label>
+                          <Input 
+                            id="reset-email" 
+                            type="email" 
+                            placeholder="Enter your email address" 
+                            className="bg-[#f7f7fb] border-transparent" 
+                            {...registerReset('email')} 
+                          />
+                          {resetErrors.email && (
+                            <p className="text-sm text-rose-300 mt-1">{resetErrors.email.message}</p>
+                          )}
+                        </div>
+                        <p className="text-sm text-[#9b9b9b]">
+                          Enter your email address and we'll send you instructions to reset your password.
+                        </p>
+                        <DialogFooter className="pt-4">
+                          <Button 
+                            type="submit" 
+                            className="w-full h-10 bg-serenity-600 hover:bg-serenity-700" 
+                            disabled={resettingPassword}
+                          >
+                            {resettingPassword ? 'Sending Reset Instructions...' : 'Send Reset Instructions'}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <Input id="password" type="password" placeholder="••••••••" className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base" {...register('password')} />
                 {errors.password && <p className="text-sm text-rose-300 mt-1">{errors.password.message}</p>}
               </div>
