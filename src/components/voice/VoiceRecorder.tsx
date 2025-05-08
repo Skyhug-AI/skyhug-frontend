@@ -292,7 +292,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       <PulsatingMicButton
         isRecording={isRecording}
         onClick={toggleRecording}
-        disabled={isDisabled}
+        disabled={isDisabled }
       />
     </div>
   );

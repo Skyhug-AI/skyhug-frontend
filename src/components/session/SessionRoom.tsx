@@ -346,7 +346,7 @@ const SessionRoom = () => {
                   // **DELAY** 
             setTimeout(() => {
               handleRecognitionResumed();
-            }, 500);
+            }, 1000);
             }
           };
     audio.onerror = (e) => {
@@ -358,8 +358,6 @@ const SessionRoom = () => {
       setIsMicLocked(false);
       setCurrentlyPlayingPath(null);
       setVoiceUnavailable(true);
-      // if playback fails we still want to resume ASR
-      handleRecognitionResumed();
     };
   
     // stash and kick off load+play
@@ -390,9 +388,6 @@ const interruptPlayback = () => {
 
   // Unlock the mic immediately
   setIsMicLocked(false);
-
-  // And resume ASR
-  handleRecognitionResumed();
 
   // Clear your UI “playing” flags
   if (currentlyPlayingPath) {
