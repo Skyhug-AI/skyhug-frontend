@@ -343,7 +343,10 @@ const SessionRoom = () => {
               audioRef.current = null;
               setStreamedMap(prev => ({ ...prev, [messageId]: true }));
               // **RESUME RECOGNITION NOW**
+                  // **DELAY** 
+            setTimeout(() => {
               handleRecognitionResumed();
+            }, 500);
             }
           };
     audio.onerror = (e) => {
@@ -387,6 +390,9 @@ const interruptPlayback = () => {
 
   // Unlock the mic immediately
   setIsMicLocked(false);
+
+  // And resume ASR
+  handleRecognitionResumed();
 
   // Clear your UI “playing” flags
   if (currentlyPlayingPath) {
