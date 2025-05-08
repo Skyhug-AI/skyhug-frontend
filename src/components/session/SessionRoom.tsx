@@ -280,13 +280,14 @@ const SessionRoom = () => {
       audioRef.current.pause();
       audioRef.current = null;
     }
-  
+
+    // **PAUSE RECOGNITION NOW**
+    handleRecognitionPaused();
     setIsMicLocked(true);
     setCurrentlyPlayingPath(messageId);
     setIsPaused(false);
 
-    // **PAUSE RECOGNITION NOW**
-    handleRecognitionPaused();
+    
   
     // 1) point at your streaming endpoint
     const url = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`;
@@ -296,7 +297,12 @@ const SessionRoom = () => {
   
     // **NEW** force the browser to begin fetching & decoding immediately
     audio.load();
-  
+
+    // double-safety: whenever the audio actually begins playing, re-pause ASR
+    audio.addEventListener("play", () => {
+      handleRecognitionPaused();
+    });
+    
     // 2) verify streaming is chunked
     audio.addEventListener("progress", () => {
       console.log("⏳ buffered:", audio.buffered);
@@ -561,7 +567,7 @@ const interruptPlayback = () => {
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
                 isDisabled={isProcessing}
-                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse}
+                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse || recognitionPaused }
                 onRecognitionPaused={handleRecognitionPaused}
                 onRecognitionResumed={handleRecognitionResumed}
                 onInterruptPlayback={interruptPlayback} 
