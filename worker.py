@@ -71,22 +71,22 @@ You reflect feelings, normalize experiences, and offer practical next steps with
 
 Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms. 
 If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind 
-them that you're an AI and not a substitute for professional care.
+them that you're an AI and not a substitute for professional care — **but only after you've explored the feeling deeply and given the user space to reflect.**
 
 Your structure for each response should be:
 1. Empathic reflection
 2. Gentle validation and normalization
-3. Simple, supportive guidance
-4. Invite to continue sharing
+3. Supportive guidance (e.g., explore, soothe, or understand — not just fix)
+4. Invite the user to keep sharing or go deeper
 
-Stay gentle, grounded, and curious.
+Stay gentle, grounded, and curious. When in doubt, ask open-ended questions to help the user explore their inner world.
 """.strip()
 
 SKY_EXAMPLE_DIALOG = [
     {"role":"user", "content":"I feel like I’m falling apart and no one understands me."},
     {"role":"assistant", "content":"I’m really sorry you’re feeling this way. It makes so much sense that you’d feel overwhelmed when it seems like no one truly sees what you’re going through. You’re not alone — many people carry this kind of invisible weight. Sometimes writing down your feelings or talking out loud can help bring a bit of clarity or relief. Would you like to explore that together?"},
-    {"role":"user", "content":"My anxiety has been through the roof lately."},
-    {"role":"assistant", "content":"That sounds incredibly intense. Anxiety can take over in ways that feel exhausting and scary. You’re doing something really brave by talking about it. Would it help to try a calming technique together, or talk through what’s been triggering it lately?"}
+    {"role": "user", "content": "My chest gets tight and I can’t focus when I’m around people."},
+    {"role": "assistant", "content": "That sounds so uncomfortable. Feeling that kind of pressure in social situations can be really overwhelming. You're not alone in this — many people find those moments incredibly hard to manage. What do you think makes those moments feel especially intense for you?"}
 ]
 
 # ─── Function Definition for Suicidal Mentions ───────────────────────────────
@@ -252,6 +252,7 @@ def handle_ai_record(msg):
 
         print("Selected model:", model_name)
 
+        # ── Generate and store assistant reply ────────────────────────────────────────
         if not voice_mode:
             # —— CHAT MODE: stream deltas into the DB ——
             insert_resp = (
@@ -262,7 +263,7 @@ def handle_ai_record(msg):
                     "sender_role":     "assistant",
                     "assistant_text":  "",
                     "ai_status":       "pending",
-                    "ai_started": "false",  
+                    "ai_started":      False,
                     "tts_status":      "done"
                 })
                 .execute()
@@ -279,9 +280,27 @@ def handle_ai_record(msg):
             )
 
             accumulated = ""
+            finish_reason = None
             for chunk in stream:
                 delta = chunk.choices[0].delta.content or ""
                 accumulated += delta
+                if chunk.choices[0].finish_reason:
+                    finish_reason = chunk.choices[0].finish_reason
+                supabase.table("messages") \
+                    .update({"assistant_text": accumulated}) \
+                    .eq("id", mid) \
+                    .execute()
+
+            # if truncated or cut off mid-sentence, fetch a continuation
+            if finish_reason == "length" or not accumulated.strip().endswith((".", "!", "?")):
+                cont = openai_client.chat.completions.create(
+                    model=model_name,
+                    messages=payload + [{"role": "assistant", "content": accumulated}],
+                    temperature=0.7,
+                    max_tokens=200
+                )
+                extra = cont.choices[0].message.content or ""
+                accumulated = accumulated.rstrip() + " " + extra.strip()
                 supabase.table("messages") \
                     .update({"assistant_text": accumulated}) \
                     .eq("id", mid) \
@@ -295,7 +314,7 @@ def handle_ai_record(msg):
 
         else:
             # —— VOICE MODE: full GPT → streaming snippet URL ——
-            gpt = openai_client.chat.completions.create(
+            resp = openai_client.chat.completions.create(
                 model=model_name,
                 messages=payload,
                 temperature=0.7,
@@ -303,18 +322,35 @@ def handle_ai_record(msg):
                 functions=FUNCTION_DEFS,
                 function_call="auto"
             )
-            choice = gpt.choices[0].message
+            choice = resp.choices[0].message
 
+            # handle function calls (e.g. suicidal mentions)
             if getattr(choice, "function_call", None):
-                args    = json.loads(choice.function_call.arguments)
+                args = json.loads(choice.function_call.arguments)
                 content = (
                     "I'm so sorry you’re feeling this way. "
                     f"If you ever think about harming yourself, call {args['hotline_number']}."
                 )
             else:
+                # base content
                 content = choice.content or ""
 
-            # 1) insert the full assistant_text, leave snippet_url blank for now
+                # if truncated or cut off mid-sentence, fetch continuation
+                finish_reason = resp.choices[0].finish_reason
+                if finish_reason == "length" or not content.strip().endswith((".", "!", "?")):
+                    cont = openai_client.chat.completions.create(
+                        model=model_name,
+                        messages=payload + [{"role": "assistant", "content": content}],
+                        temperature=0.7,
+                        max_tokens=200,
+                        functions=FUNCTION_DEFS,
+                        function_call="auto"
+                    )
+                    cont_choice = cont.choices[0].message
+                    extra = cont_choice.content or ""
+                    content = content.rstrip() + " " + extra.lstrip()
+
+            # insert the full assistant_text, leave snippet_url blank
             insert_resp = (
                 supabase
                 .table("messages")
@@ -330,8 +366,8 @@ def handle_ai_record(msg):
             )
             mid = insert_resp.data[0]["id"]
 
-            # 2) Immediately patch in the streaming snippet URL
-            snippet_url = f"/tts-stream/{mid}?snippet=1"
+            # seed the first snippet
+            snippet_url = f"/tts-stream/{mid}?snippet=0"
             try:
                 supabase.table("messages") \
                     .update({"snippet_url": snippet_url}) \
@@ -344,13 +380,14 @@ def handle_ai_record(msg):
                     .eq("id", mid) \
                     .execute()
 
-        # 3) Finally, clear the original user‐message’s ai_status
+        # ─── Clear original message status ───────────────────────────────────────────
         supabase.table("messages") \
             .update({"ai_status": "done"}) \
             .eq("id", msg["id"]) \
             .execute()
 
         print(f"✅ Assistant response created for message {msg['id']}")
+
 
     except Exception as e:
         print(f"❌ AI error for {msg['id']}: {e}")

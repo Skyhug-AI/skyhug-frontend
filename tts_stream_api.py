@@ -63,7 +63,7 @@ def warmup_elevenlabs_pool():
 
 
 @app.get("/tts-stream/{message_id}")
-async def tts_stream(message_id: str):
+async def tts_stream(message_id: str, snippet: int = 0):
     # 1) fetch & sanitize
     msg = (
         supabase
@@ -79,6 +79,12 @@ async def tts_stream(message_id: str):
         raise HTTPException(404, "No assistant_text for that message")
 
     sanitized = re.sub(r"[*/{}\[\]<>&#@_\\|+=%]", "", text)
+
+    # split into sentences (keep the delimiter on the end)
+    sentences = re.split(r'(?<=[.!?])\s+', sanitized)
+    if snippet < 0 or snippet >= len(sentences):
+        raise HTTPException(400, f"snippet index {snippet} out of range")
+    piece = sentences[snippet].strip()
 
     # 2) confirm voice mode
     convo = (
@@ -97,10 +103,10 @@ async def tts_stream(message_id: str):
     upstream = eleven_sess.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
         json={
-            "text": sanitized,
+            "text": piece,
             "voice_settings": {
-                "stability": 0.2,
-                "similarity_boost": 0.2,
+                "stability": 0.4,
+                "similarity_boost": 0.4,
                 "latency_boost": True,
             },
             "stream": True,

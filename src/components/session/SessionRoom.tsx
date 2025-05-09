@@ -88,6 +88,17 @@ const SessionRoom = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (
+      isVoiceMode &&
+      !voiceActive &&
+      displayedMessages.length > (displayedMessages[0]?.isGreeting ? 1 : 0)
+    ) {
+      setVoiceActive(true);
+      setVoiceEnabled(true);
+    }
+  }, [displayedMessages, isVoiceMode, voiceActive]);
+
 
   useEffect(() => {
     // for every new assistant message, figure out how many snippets it needs
@@ -376,9 +387,7 @@ const SessionRoom = () => {
           setVoiceActive(true);          // now show the VoiceRecorder
           setVoiceEnabled(true);         // update your TherapistContext
         }
-
-
-      }, 800);                             // ~800ms gives plenty of buffer
+      }, 1);                             
 
 
     };
