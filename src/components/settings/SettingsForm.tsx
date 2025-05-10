@@ -28,6 +28,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { User, Trash2, Save, Lock, SlidersHorizontal } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const SettingsForm = () => {
   const { user, logout } = useAuth();
@@ -35,9 +36,18 @@ const SettingsForm = () => {
   
   // Form state
   const [name, setName] = useState(user?.name || '');
-  const [preferredTherapistName, setPreferredTherapistName] = useState('Dr. Sky');
+  const [selectedTherapistId, setSelectedTherapistId] = useState('dr-sky');
   const [therapistStyle, setTherapistStyle] = useState([50]); // Middle of the scale (0-100)
   const [localStorageOnly, setLocalStorageOnly] = useState(true);
+  
+  // Therapist options
+  const therapists = [
+    { id: 'dr-sky', name: 'Dr. Sky', specialty: 'General Wellness', avatar: '/sky-avatar.png' },
+    { id: 'dr-morgan', name: 'Dr. Morgan', specialty: 'Anxiety', avatar: '/morgan-avatar.png' },
+    { id: 'dr-taylor', name: 'Dr. Taylor', specialty: 'Depression', avatar: '/taylor-avatar.png' },
+    { id: 'dr-jordan', name: 'Dr. Jordan', specialty: 'Stress Management', avatar: '/jordan-avatar.png' },
+    { id: 'dr-alex', name: 'Dr. Alex', specialty: 'Trauma', avatar: '/alex-avatar.png' },
+  ];
   
   const handleSaveSettings = () => {
     // In a real app, this would save to a backend
@@ -114,14 +124,29 @@ const SettingsForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="therapist-name">Preferred name for AI therapist</Label>
-            <Input 
-              id="therapist-name" 
-              value={preferredTherapistName} 
-              onChange={(e) => setPreferredTherapistName(e.target.value)} 
-              placeholder="Dr. Sky"
-            />
+          <div className="space-y-3">
+            <Label>Select your preferred therapist</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {therapists.map(therapist => (
+                <div 
+                  key={therapist.id}
+                  className={`flex items-start p-3 rounded-lg border cursor-pointer transition-colors ${
+                    selectedTherapistId === therapist.id 
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setSelectedTherapistId(therapist.id)}
+                >
+                  <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
+                    <AvatarFallback>{therapist.name[0]}{therapist.name.split(' ')[1]?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{therapist.name}</p>
+                    <p className="text-xs text-muted-foreground">{therapist.specialty}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
           
           <div className="space-y-4">
