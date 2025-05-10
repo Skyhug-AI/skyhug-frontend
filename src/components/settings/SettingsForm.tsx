@@ -26,7 +26,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, Save, Lock } from 'lucide-react';
+import { User, Trash2, Save, Lock, SlidersHorizontal } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 const SettingsForm = () => {
   const { user, logout } = useAuth();
@@ -35,8 +36,7 @@ const SettingsForm = () => {
   // Form state
   const [name, setName] = useState(user?.name || '');
   const [preferredTherapistName, setPreferredTherapistName] = useState('Dr. Sky');
-  const [genderPreference, setGenderPreference] = useState('neutral');
-  const [voicePreference, setVoicePreference] = useState('soft-female');
+  const [therapistStyle, setTherapistStyle] = useState([50]); // Middle of the scale (0-100)
   const [localStorageOnly, setLocalStorageOnly] = useState(true);
   
   const handleSaveSettings = () => {
@@ -102,15 +102,18 @@ const SettingsForm = () => {
         </CardContent>
       </Card>
       
-      {/* Therapist Preferences */}
+      {/* Therapist Preferences - Updated */}
       <Card>
         <CardHeader>
-          <CardTitle>Therapist Preferences</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <SlidersHorizontal className="h-5 w-5" />
+            Therapist Preferences
+          </CardTitle>
           <CardDescription>
             Customize your therapy experience
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="therapist-name">Preferred name for AI therapist</Label>
             <Input 
@@ -121,40 +124,38 @@ const SettingsForm = () => {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label>Gender preferences (optional)</Label>
-            <RadioGroup value={genderPreference} onValueChange={setGenderPreference} className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="female" id="female" />
-                <Label htmlFor="female" className="cursor-pointer">Female</Label>
+          <div className="space-y-4">
+            <Label>Therapist interaction style</Label>
+            
+            <div className="space-y-6 pt-2">
+              <div>
+                <div className="mb-4">
+                  <Slider 
+                    value={therapistStyle} 
+                    onValueChange={setTherapistStyle} 
+                    max={100} 
+                    step={1}
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>More agreeable</span>
+                  <span>More challenging</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="male" id="male" />
-                <Label htmlFor="male" className="cursor-pointer">Male</Label>
+              
+              <div className="rounded-lg bg-muted p-4">
+                <h4 className="font-medium mb-2">What does this mean?</h4>
+                <p className="text-sm text-muted-foreground">
+                  {therapistStyle[0] < 33 ? (
+                    "Your therapist will be more supportive and agreeable, focusing on validation and emotional support."
+                  ) : therapistStyle[0] < 66 ? (
+                    "Your therapist will balance support with gentle challenging, helping you reflect on your thoughts and behaviors."
+                  ) : (
+                    "Your therapist will more frequently challenge your perspectives and help you explore alternatives and growth opportunities."
+                  )}
+                </p>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="neutral" id="neutral" />
-                <Label htmlFor="neutral" className="cursor-pointer">Gender Neutral</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-2 pt-2">
-            <Label>Voice Options (for future)</Label>
-            <RadioGroup value={voicePreference} onValueChange={setVoicePreference} className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="soft-female" id="soft-female" />
-                <Label htmlFor="soft-female" className="cursor-pointer">Soft Female</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="calm-male" id="calm-male" />
-                <Label htmlFor="calm-male" className="cursor-pointer">Calm Male</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="neutral-voice" id="neutral-voice" />
-                <Label htmlFor="neutral-voice" className="cursor-pointer">Gender Neutral Voice</Label>
-              </div>
-            </RadioGroup>
+            </div>
           </div>
         </CardContent>
       </Card>
