@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Award, Flame, Sparkles } from 'lucide-react';
+import { Flame, Sparkles } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const ProfileStatsCard = () => {
@@ -13,8 +13,6 @@ const ProfileStatsCard = () => {
   
   const calmPoints = 720;
   const currentStreak = 3;
-  const badgesCount = 6;
-  const lastBadge = "First Night Session";
   
   return (
     <Card className="glass-panel mb-6">
@@ -54,14 +52,6 @@ const ProfileStatsCard = () => {
                   />
                 ))}
               </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-amber-500" />
-                <span className="text-sm font-medium">{badgesCount} badges earned</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Latest: {lastBadge}</span>
             </div>
           </div>
 

@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Award, Edit, Sparkles } from 'lucide-react';
+import { Edit, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { StreakVault } from '@/components/achievements/StreakVault';
 
@@ -14,8 +14,6 @@ const ProfilePage = () => {
   const navigate = useNavigate();
 
   const calmPoints = 720;
-  const badgesCount = 6;
-  const lastBadge = "First Night Session";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -48,23 +46,12 @@ const ProfilePage = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-skyhug-500" />
-                      <span className="font-medium">Calm Points</span>
-                    </div>
-                    <p className="text-2xl font-semibold">{calmPoints}</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-skyhug-500" />
+                    <span className="font-medium">Calm Points</span>
                   </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-amber-500" />
-                      <span className="font-medium">Badges Earned</span>
-                    </div>
-                    <p className="text-2xl font-semibold">{badgesCount}</p>
-                    <p className="text-sm text-muted-foreground">Latest: {lastBadge}</p>
-                  </div>
+                  <p className="text-2xl font-semibold">{calmPoints}</p>
                 </div>
               </CardContent>
             </Card>
