@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, MessageSquare } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const affirmations = [
   "You're exactly where you need to be on your healing journey",
@@ -27,8 +27,7 @@ const AffirmationCard = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">
-        <MessageSquare className="absolute left-0 top-0 h-5 w-5 text-indigo-200 opacity-50" />
-        <p className="text-base italic text-skyhug-700 leading-relaxed pl-8">
+        <p className="text-base italic text-skyhug-700 leading-relaxed">
           "{affirmations[index]}"
         </p>
       </CardContent>

@@ -124,7 +124,7 @@ const HomePage = () => {
 
           <div className="relative">
             <Progress value={20} className="h-3 rounded-full" indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
-            <span className="absolute right-0 top-4 text-xs text-gray-500">20% complete</span>
+            <span className="absolute left-0 top-4 text-xs text-gray-500">20% complete</span>
           </div>
 
           <ul className="space-y-3 text-sm text-gray-700 mt-6">
