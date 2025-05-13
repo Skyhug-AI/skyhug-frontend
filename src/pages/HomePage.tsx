@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -13,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
@@ -69,6 +71,15 @@ const HomePage = () => {
     },
   ];
 
+  const handleGoalClick = (type: string) => {
+    if (type === 'session') {
+      navigate("/session");
+    } else if (type === 'mood') {
+      // Open mood selection
+      setSelectedMood(3); // Default value
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
       <CloudBackground />
@@ -77,21 +88,13 @@ const HomePage = () => {
       </div>
       {/* <FloatingJournalButton /> */}
 
-      <main className="flex-grow p-6 md:p-10 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
+      <main className="flex-grow p-6 md:p-8 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
         {/* Top Header Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
             Welcome back, {firstName} <span className="wave">👋</span>
           </h1>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">
-              Calm Points: <strong>720</strong>
-            </span>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>{firstName[0]}</AvatarFallback>
-            </Avatar>
-          </div>
+          <p className="text-sm text-gray-500">You've earned 720 Calm Points 🌟</p>
         </div>
 
         {/* Action: Start Session CTA */}
@@ -113,26 +116,43 @@ const HomePage = () => {
         </div>
 
         {/* Goals + Calm Points */}
-        <div className="rounded-lg border p-5 space-y-4 bg-white shadow-sm">
+        <div className="rounded-lg border p-6 space-y-4 bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-gray-800">Today's Goals</h3>
             <span className="text-sm text-gray-500">20/100 Calm Points</span>
           </div>
 
-          <Progress
-            value={20}
-            className="h-2"
-            indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500"
-          />
+          <div className="relative">
+            <Progress value={20} className="h-3 rounded-full" indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
+            <span className="absolute right-0 top-4 text-xs text-gray-500">20% complete</span>
+          </div>
 
-          <ul className="space-y-3 text-sm text-gray-700">
-            <li className="flex items-center justify-between">
-              <span>✅ Completing a session</span>
-              <span className="text-indigo-600 font-semibold">+50</span>
+          <ul className="space-y-3 text-sm text-gray-700 mt-6">
+            <li 
+              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
+              onClick={() => handleGoalClick('session')}
+            >
+              <div className="flex items-center">
+                <span className="mr-2">✅</span>
+                <span>Completing a session</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-indigo-600 font-semibold">+50</span>
+                <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
+              </div>
             </li>
-            <li className="flex items-center justify-between">
-              <span>😊 Mood check-in</span>
-              <span className="text-indigo-600 font-semibold">+10</span>
+            <li 
+              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
+              onClick={() => handleGoalClick('mood')}
+            >
+              <div className="flex items-center">
+                <span className="mr-2">😊</span>
+                <span>Mood check-in</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-indigo-600 font-semibold">+10</span>
+                <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
+              </div>
             </li>
           </ul>
         </div>
