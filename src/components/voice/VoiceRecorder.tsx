@@ -136,21 +136,16 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error', event.error);
       
-        // Treat “no-speech” as an intentional stop:
+        // Treat "no-speech" as an intentional stop:
         if (event.error === 'no-speech') {
           // this will stop the recognizer, flip your flags, and fire onRecognitionPaused()
           pauseRecognition();
           return;
         }
       
-        // for any other errors, fall back to your existing error UI
+        // for any other errors, just set recording state to false without showing toast
         setIsRecording(false);
         setRecognitionManuallyPaused(false);
-        toast({
-          title: "Recording error",
-          description: "There was an error with the voice recording",
-          variant: "destructive",
-        });
       };
       
 
@@ -189,19 +184,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         recognition.start();
         setRecognitionInstance(recognition);
       } else {
-        toast({
-          title: "Not supported",
-          description: "Speech recognition is not supported in your browser",
-          variant: "destructive",
-        });
+        console.error('Speech recognition not supported in this browser');
       }
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      toast({
-        title: "Microphone error",
-        description: "Could not access the microphone",
-        variant: "destructive",
-      });
     }
   };
 
