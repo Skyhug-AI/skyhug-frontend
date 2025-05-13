@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Brain, HeadphonesIcon, PenLine, Smile } from 'lucide-react';
+import { Brain, HeadphonesIcon, Smile } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,11 +18,6 @@ const goalItems: DailyGoalItem[] = [{
   points: 50,
   icon: <HeadphonesIcon className="h-5 w-5 text-serenity-500 animate-pulse-gentle" />,
   path: '/session'
-}, {
-  action: "Logging a reflection",
-  points: 30,
-  icon: <PenLine className="h-5 w-5 text-violet-500" />,
-  path: '/journal'
 }, {
   action: "Mood check-in",
   points: 10,
