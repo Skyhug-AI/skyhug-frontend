@@ -29,6 +29,7 @@ import { Switch } from '@/components/ui/switch';
 import { User, Trash2, Save, Lock, SlidersHorizontal } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
 
 const SettingsForm = () => {
   const { user, logout } = useAuth();
@@ -36,6 +37,7 @@ const SettingsForm = () => {
   
   // Form state
   const [name, setName] = useState(user?.name || '');
+  const [userDescription, setUserDescription] = useState('');
   const [selectedTherapistId, setSelectedTherapistId] = useState('dr-sky');
   const [therapistStyle, setTherapistStyle] = useState([50]); // Middle of the scale (0-100)
   const [localStorageOnly, setLocalStorageOnly] = useState(true);
@@ -107,6 +109,20 @@ const SettingsForm = () => {
             />
             <p className="text-xs text-muted-foreground">
               Your email cannot be changed.
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="user-description">About You</Label>
+            <Textarea
+              id="user-description"
+              value={userDescription}
+              onChange={(e) => setUserDescription(e.target.value)}
+              placeholder="Tell us about yourself, your career, interests, and what brings you here..."
+              className="min-h-[120px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              This information helps our AI provide more personalized therapy sessions.
             </p>
           </div>
         </CardContent>
