@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
-import { Menu, LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, BookMarked, Bell, LayoutDashboard, Search } from 'lucide-react';
+import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboard, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -33,26 +33,26 @@ const Header = () => {
 
   return (
     <header className="w-full py-4 px-4 md:px-8 flex items-center justify-between bg-white sticky top-0 z-50 border-b border-border shadow-sm">
+      {/* Left: Logo */}
       <Logo />
       
-      <div className="hidden md:flex items-center gap-8">
-        <nav className="flex items-center gap-6">
-          {isAuthenticated && <button onClick={() => navigate('/home')} className={`transition-colors ${location.pathname === '/home' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'}`}>
-              Dashboard
-            </button>}
-          <button 
-            onClick={() => navigate('/session')} 
-            className={`transition-colors ${location.pathname === '/session' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'}`}
-          >
-            Start a Session
-          </button>
-          <button 
-            onClick={() => navigate('/therapists')} 
-            className={`transition-colors ${location.pathname === '/therapists' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'}`}
-          >
-            Find a Therapist
-          </button>
-        </nav>
+      {/* Center: Can be empty or minimal */}
+      <div className="hidden md:flex items-center">
+        {isAuthenticated && location.pathname === '/home' && 
+          <span className="text-sm font-medium text-muted-foreground">Dashboard</span>
+        }
+      </div>
+      
+      {/* Right: Session CTA + Profile */}
+      <div className="flex items-center gap-3">
+        {/* Session CTA Button */}
+        <Button 
+          onClick={() => navigate('/session')} 
+          className="hidden md:flex bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-full"
+          size="sm"
+        >
+          Start a Session
+        </Button>
         
         {isAuthenticated ? (
           <DropdownMenu>
@@ -73,9 +73,17 @@ const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate('/home')} className="cursor-pointer">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>View Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/therapists')} className="cursor-pointer">
+                <Search className="mr-2 h-4 w-4" />
+                <span>Find a Therapist</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Sparkles className="mr-2 h-4 w-4" />
@@ -110,11 +118,12 @@ const Header = () => {
         )}
       </div>
 
+      {/* Mobile menu */}
       <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
+              <LayoutDashboard className="h-6 w-6" />
             </Button>
           </SheetTrigger>
           <SheetContent>
