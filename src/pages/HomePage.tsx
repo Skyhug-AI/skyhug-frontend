@@ -63,9 +63,9 @@ const HomePage = () => {
         <Header />
       </div>
       <FloatingJournalButton />
-      
+
       <CloudBackground className="opacity-90" />
-      
+
       {/* Sun orb gradient as a decorative accent at the bottom */}
       <div
         className="fixed pointer-events-none"
@@ -84,7 +84,7 @@ const HomePage = () => {
           zIndex: 0,
         }}
       />
-      
+
       <main className="flex-grow px-4 pt-20 pb-8 relative z-10 max-w-5xl mx-auto w-full flex flex-col gap-8">
         <div className="text-center mb-4">
           <h1 className="text-3xl md:text-4xl font-medium mb-2 text-foreground">
@@ -92,11 +92,11 @@ const HomePage = () => {
           </h1>
           <p className="text-lg text-skyhug-600">Small steps make big shifts. Let's take one together.</p>
         </div>
-        
+
         <section>
           <EmotionalCheckInReminder />
           <DailyGoalsCard />
-          <MoodChart moodData={moodData} />
+          {/* <MoodChart moodData={moodData} /> */}
           <StreakTracker currentStreak={3} longestStreak={7} />
         </section>
 
@@ -104,11 +104,10 @@ const HomePage = () => {
           <AffirmationCard />
         </section>
       </main>
-      
+
       <Footer />
     </div>
   );
 };
 
 export default HomePage;
-
