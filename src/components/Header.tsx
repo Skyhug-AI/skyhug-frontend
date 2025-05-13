@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
@@ -84,14 +83,6 @@ const Header = () => {
               <DropdownMenuItem className="cursor-pointer">
                 <Award className="mr-2 h-4 w-4" />
                 <span>Earned Badges</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <BookMarked className="mr-2 h-4 w-4" />
-                <span>My Calm Kit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
-                <Bell className="mr-2 h-4 w-4" />
-                <span>Notifications</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
