@@ -81,7 +81,7 @@ const HomePage = () => {
       <main className="flex-grow p-6 md:p-10 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
         {/* Top Header Bar */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Welcome back, {firstName}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Welcome back, {firstName} <span className="wave">👋</span></h1>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-500">Calm Points: <strong>720</strong></span>
             <Avatar className="h-8 w-8">
