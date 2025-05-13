@@ -33,7 +33,7 @@ const MoodChart = ({ moodData }: MoodChartProps) => {
   };
 
   return (
-    <Card className="glass-panel mb-8 overflow-hidden">
+    {/* <Card className="glass-panel mb-8 overflow-hidden">
       <CardHeader className="border-b border-border/10 bg-white/30">
         <div className="flex items-center justify-between">
           <CardTitle>Mood Over Time</CardTitle>
@@ -107,7 +107,7 @@ const MoodChart = ({ moodData }: MoodChartProps) => {
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>
-    </Card>
+    </Card> */}
   );
 };
 
