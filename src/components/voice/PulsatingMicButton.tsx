@@ -59,40 +59,46 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       className={cn(
         "relative w-16 h-16 rounded-full overflow-visible transition-all duration-500",
         isRecording && isSpeaking ? "scale-110" : "scale-100",
-        {
-          "bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 animate-gradient-flow bg-gradient-size": !isRecording,
-          "bg-gradient-to-r from-yellow-300 via-red-400 to-orange-300 animate-gradient-flow bg-gradient-size": isRecording
-        },
-        "shadow-[0_0_15px_rgba(255,204,0,0.6)]",
+        "shadow-[0_0_20px_rgba(255,220,100,0.7)]",
         "transition-transform duration-300",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       aria-label={isRecording ? "Stop recording" : "Start recording"}
     >
+      {/* Core orb with gradient */}
+      <div className={cn(
+        "absolute inset-0 rounded-full overflow-hidden",
+        "bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-200",
+        isRecording ? "animate-gradient-flow bg-gradient-size" : ""
+      )}
+        style={{
+          transform: isRecording && isSpeaking ? `scale(${1 + volumeLevel * 0.15})` : 'scale(1)'
+        }}
+      />
+      
       {/* Sun rays */}
       {[...Array(12)].map((_, i) => (
         <div 
           key={i} 
           className={cn(
-            "absolute bg-yellow-300/60 h-2 w-8 origin-left",
-            isRecording && isSpeaking && "animate-pulse-slow",
-            "transition-all duration-300"
+            "absolute bg-gradient-to-r from-yellow-300/80 to-orange-300/60 h-2 w-8 origin-left rounded-full",
+            isRecording && isSpeaking ? "" : "opacity-60"
           )}
           style={{ 
             left: '50%', 
             top: '50%',
             transformOrigin: 'center',
-            transform: `rotate(${i * 30}deg) translateX(${isRecording && isSpeaking ? 14 + volumeLevel * 10 : 14}px)`,
-            opacity: isRecording && isSpeaking ? 0.7 + volumeLevel * 0.3 : 0.6
+            transform: `rotate(${i * 30}deg) translateX(${isRecording && isSpeaking ? 14 + volumeLevel * 12 : 14}px)`,
+            opacity: isRecording && isSpeaking ? 0.7 + volumeLevel * 0.3 : 0.6,
+            transition: 'all 0.5s ease-out'
           }}
         />
       ))}
 
-      {/* Pulsating circles */}
+      {/* Subtle glow layers - reduced flashing by removing animation from some layers */}
       <div className={cn(
         "absolute inset-[-8px] rounded-full",
-        isRecording && isSpeaking ? "bg-yellow-400/30" : "bg-yellow-300/20",
-        "animate-pulse-slow"
+        isRecording && isSpeaking ? "bg-gradient-to-r from-yellow-400/20 to-orange-300/20" : "bg-yellow-300/20"
       )}
         style={{
           transform: isRecording && isSpeaking ? `scale(${1.1 + volumeLevel * 0.2})` : 'scale(1.05)'
@@ -100,9 +106,8 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       />
       
       <div className={cn(
-        "absolute inset-[-12px] rounded-full",
-        isRecording && isSpeaking ? "bg-yellow-400/20" : "bg-yellow-300/10",
-        "animate-[pulse-slow_3s_ease-in-out_infinite_0.5s]"
+        "absolute inset-[-16px] rounded-full",
+        isRecording && isSpeaking ? "bg-gradient-to-r from-yellow-400/10 to-orange-300/10" : "bg-yellow-300/10"
       )}
         style={{
           transform: isRecording && isSpeaking ? `scale(${1.15 + volumeLevel * 0.25})` : 'scale(1.1)'
@@ -110,27 +115,14 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       />
       
       <div className={cn(
-        "absolute inset-[-16px] rounded-full",
-        isRecording && isSpeaking ? "bg-yellow-400/10" : "bg-yellow-300/5",
-        "animate-[pulse-slow_3.5s_ease-in-out_infinite_1s]"
+        "absolute inset-[-24px] rounded-full",
+        isRecording && isSpeaking ? "bg-gradient-to-r from-yellow-400/5 to-orange-300/5" : "bg-yellow-300/5",
+        isRecording && isSpeaking ? "animate-[pulse-slow_4s_ease-in-out_infinite_1s]" : ""
       )}
         style={{
           transform: isRecording && isSpeaking ? `scale(${1.2 + volumeLevel * 0.3})` : 'scale(1.15)'
         }}
       />
-      
-      {/* Inner sun core with mic icon */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="h-6 w-6 text-white">
-          {/* Simplified microphone icon */}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </div>
-      </div>
     </button>
   );
 };
