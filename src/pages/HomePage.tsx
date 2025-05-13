@@ -127,7 +127,7 @@ const HomePage = () => {
             <span className="absolute left-0 top-4 text-xs text-gray-500">20% complete</span>
           </div>
 
-          <ul className="space-y-3 text-sm text-gray-700 mt-6">
+          <ul className="space-y-3 text-sm text-gray-700 mt-10">
             <li 
               className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
               onClick={() => handleGoalClick('session')}
