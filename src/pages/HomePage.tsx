@@ -72,6 +72,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
+      <CloudBackground />
       <div className="sticky top-0 z-50">
         <Header />
       </div>
