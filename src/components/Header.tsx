@@ -37,7 +37,7 @@ const Header = () => {
       
       {/* Center: Empty */}
       <div className="hidden md:flex items-center">
-        {/* Dashboard text removed as requested */}
+        {/* Empty center as requested */}
       </div>
       
       {/* Right: Session CTA + Profile */}
@@ -54,18 +54,16 @@ const Header = () => {
         {isAuthenticated ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full border-skyhug-200 gap-2">
-                <Avatar className="h-6 w-6">
+              <Button variant="outline" className="rounded-full p-0 px-4 border-gray-100 gap-2">
+                <Avatar className="h-7 w-7">
                   <AvatarFallback className="bg-skyhug-100 text-skyhug-500 text-sm">
                     {user?.name?.[0] || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium flex items-center gap-2">
                   {user?.name || 'User'}
-                  <span className="text-skyhug-500 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" />
-                    {calmPoints}
-                  </span>
+                  <Sparkles className="h-4 w-4 text-skyhug-500" />
+                  <span className="text-skyhug-500 font-medium">{calmPoints}</span>
                 </span>
               </Button>
             </DropdownMenuTrigger>
