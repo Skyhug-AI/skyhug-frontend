@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
+import { toast } from "@/hooks/use-toast";
 
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
@@ -23,6 +25,7 @@ const getFirstName = (fullName: string | undefined) => {
 const HomePage = () => {
   const { user } = useAuth();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
+  const [moodDialogOpen, setMoodDialogOpen] = useState(false);
   const firstName = getFirstName(user?.name);
   const navigate = useNavigate();
 
@@ -75,9 +78,23 @@ const HomePage = () => {
     if (type === 'session') {
       navigate("/session");
     } else if (type === 'mood') {
-      // Open mood selection
-      setSelectedMood(3); // Default value
+      // Open mood selection dialog
+      setMoodDialogOpen(true);
     }
+  };
+
+  const handleMoodSelect = () => {
+    // Update the goals list to show completion
+    setSelectedMood(3);
+    
+    // Close the dialog
+    setMoodDialogOpen(false);
+    
+    // Add points notification could go here
+    toast({
+      title: "Mood logged successfully!",
+      description: "You earned +10 Calm Points",
+    });
   };
 
   return (
@@ -129,7 +146,7 @@ const HomePage = () => {
 
           <ul className="space-y-3 text-sm text-gray-700 mt-10">
             <li 
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
+              className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
               onClick={() => handleGoalClick('session')}
             >
               <div className="flex items-center">
@@ -142,7 +159,7 @@ const HomePage = () => {
               </div>
             </li>
             <li 
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
+              className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
               onClick={() => handleGoalClick('mood')}
             >
               <div className="flex items-center">
@@ -156,6 +173,13 @@ const HomePage = () => {
             </li>
           </ul>
         </div>
+
+        {/* Mood Selection Dialog */}
+        <MoodSelectionDialog 
+          open={moodDialogOpen} 
+          onOpenChange={setMoodDialogOpen}
+          onMoodSelect={handleMoodSelect}
+        />
 
         {/* <section className="space-y-4"> */}
         {/* <MoodChart moodData={moodData} /> */}
