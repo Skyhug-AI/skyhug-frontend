@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
@@ -8,7 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -36,19 +35,17 @@ const Header = () => {
       {/* Left: Logo */}
       <Logo />
       
-      {/* Center: Can be empty or minimal */}
+      {/* Center: Empty */}
       <div className="hidden md:flex items-center">
-        {isAuthenticated && location.pathname === '/home' && 
-          <span className="text-sm font-medium text-muted-foreground">Dashboard</span>
-        }
+        {/* Dashboard text removed as requested */}
       </div>
       
       {/* Right: Session CTA + Profile */}
       <div className="flex items-center gap-3">
-        {/* Session CTA Button */}
+        {/* Session CTA Button - updated to be less rounded */}
         <Button 
           onClick={() => navigate('/session')} 
-          className="hidden md:flex bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-full"
+          className="hidden md:flex bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-md"
           size="sm"
         >
           Start a Session
@@ -110,7 +107,7 @@ const Header = () => {
               <LogIn className="mr-2 h-4 w-4" />
               Login
             </Button>
-            <Button variant="default" className="bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-full" onClick={() => navigate('/signup')}>
+            <Button variant="default" className="bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-md" onClick={() => navigate('/signup')}>
               <UserPlus className="mr-2 h-4 w-4" />
               Sign Up
             </Button>
