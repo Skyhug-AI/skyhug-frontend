@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -81,9 +80,13 @@ const HomePage = () => {
       <main className="flex-grow p-6 md:p-10 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
         {/* Top Header Bar */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Welcome back, {firstName} <span className="wave">👋</span></h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+            Welcome back, {firstName} <span className="wave">👋</span>
+          </h1>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">Calm Points: <strong>720</strong></span>
+            <span className="text-sm text-gray-500">
+              Calm Points: <strong>720</strong>
+            </span>
             <Avatar className="h-8 w-8">
               <AvatarImage src="/placeholder.svg" />
               <AvatarFallback>{firstName[0]}</AvatarFallback>
@@ -94,12 +97,16 @@ const HomePage = () => {
         {/* Action: Start Session CTA */}
         <div className="rounded-xl bg-gradient-to-r from-indigo-100 to-purple-100 p-6 flex flex-col md:flex-row justify-between items-center shadow-sm">
           <div>
-            <h2 className="text-lg font-medium text-gray-800">Need a quick check-in?</h2>
-            <p className="text-sm text-gray-600 mt-1">Tap below to begin a voice or reflection session.</p>
+            <h2 className="text-lg font-medium text-gray-800">
+              Need a quick check-in?
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Tap below to begin a voice or reflection session.
+            </p>
           </div>
-          <Button 
+          <Button
             className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-            onClick={() => navigate('/session')}
+            onClick={() => navigate("/session")}
           >
             Start Session
           </Button>
@@ -112,7 +119,11 @@ const HomePage = () => {
             <span className="text-sm text-gray-500">20/100 Calm Points</span>
           </div>
 
-          <Progress value={20} className="h-2" indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500" />
+          <Progress
+            value={20}
+            className="h-2"
+            indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500"
+          />
 
           <ul className="space-y-3 text-sm text-gray-700">
             <li className="flex items-center justify-between">
@@ -126,10 +137,10 @@ const HomePage = () => {
           </ul>
         </div>
 
-        <section className="space-y-4">
-          {/* <MoodChart moodData={moodData} /> */}
-          <StreakTracker currentStreak={3} longestStreak={7} />
-        </section>
+        {/* <section className="space-y-4"> */}
+        {/* <MoodChart moodData={moodData} /> */}
+        {/* <StreakTracker currentStreak={3} longestStreak={7} /> */}
+        {/* </section> */}
 
         <section>
           <AffirmationCard />
