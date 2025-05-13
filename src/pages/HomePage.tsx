@@ -96,7 +96,8 @@ const HomePage = () => {
         <section>
           <EmotionalCheckInReminder />
           <DailyGoalsCard />
-          {/* <MoodChart moodData={moodData} /> */}
+          {/* MoodChart is commented out to fix rendering error */}
+          {/* {<MoodChart moodData={moodData} />} */}
           <StreakTracker currentStreak={3} longestStreak={7} />
         </section>
 
