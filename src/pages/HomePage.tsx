@@ -16,72 +16,61 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
-
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
 };
-
 const HomePage = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [moodDialogOpen, setMoodDialogOpen] = useState(false);
   const firstName = getFirstName(user?.name);
   const navigate = useNavigate();
-  
+
   // Track completed goals
   const [completedGoals, setCompletedGoals] = useState<string[]>([]);
-
-  const moodData = [
-    {
-      day: "Mon",
-      value: 2,
-      mood: "😐",
-      note: "Feeling neutral",
-    },
-    {
-      day: "Tue",
-      value: 3,
-      mood: "🙂",
-      note: "Slightly better today",
-    },
-    {
-      day: "Wed",
-      value: 1,
-      mood: "😔",
-      note: "Difficult day",
-    },
-    {
-      day: "Thu",
-      value: 4,
-      mood: "😄",
-      note: "Great progress",
-    },
-    {
-      day: "Fri",
-      value: 3,
-      mood: "🙂",
-      note: "Steady improvement",
-    },
-    {
-      day: "Sat",
-      value: 4,
-      mood: "😄",
-      note: "Feeling good",
-    },
-    {
-      day: "Sun",
-      value: 5,
-      mood: "🌟",
-      note: "Excellent day",
-    },
-  ];
-
+  const moodData = [{
+    day: "Mon",
+    value: 2,
+    mood: "😐",
+    note: "Feeling neutral"
+  }, {
+    day: "Tue",
+    value: 3,
+    mood: "🙂",
+    note: "Slightly better today"
+  }, {
+    day: "Wed",
+    value: 1,
+    mood: "😔",
+    note: "Difficult day"
+  }, {
+    day: "Thu",
+    value: 4,
+    mood: "😄",
+    note: "Great progress"
+  }, {
+    day: "Fri",
+    value: 3,
+    mood: "🙂",
+    note: "Steady improvement"
+  }, {
+    day: "Sat",
+    value: 4,
+    mood: "😄",
+    note: "Feeling good"
+  }, {
+    day: "Sun",
+    value: 5,
+    mood: "🌟",
+    note: "Excellent day"
+  }];
   const handleGoalClick = (type: string) => {
     // If already completed, don't do anything
     if (completedGoals.includes(type)) {
       return;
     }
-    
     if (type === 'session') {
       navigate("/therapist-selection");
     } else if (type === 'mood') {
@@ -89,31 +78,28 @@ const HomePage = () => {
       setMoodDialogOpen(true);
     }
   };
-
   const handleMoodSelect = () => {
     // Update the goals list to show completion
     setSelectedMood(3);
-    
+
     // Mark the mood goal as completed
     setCompletedGoals(prev => [...prev, 'mood']);
-    
+
     // Close the dialog
     setMoodDialogOpen(false);
-    
+
     // Add points notification could go here
     toast({
       title: "Mood logged successfully!",
-      description: "You earned +10 Calm Points",
+      description: "You earned +10 Calm Points"
     });
   };
 
   // Calculate progress based on completed goals
   const totalGoals = 2; // session and mood
   const completedCount = completedGoals.length;
-  const progressPercentage = (completedCount / totalGoals) * 100;
-
-  return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
+  const progressPercentage = completedCount / totalGoals * 100;
+  return <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
       <CloudBackground />
       <div className="sticky top-0 z-50">
         <Header />
@@ -139,10 +125,7 @@ const HomePage = () => {
               Tap below to begin a voice or reflection session.
             </p>
           </div>
-          <Button
-            className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-            onClick={() => navigate("/therapist-selection")}
-          >
+          <Button className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition" onClick={() => navigate("/therapist-selection")}>
             Start Session
           </Button>
         </div>
@@ -155,23 +138,12 @@ const HomePage = () => {
           </div>
 
           <div className="relative">
-            <Progress 
-              value={progressPercentage} 
-              className="h-3 rounded-full" 
-              indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" 
-            />
+            <Progress value={progressPercentage} className="h-3 rounded-full" indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
             <span className="absolute left-0 top-4 text-xs text-gray-500">{progressPercentage}% complete</span>
           </div>
 
-          <ul className="space-y-3 text-sm text-gray-700 mt-10">
-            <li 
-              className={`flex items-center justify-between p-3 rounded-md transition-all border mt-4 ${
-                completedGoals.includes('session') 
-                  ? 'bg-gray-50 border-green-100 opacity-80' 
-                  : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'
-              }`}
-              onClick={() => handleGoalClick('session')}
-            >
+          <ul className="space-y-3 text-sm text-gray-700 mt-14">
+            <li className={`flex items-center justify-between p-3 rounded-md transition-all border mt-4 ${completedGoals.includes('session') ? 'bg-gray-50 border-green-100 opacity-80' : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'}`} onClick={() => handleGoalClick('session')}>
               <div className="flex items-center">
                 <span className={completedGoals.includes('session') ? 'line-through text-gray-500' : ''}>
                   Completing a session
@@ -182,14 +154,7 @@ const HomePage = () => {
                 {!completedGoals.includes('session') && <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />}
               </div>
             </li>
-            <li 
-              className={`flex items-center justify-between p-3 rounded-md transition-all border ${
-                completedGoals.includes('mood') 
-                  ? 'bg-gray-50 border-green-100 opacity-80' 
-                  : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'
-              }`}
-              onClick={() => handleGoalClick('mood')}
-            >
+            <li className={`flex items-center justify-between p-3 rounded-md transition-all border ${completedGoals.includes('mood') ? 'bg-gray-50 border-green-100 opacity-80' : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'}`} onClick={() => handleGoalClick('mood')}>
               <div className="flex items-center">
                 <span className={completedGoals.includes('mood') ? 'line-through text-gray-500' : ''}>
                   Mood check-in
@@ -204,11 +169,7 @@ const HomePage = () => {
         </div>
 
         {/* Mood Selection Dialog */}
-        <MoodSelectionDialog 
-          open={moodDialogOpen} 
-          onOpenChange={setMoodDialogOpen}
-          onMoodSelect={handleMoodSelect}
-        />
+        <MoodSelectionDialog open={moodDialogOpen} onOpenChange={setMoodDialogOpen} onMoodSelect={handleMoodSelect} />
 
         {/* <section className="space-y-4"> */}
         {/* <MoodChart moodData={moodData} /> */}
@@ -221,8 +182,6 @@ const HomePage = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
