@@ -22,6 +22,7 @@ import SessionPage from "./pages/SessionPage";
 import ProfilePage from "./pages/ProfilePage";
 import SessionSummaryPage from "./pages/SessionSummaryPage";
 import TherapistBrowsePage from "./pages/TherapistBrowsePage";
+import TherapistSelectionPage from "./pages/TherapistSelectionPage";
 import AuthRedirect from "./components/AuthRedirect";
 
 const queryClient = new QueryClient();
@@ -93,6 +94,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <SettingsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/therapist-selection" 
+                element={
+                  <ProtectedRoute>
+                    <TherapistSelectionPage />
                   </ProtectedRoute>
                 } 
               />

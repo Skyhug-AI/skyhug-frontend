@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
@@ -44,7 +45,7 @@ const Header = () => {
       <div className="flex items-center gap-3">
         {/* Session CTA Button - updated to be less rounded */}
         <Button 
-          onClick={() => navigate('/session')} 
+          onClick={() => navigate('/therapist-selection')} 
           className="hidden md:flex bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-md"
           size="sm"
         >

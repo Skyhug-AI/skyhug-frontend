@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -84,7 +83,7 @@ const HomePage = () => {
     }
     
     if (type === 'session') {
-      navigate("/session");
+      navigate("/therapist-selection");
     } else if (type === 'mood') {
       // Open mood selection dialog
       setMoodDialogOpen(true);
@@ -142,7 +141,7 @@ const HomePage = () => {
           </div>
           <Button
             className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-            onClick={() => navigate("/session")}
+            onClick={() => navigate("/therapist-selection")}
           >
             Start Session
           </Button>

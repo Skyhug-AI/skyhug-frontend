@@ -20,23 +20,27 @@ export interface Message {
   isGreeting?: boolean;
 }
 
-interface TherapistContextType {
-  conversationId: string | null;
+export type TherapistContextType = {
   messages: Message[];
   isProcessing: boolean;
-  sendMessage: (message: string) => Promise<void>;
-  sendAudioMessage: (blob: Blob) => Promise<void>;
+  sendMessage: (content: string) => void;
   clearMessages: () => Promise<void>;
-  setVoiceEnabled: (on: boolean) => Promise<void>;
+  triggerTTSForMessage: (tts_path: string) => Promise<void>;
   endConversation: () => Promise<void>;
-  playMessageAudio: (tts_path: string) => Promise<void>;
-  invalidateFrom: (messageId: string) => Promise<void>;
-  regenerateAfter: (messageId: string) => Promise<void>;
-}
+  currentTherapist: string;
+  setCurrentTherapist: (therapistId: string) => void;
+};
 
-const TherapistContext = createContext<TherapistContextType | undefined>(
-  undefined
-);
+const TherapistContext = createContext<TherapistContextType>({
+  messages: [],
+  isProcessing: false,
+  sendMessage: () => {},
+  clearMessages: async () => {},
+  triggerTTSForMessage: async () => {},
+  endConversation: async () => {},
+  currentTherapist: "sky",
+  setCurrentTherapist: () => {},
+});
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -50,6 +54,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     null
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
+  const [currentTherapist, setCurrentTherapist] = useState<string>("sky");
 
   const formatMessage = (msg: any): Message & { ttsHasArrived?: boolean, isGreeting?: boolean } => {
     return {
@@ -381,6 +386,16 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     audio.play().catch(err => console.error("Play() failed:", err))
   }
 
+  const triggerTTSForMessage = async (tts_path: string) => {
+    if (!conversationId) return;
+    const { data, error } = await supabase.from("messages").select("id").eq("tts_path", tts_path).single();
+    if (error) {
+      console.error("Error fetching message ID for tts_path:", error);
+      return;
+    }
+    playMessageAudio(data.id);
+  }
+
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
@@ -447,18 +462,14 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   return (
     <TherapistContext.Provider
       value={{
-        conversationId,
         messages,
         isProcessing,
         sendMessage,
-        sendAudioMessage,
         clearMessages,
-        setVoiceEnabled,
+        triggerTTSForMessage,
         endConversation,
-        playMessageAudio,
-        editMessage,
-        invalidateFrom,
-        regenerateAfter,
+        currentTherapist,
+        setCurrentTherapist,
       }}
     >
       {children}
