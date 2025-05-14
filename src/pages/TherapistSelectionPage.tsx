@@ -126,7 +126,7 @@ const TherapistSelectionPage = () => {
       <main className="flex-grow flex flex-col items-center justify-center px-4 py-10">
         <div className="max-w-5xl w-full text-center mb-0 animate-fade-in">
           <h1 className="text-4xl sm:text-5xl font-bold mb-3 text-gray-800">Select a Therapist</h1>
-          <p className="text-lg sm:text-xl text-gray-500 mb-10">Choose an AI therapist to talk to</p>
+          <p className="text-lg sm:text-xl text-gray-500 mb-4">Choose an AI therapist to talk to</p>
           
           {/* Match button - centered above filters */}
           <div className="flex justify-center mb-4">
