@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Info } from 'lucide-react';
+import { Info, ChevronDown, Search } from 'lucide-react';
 import Header from '@/components/Header';
 import { toast } from '@/hooks/use-toast';
 import { useTherapist } from '@/context/TherapistContext';
@@ -13,9 +13,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import TherapistFilters from '@/components/therapist/TherapistFilters';
-import TherapistSelectionCard from '@/components/therapist/TherapistSelectionCard';
-import type { IdentityFilter, StyleFilter, TopicFilter } from '@/components/therapist/TherapistFilters';
+import TherapistProfileCard from '@/components/therapist/TherapistProfileCard';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
@@ -23,10 +26,9 @@ const TherapistSelectionPage = () => {
   const isMobile = useIsMobile();
   
   // State for filters
-  const [identityFilter, setIdentityFilter] = useState<IdentityFilter>('All');
-  const [styleFilter, setStyleFilter] = useState<StyleFilter>('All');
-  const [topicFilter, setTopicFilter] = useState<TopicFilter>('All');
-  const [showFilters, setShowFilters] = useState(!isMobile);
+  const [identityFilter, setIdentityFilter] = useState('All');
+  const [topicFilter, setTopicFilter] = useState('All');
+  const [styleFilter, setStyleFilter] = useState('All');
   
   // State for favorites
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -45,37 +47,27 @@ const TherapistSelectionPage = () => {
     {
       id: 'logan',
       name: 'Logan',
-      description: 'Friendly and motivating',
-      specialties: ['Productivity', 'Stress'],
+      description: 'Smart and thorough',
+      specialties: ['Productivity'],
       avatarSrc: '/therapists/logan.svg',
       bgColor: 'bg-blue-100',
       gender: 'Male',
-      style: 'Motivational',
+      style: 'Direct',
     },
     {
       id: 'sarah',
       name: 'Sarah',
-      description: 'Calm and non-judgmental',
-      specialties: ['Grief', 'Relationships'],
+      description: 'Friendly and caring',
+      specialties: ['Grief', 'Stress'],
       avatarSrc: '/therapists/sarah.svg',
       bgColor: 'bg-green-100',
       gender: 'Female',
       style: 'Reflective',
     },
     {
-      id: 'james',
-      name: 'James',
-      description: 'Practical and goal-oriented',
-      specialties: ['Career', 'Self-esteem'],
-      avatarSrc: '/therapists/james.svg',
-      bgColor: 'bg-orange-100',
-      gender: 'Male',
-      style: 'Direct',
-    },
-    {
       id: 'maya',
       name: 'Maya',
-      description: 'Patient and reflective',
+      description: 'Trauma specialist',
       specialties: ['Trauma', 'Mindfulness'],
       avatarSrc: '/therapists/maya.svg',
       bgColor: 'bg-yellow-100',
@@ -108,16 +100,6 @@ const TherapistSelectionPage = () => {
     });
   };
   
-  const handleFilterBySpecialty = (specialty: string) => {
-    setTopicFilter(specialty as TopicFilter);
-  };
-  
-  const resetFilters = () => {
-    setIdentityFilter('All');
-    setStyleFilter('All');
-    setTopicFilter('All');
-  };
-  
   const handleQuickMatch = () => {
     // Simple algorithm to pick a therapist based on random selection for now
     const randomIndex = Math.floor(Math.random() * filteredTherapists.length);
@@ -133,6 +115,12 @@ const TherapistSelectionPage = () => {
     }, 1500);
   };
   
+  const resetFilters = () => {
+    setIdentityFilter('All');
+    setTopicFilter('All');
+    setStyleFilter('All');
+  };
+  
   // Filter therapists based on selected filters
   const filteredTherapists = therapists.filter(therapist => {
     const matchesIdentity = identityFilter === 'All' || 
@@ -146,75 +134,130 @@ const TherapistSelectionPage = () => {
     return matchesIdentity && matchesStyle && matchesTopic;
   });
 
+  const identityOptions = ['All', 'Male', 'Female', 'Non-binary', 'LGBTQ+'];
+  const topicOptions = ['All', 'Anxiety', 'Depression', 'Trauma', 'Productivity', 'Mindfulness', 'Grief', 'Stress', 'Relationships', 'Self-esteem', 'Career'];
+  const styleOptions = ['All', 'Supportive', 'Direct', 'Reflective', 'Motivational'];
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
       <main className="flex-grow flex flex-col items-center px-4 py-8 lg:py-12">
-        <div className="max-w-5xl w-full mb-10 animate-fade-in space-y-3">
-          <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-gray-800">Select a Therapist</h1>
-            <p className="text-md sm:text-lg text-gray-500 mb-4">Choose an AI therapist to talk to</p>
+        <div className="w-full max-w-4xl mb-10 animate-fade-in">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2 text-gray-900">Select a Therapist</h1>
+            <p className="text-lg text-gray-600">Choose an AI therapist to talk to.</p>
           </div>
           
-          {/* Therapist Info Tooltip */}
-          <div className="flex justify-center">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full cursor-pointer">
-                    <Info className="h-4 w-4 mr-1" />
-                    <span>About AI Therapists</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>These are AI therapists designed to support different moods and needs. They provide personalized guidance while maintaining your privacy.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          {/* Quick match button */}
+          <div className="flex justify-center mb-8">
+            <Button 
+              variant="outline" 
+              className="bg-white border border-gray-300 rounded-full px-8 py-6 text-lg font-medium flex items-center hover:bg-gray-50"
+              onClick={handleQuickMatch}
+            >
+              <Search className="h-5 w-5 mr-2" />
+              Let us match you
+            </Button>
           </div>
           
-          {/* Filters */}
-          <TherapistFilters
-            identityFilter={identityFilter}
-            styleFilter={styleFilter}
-            topicFilter={topicFilter}
-            setIdentityFilter={setIdentityFilter}
-            setStyleFilter={setStyleFilter}
-            setTopicFilter={setTopicFilter}
-            resetFilters={resetFilters}
-            handleQuickMatch={handleQuickMatch}
-            isMobile={isMobile}
-            showFilters={showFilters}
-            setShowFilters={setShowFilters}
-          />
-        </div>
-        
-        {filteredTherapists.length === 0 ? (
-          <div className="text-center py-10 bg-white rounded-lg shadow-sm p-8 w-full max-w-md">
-            <h3 className="text-xl font-medium text-gray-600 mb-3">No therapists match your current filters</h3>
-            <p className="text-gray-500 mb-4">Try adjusting your filters to see more options</p>
-            <Button variant="outline" onClick={resetFilters}>Reset all filters</Button>
+          {/* Filter dropdowns */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-60 justify-between text-left font-normal">
+                  <span>Identity</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-60 p-0">
+                <div className="flex flex-col">
+                  {identityOptions.map(option => (
+                    <Button 
+                      key={option}
+                      variant="ghost" 
+                      className={`justify-start ${identityFilter === option ? 'bg-gray-100' : ''}`}
+                      onClick={() => setIdentityFilter(option)}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-60 justify-between text-left font-normal">
+                  <span>Topics</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-60 p-0">
+                <div className="flex flex-col">
+                  {topicOptions.map(option => (
+                    <Button 
+                      key={option}
+                      variant="ghost" 
+                      className={`justify-start ${topicFilter === option ? 'bg-gray-100' : ''}`}
+                      onClick={() => setTopicFilter(option)}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-60 justify-between text-left font-normal">
+                  <span>Therapy Style</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-60 p-0">
+                <div className="flex flex-col">
+                  {styleOptions.map(option => (
+                    <Button 
+                      key={option}
+                      variant="ghost" 
+                      className={`justify-start ${styleFilter === option ? 'bg-gray-100' : ''}`}
+                      onClick={() => setStyleFilter(option)}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl w-full">
-            {filteredTherapists.map((therapist, index) => (
-              <div key={therapist.id} className="animate-fade-in" style={{animationDelay: `${index * 0.1}s`}}>
-                <TherapistSelectionCard
-                  id={therapist.id}
-                  name={therapist.name}
-                  description={therapist.description}
-                  specialties={therapist.specialties}
-                  avatarSrc={therapist.avatarSrc}
-                  bgColor={therapist.bgColor}
+          
+          {/* Therapist grid */}
+          {filteredTherapists.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-lg shadow-sm p-8 w-full">
+              <h3 className="text-xl font-medium text-gray-600 mb-3">No therapists match your current filters</h3>
+              <p className="text-gray-500 mb-4">Try adjusting your filters to see more options</p>
+              <Button variant="outline" onClick={resetFilters}>Reset all filters</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {filteredTherapists.map((therapist) => (
+                <div 
+                  key={therapist.id} 
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-300 cursor-pointer"
                   onClick={() => handleTherapistSelect(therapist.id)}
-                  isFavorite={favorites.includes(therapist.id)}
-                  onToggleFavorite={(e) => handleToggleFavorite(therapist.id, e)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+                >
+                  <TherapistProfileCard
+                    therapist={therapist}
+                    isFavorite={favorites.includes(therapist.id)}
+                    onToggleFavorite={(e) => handleToggleFavorite(therapist.id, e)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
