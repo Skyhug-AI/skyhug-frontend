@@ -79,7 +79,7 @@ const Header = () => {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
                 <Search className="mr-2 h-4 w-4" />
-                <span>Change Therapist</span>
+                <span>Choose Therapist</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Sparkles className="mr-2 h-4 w-4" />
