@@ -79,11 +79,9 @@ const TherapistSelectionPage = () => {
     specialties: ['Anxiety', 'Depression'],
     avatarSrc: '/therapists/olivia.svg',
     bgColor: 'bg-purple-100',
-    bio: 'I\'m a compassionate therapist with 7+ years of experience. I focus on creating a safe space where you can explore emotions and develop coping strategies. My approach combines cognitive behavioral therapy with mindfulness techniques.',
-    education: 'PhD in Clinical Psychology',
+    bio: 'I\'m a compassionate AI therapist focused on creating a safe space where you can explore emotions and develop coping strategies. My approach combines cognitive behavioral therapy with mindfulness techniques.',
     approach: 'Supportive and empathetic, I use evidence-based techniques to help you navigate life\'s challenges.',
-    session_structure: 'Sessions start with a brief check-in, followed by guided conversation and practicing coping techniques.',
-    availability: ['Weekdays', 'Evenings']
+    session_structure: 'Sessions start with a brief check-in, followed by guided conversation and practicing coping techniques.'
   }, {
     id: 'logan',
     name: 'Logan',
@@ -92,10 +90,8 @@ const TherapistSelectionPage = () => {
     avatarSrc: '/therapists/logan.svg',
     bgColor: 'bg-blue-100',
     bio: 'I specialize in helping people overcome challenges related to work-life balance and career stress. My goal-oriented approach focuses on practical strategies you can implement right away.',
-    education: 'MSc in Counseling Psychology',
     approach: 'I blend cognitive behavioral therapy with practical, action-oriented strategies for immediate results.',
-    session_structure: 'We\'ll identify specific goals and develop actionable steps for each session. I focus on measurable progress.',
-    availability: ['Mornings', 'Weekends']
+    session_structure: 'We\'ll identify specific goals and develop actionable steps for each session. I focus on measurable progress.'
   }, {
     id: 'sarah',
     name: 'Sarah',
@@ -103,11 +99,9 @@ const TherapistSelectionPage = () => {
     specialties: ['Grief', 'Relationships'],
     avatarSrc: '/therapists/sarah.svg',
     bgColor: 'bg-green-100',
-    bio: 'I provide a calm, safe space for processing grief and relationship challenges. With over 8 years of experience, I help clients navigate emotional pain and build healthier relationships.',
-    education: 'MA in Marriage and Family Therapy',
+    bio: 'I provide a calm, safe space for processing grief and relationship challenges. I help clients navigate emotional pain and build healthier relationships.',
     approach: 'I use a person-centered approach combined with narrative therapy to help you process your experiences.',
-    session_structure: 'My sessions allow for open exploration of feelings with gentle guidance toward healing and growth.',
-    availability: ['Afternoons', 'Evenings']
+    session_structure: 'My sessions allow for open exploration of feelings with gentle guidance toward healing and growth.'
   }, {
     id: 'james',
     name: 'James',
@@ -115,11 +109,9 @@ const TherapistSelectionPage = () => {
     specialties: ['Career', 'Self-esteem'],
     avatarSrc: '/therapists/james.svg',
     bgColor: 'bg-orange-100',
-    bio: 'With a background in both psychology and business consulting, I help professionals overcome career challenges and build confidence. My focus is on practical solutions and measurable growth.',
-    education: 'PsyD in Organizational Psychology',
+    bio: 'With a background in both psychology and organizational support, I help professionals overcome career challenges and build confidence. My focus is on practical solutions and measurable growth.',
     approach: 'I use a solution-focused approach to identify strengths and develop actionable strategies.',
-    session_structure: 'Sessions are structured around specific goals with exercises to build confidence and self-awareness.',
-    availability: ['Early mornings', 'Late evenings']
+    session_structure: 'Sessions are structured around specific goals with exercises to build confidence and self-awareness.'
   }, {
     id: 'maya',
     name: 'Maya',
@@ -128,10 +120,8 @@ const TherapistSelectionPage = () => {
     avatarSrc: '/therapists/maya.svg',
     bgColor: 'bg-yellow-100',
     bio: 'I specialize in trauma-informed care and mindfulness practices. I create a patient, supportive environment where you can safely process difficult experiences and develop resilience.',
-    education: 'PhD in Clinical Psychology, Certified in Trauma-Focused CBT',
     approach: 'I integrate mindfulness, somatic experiencing, and cognitive approaches to support healing.',
-    session_structure: 'Sessions move at your pace, with emphasis on safety, grounding techniques, and gentle exploration.',
-    availability: ['Flexible', 'Weekends']
+    session_structure: 'Sessions move at your pace, with emphasis on safety, grounding techniques, and gentle exploration.'
   }];
   
   const selectedTherapist = therapists.find(t => t.id === selectedTherapistId);
@@ -265,9 +255,9 @@ const TherapistSelectionPage = () => {
         </div>
       </main>
 
-      {/* Therapist Details Sidebar */}
+      {/* Therapist Details Sidebar - Made wider */}
       <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
-        <SheetContent className="w-[400px] overflow-y-auto sm:max-w-lg">
+        <SheetContent className="w-[500px] sm:max-w-lg overflow-y-auto">
           {selectedTherapist && (
             <div className="h-full flex flex-col">
               <SheetHeader className="text-left">
@@ -301,11 +291,6 @@ const TherapistSelectionPage = () => {
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-lg mb-2">Education & Credentials</h3>
-                  <p className="text-gray-700">{selectedTherapist.education}</p>
-                </div>
-                
-                <div>
                   <h3 className="font-medium text-lg mb-2">My Approach</h3>
                   <p className="text-gray-700">{selectedTherapist.approach}</p>
                 </div>
@@ -313,18 +298,6 @@ const TherapistSelectionPage = () => {
                 <div>
                   <h3 className="font-medium text-lg mb-2">Session Structure</h3>
                   <p className="text-gray-700">{selectedTherapist.session_structure}</p>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-lg mb-2">Availability</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTherapist.availability.map((time) => (
-                      <div key={time} className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full">
-                        <Clock className="h-3 w-3" />
-                        <span className="text-sm">{time}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
               
