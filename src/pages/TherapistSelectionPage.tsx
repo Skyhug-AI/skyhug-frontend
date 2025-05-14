@@ -129,7 +129,7 @@ const TherapistSelectionPage = () => {
           <p className="text-lg sm:text-xl text-gray-500 mb-10">Choose an AI therapist to talk to</p>
           
           {/* Match button - centered above filters */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-4">
             <Button variant="outline" className="border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-2" onClick={handleMatchClick}>
               <div className="flex items-center justify-center w-5 h-5 rounded-full border border-gray-400 text-xs">?</div>
               Let us match you
