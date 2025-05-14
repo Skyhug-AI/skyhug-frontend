@@ -77,9 +77,9 @@ const Header = () => {
                 <User className="mr-2 h-4 w-4" />
                 <span>View Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/therapists')} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
                 <Search className="mr-2 h-4 w-4" />
-                <span>Find a Therapist</span>
+                <span>Change Therapist</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Sparkles className="mr-2 h-4 w-4" />
