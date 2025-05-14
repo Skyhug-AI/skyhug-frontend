@@ -33,15 +33,12 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
       className="overflow-hidden flex flex-col items-center p-6 h-[280px] w-[220px] rounded-2xl bg-white hover:scale-[1.03] hover:shadow-lg transition-all duration-300 cursor-pointer relative group"
       onClick={onClick}
     >
-      <div className={`${bgColor} w-32 h-32 rounded-full flex items-center justify-center mb-4 group-hover:animate-pulse-gentle`}>
+      <div className={`${bgColor} w-32 h-32 rounded-full flex items-center justify-center mb-4`}>
         <Avatar className="w-28 h-28 border-4 border-white">
           <AvatarImage src={avatarSrc} alt={name} />
           <AvatarFallback>{name[0]}</AvatarFallback>
         </Avatar>
       </div>
-      
-      {/* Animated halo ring */}
-      <div className={`absolute top-[70px] w-36 h-36 rounded-full ${bgColor} opacity-0 group-hover:opacity-40 transition-opacity duration-300 animate-pulse-slow`}></div>
       
       <CardContent className="text-center p-0 w-full">
         <h3 className="text-xl font-semibold mb-1">{name}</h3>
