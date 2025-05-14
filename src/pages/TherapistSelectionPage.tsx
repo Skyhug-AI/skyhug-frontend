@@ -2,34 +2,64 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Heart } from 'lucide-react';
 import Header from '@/components/Header';
 import { toast } from '@/hooks/use-toast';
 import { useTherapist } from '@/context/TherapistContext';
 
 interface TherapistCardProps {
+  id: string;
   name: string;
   description: string;
+  specialties: string[];
   avatarSrc: string;
   bgColor: string;
   onClick: () => void;
 }
 
-const TherapistCard: React.FC<TherapistCardProps> = ({ name, description, avatarSrc, bgColor, onClick }) => {
+const TherapistCard: React.FC<TherapistCardProps> = ({ 
+  id, 
+  name, 
+  description, 
+  specialties, 
+  avatarSrc, 
+  bgColor, 
+  onClick 
+}) => {
   return (
-    <div 
-      className="bg-white rounded-lg overflow-hidden flex flex-col items-center p-6 cursor-pointer border border-gray-100 hover:shadow-md transition-all"
+    <Card 
+      className="overflow-hidden flex flex-col items-center p-6 h-[280px] w-[220px] rounded-2xl bg-white hover:scale-[1.03] hover:shadow-lg transition-all duration-300 cursor-pointer relative group"
       onClick={onClick}
     >
-      <div className={`w-36 h-36 rounded-full ${bgColor} flex items-center justify-center mb-4`}>
-        <Avatar className="w-32 h-32">
+      <div className={`${bgColor} w-32 h-32 rounded-full flex items-center justify-center mb-4 group-hover:animate-pulse-gentle`}>
+        <Avatar className="w-28 h-28 border-4 border-white">
           <AvatarImage src={avatarSrc} alt={name} />
           <AvatarFallback>{name[0]}</AvatarFallback>
         </Avatar>
       </div>
-      <h3 className="text-2xl font-bold mb-2">{name}</h3>
-      <p className="text-gray-600 text-center">{description}</p>
-    </div>
+      
+      {/* Animated halo ring */}
+      <div className={`absolute top-[70px] w-36 h-36 rounded-full ${bgColor} opacity-0 group-hover:opacity-40 transition-opacity duration-300 animate-pulse-slow`}></div>
+      
+      <CardContent className="text-center p-0 w-full">
+        <h3 className="text-xl font-semibold mb-1">{name}</h3>
+        <p className="text-gray-500 text-sm mb-3">{description}</p>
+        
+        <div className="flex flex-wrap justify-center gap-1 mt-2">
+          {specialties.map((specialty, index) => (
+            <Badge key={index} variant="outline" className={`${bgColor} bg-opacity-15 text-xs`}>
+              {specialty}
+            </Badge>
+          ))}
+        </div>
+        
+        <button className="absolute top-2 right-2 p-1 rounded-full bg-white/80 hover:bg-white transition-colors">
+          <Heart className="h-4 w-4 text-gray-400 hover:text-pink-500" />
+        </button>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -42,35 +72,40 @@ const TherapistSelectionPage = () => {
       id: 'olivia',
       name: 'Olivia',
       description: 'Supportive and empathetic',
-      avatarSrc: 'https://randomuser.me/api/portraits/women/44.jpg',
-      bgColor: 'bg-blue-100',
+      specialties: ['Anxiety', 'Depression'],
+      avatarSrc: '/therapists/olivia.svg',
+      bgColor: 'bg-purple-100',
     },
     {
       id: 'logan',
       name: 'Logan',
       description: 'Friendly and motivating',
-      avatarSrc: 'https://randomuser.me/api/portraits/men/32.jpg',
-      bgColor: 'bg-purple-100',
+      specialties: ['Productivity', 'Stress'],
+      avatarSrc: '/therapists/logan.svg',
+      bgColor: 'bg-blue-100',
     },
     {
       id: 'sarah',
       name: 'Sarah',
       description: 'Calm and non-judgmental',
-      avatarSrc: 'https://randomuser.me/api/portraits/women/68.jpg',
-      bgColor: 'bg-orange-100',
+      specialties: ['Grief', 'Relationships'],
+      avatarSrc: '/therapists/sarah.svg',
+      bgColor: 'bg-green-100',
     },
     {
       id: 'james',
       name: 'James',
       description: 'Practical and goal-oriented',
-      avatarSrc: 'https://randomuser.me/api/portraits/men/46.jpg',
-      bgColor: 'bg-yellow-100',
+      specialties: ['Career', 'Self-esteem'],
+      avatarSrc: '/therapists/james.svg',
+      bgColor: 'bg-orange-100',
     },
     {
       id: 'maya',
       name: 'Maya',
       description: 'Patient and reflective',
-      avatarSrc: 'https://randomuser.me/api/portraits/women/33.jpg',
+      specialties: ['Trauma', 'Mindfulness'],
+      avatarSrc: '/therapists/maya.svg',
       bgColor: 'bg-yellow-100',
     }
   ];
@@ -89,38 +124,28 @@ const TherapistSelectionPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
       <main className="flex-grow flex flex-col items-center justify-center px-4 py-10">
-        <div className="max-w-5xl w-full text-center mb-10">
-          <h1 className="text-5xl font-bold mb-4">Select a Therapist</h1>
-          <p className="text-xl text-gray-600">Choose an AI therapist to talk to.</p>
+        <div className="max-w-5xl w-full text-center mb-10 animate-fade-in">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-3 text-gray-800">Select a Therapist</h1>
+          <p className="text-lg sm:text-xl text-gray-500">Choose an AI therapist to talk to</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl">
-          {therapists.slice(0, 3).map((therapist) => (
-            <TherapistCard
-              key={therapist.id}
-              name={therapist.name}
-              description={therapist.description}
-              avatarSrc={therapist.avatarSrc}
-              bgColor={therapist.bgColor}
-              onClick={() => handleTherapistSelect(therapist.id)}
-            />
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mt-8">
-          {therapists.slice(3).map((therapist) => (
-            <TherapistCard
-              key={therapist.id}
-              name={therapist.name}
-              description={therapist.description}
-              avatarSrc={therapist.avatarSrc}
-              bgColor={therapist.bgColor}
-              onClick={() => handleTherapistSelect(therapist.id)}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl justify-items-center">
+          {therapists.map((therapist, index) => (
+            <div key={therapist.id} className="animate-fade-in" style={{animationDelay: `${index * 0.1}s`}}>
+              <TherapistCard
+                id={therapist.id}
+                name={therapist.name}
+                description={therapist.description}
+                specialties={therapist.specialties}
+                avatarSrc={therapist.avatarSrc}
+                bgColor={therapist.bgColor}
+                onClick={() => handleTherapistSelect(therapist.id)}
+              />
+            </div>
           ))}
         </div>
       </main>
