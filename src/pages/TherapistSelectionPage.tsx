@@ -6,19 +6,8 @@ import Header from '@/components/Header';
 import { toast } from '@/hooks/use-toast';
 import { useTherapist } from '@/context/TherapistContext';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import TherapistProfileCard from '@/components/therapist/TherapistProfileCard';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import TherapistSelectionCard from '@/components/therapist/TherapistSelectionCard';
 
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
@@ -142,95 +131,67 @@ const TherapistSelectionPage = () => {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
-      <main className="flex-grow flex flex-col items-center px-4 py-8 lg:py-12">
-        <div className="w-full max-w-4xl mb-10 animate-fade-in">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2 text-gray-900">Select a Therapist</h1>
-            <p className="text-lg text-gray-600">Choose an AI therapist to talk to.</p>
+      <main className="flex-grow px-6 py-10">
+        <div className="w-full max-w-6xl mx-auto animate-fade-in">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold text-gray-900">Select a Therapist</h1>
           </div>
+          
+          <p className="text-gray-500 mb-6">Choose an AI therapist to talk to.</p>
           
           {/* Quick match button */}
-          <div className="flex justify-center mb-8">
-            <Button 
-              variant="outline" 
-              className="bg-white border border-gray-300 rounded-full px-8 py-6 text-lg font-medium flex items-center hover:bg-gray-50"
-              onClick={handleQuickMatch}
-            >
-              <Search className="h-5 w-5 mr-2" />
-              Let us match you
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 text-sm font-medium px-4 py-2 border border-gray-300 rounded-lg hover:shadow-sm transition mb-6"
+            onClick={handleQuickMatch}
+          >
+            <Search className="h-4 w-4" /> Let us match you
+          </Button>
           
           {/* Filter dropdowns */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-60 justify-between text-left font-normal">
-                  <span>Identity</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-60 p-0">
-                <div className="flex flex-col">
-                  {identityOptions.map(option => (
-                    <Button 
-                      key={option}
-                      variant="ghost" 
-                      className={`justify-start ${identityFilter === option ? 'bg-gray-100' : ''}`}
-                      onClick={() => setIdentityFilter(option)}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+          <div className="flex flex-wrap gap-4 mb-8">
+            <select 
+              className="border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-700 focus:outline-none"
+              value={identityFilter}
+              onChange={(e) => setIdentityFilter(e.target.value)}
+            >
+              <option value="All">Identity</option>
+              {identityOptions.filter(option => option !== 'All').map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-60 justify-between text-left font-normal">
-                  <span>Topics</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-60 p-0">
-                <div className="flex flex-col">
-                  {topicOptions.map(option => (
-                    <Button 
-                      key={option}
-                      variant="ghost" 
-                      className={`justify-start ${topicFilter === option ? 'bg-gray-100' : ''}`}
-                      onClick={() => setTopicFilter(option)}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <select 
+              className="border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-700 focus:outline-none"
+              value={topicFilter}
+              onChange={(e) => setTopicFilter(e.target.value)}
+            >
+              <option value="All">Topics</option>
+              {topicOptions.filter(option => option !== 'All').map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-60 justify-between text-left font-normal">
-                  <span>Therapy Style</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-60 p-0">
-                <div className="flex flex-col">
-                  {styleOptions.map(option => (
-                    <Button 
-                      key={option}
-                      variant="ghost" 
-                      className={`justify-start ${styleFilter === option ? 'bg-gray-100' : ''}`}
-                      onClick={() => setStyleFilter(option)}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <select 
+              className="border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-700 focus:outline-none"
+              value={styleFilter}
+              onChange={(e) => setStyleFilter(e.target.value)}
+            >
+              <option value="All">Therapy Style</option>
+              {styleOptions.filter(option => option !== 'All').map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            
+            {(identityFilter !== 'All' || topicFilter !== 'All' || styleFilter !== 'All') && (
+              <Button 
+                variant="ghost" 
+                className="text-sm text-gray-500"
+                onClick={resetFilters}
+              >
+                Reset filters
+              </Button>
+            )}
           </div>
           
           {/* Therapist grid */}
@@ -243,17 +204,18 @@ const TherapistSelectionPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {filteredTherapists.map((therapist) => (
-                <div 
-                  key={therapist.id} 
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                <TherapistSelectionCard
+                  key={therapist.id}
+                  id={therapist.id}
+                  name={therapist.name}
+                  description={therapist.description}
+                  specialties={therapist.specialties}
+                  avatarSrc={therapist.avatarSrc}
+                  bgColor={therapist.bgColor}
                   onClick={() => handleTherapistSelect(therapist.id)}
-                >
-                  <TherapistProfileCard
-                    therapist={therapist}
-                    isFavorite={favorites.includes(therapist.id)}
-                    onToggleFavorite={(e) => handleToggleFavorite(therapist.id, e)}
-                  />
-                </div>
+                  isFavorite={favorites.includes(therapist.id)}
+                  onToggleFavorite={(e) => handleToggleFavorite(therapist.id, e)}
+                />
               ))}
             </div>
           )}
