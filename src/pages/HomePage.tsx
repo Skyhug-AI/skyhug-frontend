@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Check } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
 
@@ -165,7 +165,7 @@ const HomePage = () => {
 
           <ul className="space-y-3 text-sm text-gray-700 mt-10">
             <li 
-              className={`flex items-center justify-between p-3 rounded-md transition-all border ${
+              className={`flex items-center justify-between p-3 rounded-md transition-all border mt-4 ${
                 completedGoals.includes('session') 
                   ? 'bg-gray-50 border-green-100 opacity-80' 
                   : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'
@@ -173,11 +173,6 @@ const HomePage = () => {
               onClick={() => handleGoalClick('session')}
             >
               <div className="flex items-center">
-                <span className="mr-2">
-                  {completedGoals.includes('session') 
-                    ? <Check className="h-5 w-5 text-green-500" /> 
-                    : '✅'}
-                </span>
                 <span className={completedGoals.includes('session') ? 'line-through text-gray-500' : ''}>
                   Completing a session
                 </span>
@@ -196,11 +191,6 @@ const HomePage = () => {
               onClick={() => handleGoalClick('mood')}
             >
               <div className="flex items-center">
-                <span className="mr-2">
-                  {completedGoals.includes('mood') 
-                    ? <Check className="h-5 w-5 text-green-500" /> 
-                    : '😊'}
-                </span>
                 <span className={completedGoals.includes('mood') ? 'line-through text-gray-500' : ''}>
                   Mood check-in
                 </span>
