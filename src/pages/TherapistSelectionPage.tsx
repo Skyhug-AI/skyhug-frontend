@@ -128,19 +128,19 @@ const TherapistSelectionPage = () => {
       
       <main className="flex-grow flex flex-col items-center justify-center px-4 py-10">
         <div className="max-w-5xl w-full text-center mb-0 animate-fade-in">
-          {/* Back button - added at the top left */}
-          <div className="flex justify-start w-full mb-4">
+          {/* Title section with back button on the same level */}
+          <div className="flex items-center justify-center mb-2 relative">
             <Button 
               variant="ghost" 
-              className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="absolute left-0 flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               onClick={handleBackClick}
             >
               <ChevronLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-800">Select a Therapist</h1>
           </div>
           
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">Select a Therapist</h1>
           <p className="text-md sm:text-xl text-gray-500 mb-4">Choose an AI therapist to talk to</p>
           
           {/* Match button - centered above filters */}
