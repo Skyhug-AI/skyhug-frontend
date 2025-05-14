@@ -1,87 +1,21 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import Header from '@/components/Header';
 import { toast } from '@/hooks/use-toast';
 import { useTherapist } from '@/context/TherapistContext';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-interface TherapistCardProps {
-  id: string;
-  name: string;
-  description: string;
-  specialties: string[];
-  avatarSrc: string;
-  bgColor: string;
-  onClick: () => void;
-  isFavorite: boolean;
-  onToggleFavorite: (e: React.MouseEvent) => void;
-}
-
-// Define filter types
-type IdentityFilter = 'All' | 'Male' | 'Female' | 'Non-binary' | 'LGBTQ+';
-type StyleFilter = 'All' | 'Supportive' | 'Motivational' | 'Direct' | 'Reflective';
-type TopicFilter = 'All' | 'Anxiety' | 'Depression' | 'Trauma' | 'Career' | 'Mindfulness' | 'Relationships' | 'Productivity' | 'Stress' | 'Grief' | 'Self-esteem';
-
-const TherapistCard: React.FC<TherapistCardProps> = ({ 
-  id, 
-  name, 
-  description, 
-  specialties, 
-  avatarSrc, 
-  bgColor, 
-  onClick,
-  isFavorite,
-  onToggleFavorite
-}) => {
-  return (
-    <Card 
-      className="overflow-hidden flex flex-col items-center p-6 h-[280px] w-[220px] rounded-2xl bg-white hover:scale-[1.03] hover:shadow-lg transition-all duration-300 cursor-pointer relative group"
-      onClick={onClick}
-    >
-      <div className={`${bgColor} w-32 h-32 rounded-full flex items-center justify-center mb-4`}>
-        <Avatar className="w-28 h-28 border-4 border-white">
-          <AvatarImage src={avatarSrc} alt={name} />
-          <AvatarFallback>{name[0]}</AvatarFallback>
-        </Avatar>
-      </div>
-      
-      <CardContent className="text-center p-0 w-full">
-        <h3 className="text-xl font-semibold mb-1">{name}</h3>
-        <p className="text-gray-500 text-sm mb-3">{description}</p>
-        
-        <div className="flex flex-wrap justify-center gap-1 mt-2">
-          {specialties.map((specialty, index) => (
-            <Badge key={index} variant="outline" className={`${bgColor} bg-opacity-15 text-xs cursor-pointer hover:bg-opacity-30 transition-colors`}>
-              {specialty}
-            </Badge>
-          ))}
-        </div>
-        
-        <button 
-          className="absolute top-2 right-2 p-1 rounded-full bg-white/80 hover:bg-white transition-colors"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(e);
-          }}
-        >
-          <Heart className={`h-4 w-4 ${isFavorite ? 'text-pink-500 fill-pink-500' : 'text-gray-400'} hover:text-pink-500`} />
-        </button>
-      </CardContent>
-    </Card>
-  );
-};
+import TherapistFilters from '@/components/therapist/TherapistFilters';
+import TherapistSelectionCard from '@/components/therapist/TherapistSelectionCard';
+import type { IdentityFilter, StyleFilter, TopicFilter } from '@/components/therapist/TherapistFilters';
 
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
@@ -216,13 +150,15 @@ const TherapistSelectionPage = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
-      <main className="flex-grow flex flex-col items-center justify-center px-4 py-10">
-        <div className="max-w-5xl w-full text-center mb-10 animate-fade-in">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-3 text-gray-800">Select a Therapist</h1>
-          <p className="text-lg sm:text-xl text-gray-500 mb-6">Choose an AI therapist to talk to</p>
+      <main className="flex-grow flex flex-col items-center px-4 py-8 lg:py-12">
+        <div className="max-w-5xl w-full mb-10 animate-fade-in space-y-3">
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-gray-800">Select a Therapist</h1>
+            <p className="text-md sm:text-lg text-gray-500 mb-4">Choose an AI therapist to talk to</p>
+          </div>
           
           {/* Therapist Info Tooltip */}
-          <div className="flex justify-center mb-5">
+          <div className="flex justify-center">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -238,89 +174,33 @@ const TherapistSelectionPage = () => {
             </TooltipProvider>
           </div>
           
-          {/* Filters - Collapsible on mobile */}
-          <div className="mb-8">
-            {isMobile && (
-              <Button 
-                variant="outline" 
-                className="mb-4"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </Button>
-            )}
-            
-            {showFilters && (
-              <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'flex-wrap justify-center gap-3'}`}>
-                {/* Identity Filter */}
-                <div className={`flex flex-wrap gap-2 ${isMobile ? '' : 'mr-4'}`}>
-                  {['All', 'Female', 'Male', 'Non-binary', 'LGBTQ+'].map(filter => (
-                    <Badge 
-                      key={filter} 
-                      variant={identityFilter === filter ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => setIdentityFilter(filter as IdentityFilter)}
-                    >
-                      {filter}
-                    </Badge>
-                  ))}
-                </div>
-                
-                {/* Style Filter */}
-                <div className={`flex flex-wrap gap-2 ${isMobile ? '' : 'mr-4'}`}>
-                  {['All', 'Supportive', 'Motivational', 'Direct', 'Reflective'].map(filter => (
-                    <Badge 
-                      key={filter} 
-                      variant={styleFilter === filter ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => setStyleFilter(filter as StyleFilter)}
-                    >
-                      {filter}
-                    </Badge>
-                  ))}
-                </div>
-                
-                {/* Topic Filter */}
-                <div className="flex flex-wrap gap-2">
-                  {['All', 'Anxiety', 'Depression', 'Trauma', 'Career', 'Mindfulness', 'Relationships', 'Productivity', 'Stress', 'Grief', 'Self-esteem'].map(filter => (
-                    <Badge 
-                      key={filter} 
-                      variant={topicFilter === filter ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => setTopicFilter(filter as TopicFilter)}
-                    >
-                      {filter}
-                    </Badge>
-                  ))}
-                </div>
-                
-                {/* Reset */}
-                <Button variant="ghost" className="mt-2" onClick={resetFilters}>
-                  Reset Filters
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          {/* Help Me Choose Button */}
-          <Button 
-            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all mb-8"
-            onClick={handleQuickMatch}
-          >
-            Not sure who to pick? Let us match you
-          </Button>
+          {/* Filters */}
+          <TherapistFilters
+            identityFilter={identityFilter}
+            styleFilter={styleFilter}
+            topicFilter={topicFilter}
+            setIdentityFilter={setIdentityFilter}
+            setStyleFilter={setStyleFilter}
+            setTopicFilter={setTopicFilter}
+            resetFilters={resetFilters}
+            handleQuickMatch={handleQuickMatch}
+            isMobile={isMobile}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+          />
         </div>
         
         {filteredTherapists.length === 0 ? (
-          <div className="text-center py-10">
-            <h3 className="text-xl font-medium text-gray-600">No therapists match your current filters</h3>
-            <Button variant="link" onClick={resetFilters}>Reset all filters</Button>
+          <div className="text-center py-10 bg-white rounded-lg shadow-sm p-8 w-full max-w-md">
+            <h3 className="text-xl font-medium text-gray-600 mb-3">No therapists match your current filters</h3>
+            <p className="text-gray-500 mb-4">Try adjusting your filters to see more options</p>
+            <Button variant="outline" onClick={resetFilters}>Reset all filters</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl w-full">
             {filteredTherapists.map((therapist, index) => (
               <div key={therapist.id} className="animate-fade-in" style={{animationDelay: `${index * 0.1}s`}}>
-                <TherapistCard
+                <TherapistSelectionCard
                   id={therapist.id}
                   name={therapist.name}
                   description={therapist.description}
