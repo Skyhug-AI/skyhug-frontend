@@ -1,174 +1,151 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Filter, Search, ChevronDown } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-
-// Define filter types
-export type IdentityFilter = 'All' | 'Male' | 'Female' | 'Non-binary' | 'LGBTQ+';
-export type StyleFilter = 'All' | 'Supportive' | 'Motivational' | 'Direct' | 'Reflective';
-export type TopicFilter = 'All' | 'Anxiety' | 'Depression' | 'Trauma' | 'Career' | 'Mindfulness' | 'Relationships' | 'Productivity' | 'Stress' | 'Grief' | 'Self-esteem';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 interface TherapistFiltersProps {
-  identityFilter: IdentityFilter;
-  styleFilter: StyleFilter;
-  topicFilter: TopicFilter;
-  setIdentityFilter: (filter: IdentityFilter) => void;
-  setStyleFilter: (filter: StyleFilter) => void;
-  setTopicFilter: (filter: TopicFilter) => void;
-  resetFilters: () => void;
-  handleQuickMatch: () => void;
-  isMobile: boolean;
-  showFilters: boolean;
-  setShowFilters: (show: boolean) => void;
+  filters: {
+    specialties: string[];
+    availability: string[];
+    priceRange: [number, number];
+  };
+  onFilterChange: (filters: {
+    specialties: string[];
+    availability: string[];
+    priceRange: [number, number];
+  }) => void;
+  availableSpecialties: string[];
 }
 
 const TherapistFilters: React.FC<TherapistFiltersProps> = ({
-  identityFilter,
-  styleFilter,
-  topicFilter,
-  setIdentityFilter,
-  setStyleFilter,
-  setTopicFilter,
-  resetFilters,
-  handleQuickMatch,
-  isMobile,
-  showFilters,
-  setShowFilters
+  filters,
+  onFilterChange,
+  availableSpecialties,
 }) => {
+  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  const handleSpecialtyChange = (specialty: string, isChecked: boolean) => {
+    const updatedSpecialties = isChecked
+      ? [...filters.specialties, specialty]
+      : filters.specialties.filter(s => s !== specialty);
+    
+    onFilterChange({
+      ...filters,
+      specialties: updatedSpecialties,
+    });
+  };
+  
+  const handleAvailabilityChange = (day: string, isChecked: boolean) => {
+    const updatedAvailability = isChecked
+      ? [...filters.availability, day]
+      : filters.availability.filter(d => d !== day);
+    
+    onFilterChange({
+      ...filters,
+      availability: updatedAvailability,
+    });
+  };
+  
+  const handlePriceChange = (value: number[]) => {
+    onFilterChange({
+      ...filters,
+      priceRange: [value[0], value[1]],
+    });
+  };
+  
+  const resetFilters = () => {
+    onFilterChange({
+      specialties: [],
+      availability: [],
+      priceRange: [0, 500],
+    });
+  };
+
   return (
-    <div className="mb-8 w-full">
-      {isMobile && (
-        <Button 
-          variant="outline" 
-          className="mb-4 w-full flex items-center justify-center"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          {showFilters ? 'Hide Filters' : 'Show Filters'}
-          <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-        </Button>
-      )}
-      
-      {showFilters && (
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-6'}`}>
-            {/* Identity Filter Group */}
-            <div className="space-y-2">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <span className="font-medium">Identity</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="ml-1">
-                      <span className="text-xs bg-gray-100 rounded-full h-4 w-4 inline-flex items-center justify-center">?</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Filter therapists based on their identity</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {['All', 'Female', 'Male', 'Non-binary', 'LGBTQ+'].map(filter => (
-                  <Badge 
-                    key={filter} 
-                    variant={identityFilter === filter ? "default" : "outline"}
-                    className="cursor-pointer px-3 py-1"
-                    onClick={() => setIdentityFilter(filter as IdentityFilter)}
-                  >
-                    {filter}
-                  </Badge>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-medium mb-3">Specialties</h3>
+              <div className="space-y-2">
+                {availableSpecialties.map((specialty) => (
+                  <div key={specialty} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`specialty-${specialty}`}
+                      checked={filters.specialties.includes(specialty)}
+                      onCheckedChange={(checked) => 
+                        handleSpecialtyChange(specialty, checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor={`specialty-${specialty}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {specialty}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
-            
-            {/* Style Filter Group */}
-            <div className="space-y-2">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <span className="font-medium">Therapy Style</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="ml-1">
-                      <span className="text-xs bg-gray-100 rounded-full h-4 w-4 inline-flex items-center justify-center">?</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Choose a therapy approach that works for you</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {['All', 'Supportive', 'Motivational', 'Direct', 'Reflective'].map(filter => (
-                  <Badge 
-                    key={filter} 
-                    variant={styleFilter === filter ? "default" : "outline"}
-                    className="cursor-pointer px-3 py-1"
-                    onClick={() => setStyleFilter(filter as StyleFilter)}
-                  >
-                    {filter}
-                  </Badge>
+
+            <div>
+              <h3 className="text-sm font-medium mb-3">Availability</h3>
+              <div className="space-y-2">
+                {daysOfWeek.map((day) => (
+                  <div key={day} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`day-${day}`}
+                      checked={filters.availability.includes(day)}
+                      onCheckedChange={(checked) => 
+                        handleAvailabilityChange(day, checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor={`day-${day}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {day}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
-            
-            {/* Topic Filter Group */}
-            <div className="space-y-2">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <span className="font-medium">Topics</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="ml-1">
-                      <span className="text-xs bg-gray-100 rounded-full h-4 w-4 inline-flex items-center justify-center">?</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Filter by areas of expertise</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium">Price Range</h3>
+                <span className="text-sm">
+                  ${filters.priceRange[0]} - ${filters.priceRange[1]}
+                </span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {['All', 'Anxiety', 'Depression', 'Trauma', 'Career', 'Mindfulness', 'Relationships', 'Productivity', 'Stress', 'Grief', 'Self-esteem'].map(filter => (
-                  <Badge 
-                    key={filter} 
-                    variant={topicFilter === filter ? "default" : "outline"}
-                    className="cursor-pointer px-3 py-1"
-                    onClick={() => setTopicFilter(filter as TopicFilter)}
-                  >
-                    {filter}
-                  </Badge>
-                ))}
-              </div>
+              <Slider
+                defaultValue={[filters.priceRange[0], filters.priceRange[1]]}
+                min={0}
+                max={500}
+                step={10}
+                value={[filters.priceRange[0], filters.priceRange[1]]}
+                onValueChange={handlePriceChange}
+                className="mb-6"
+              />
             </div>
-          </div>
-          
-          {/* Quick Match and Reset Filters */}
-          <div className="flex flex-wrap items-center justify-between mt-6 gap-3">
+
             <Button 
-              variant="outline"
-              className="border-dashed border-gray-300 flex items-center"
-              onClick={handleQuickMatch}
-            >
-              <Search className="h-4 w-4 mr-2" />
-              Let us match you
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
+              variant="outline" 
               onClick={resetFilters}
-              className="text-gray-500"
+              className="w-full"
             >
-              Reset filters
+              Reset Filters
             </Button>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
