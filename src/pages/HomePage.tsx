@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Check } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
 
@@ -28,6 +28,9 @@ const HomePage = () => {
   const [moodDialogOpen, setMoodDialogOpen] = useState(false);
   const firstName = getFirstName(user?.name);
   const navigate = useNavigate();
+  
+  // Track completed goals
+  const [completedGoals, setCompletedGoals] = useState<string[]>([]);
 
   const moodData = [
     {
@@ -75,6 +78,11 @@ const HomePage = () => {
   ];
 
   const handleGoalClick = (type: string) => {
+    // If already completed, don't do anything
+    if (completedGoals.includes(type)) {
+      return;
+    }
+    
     if (type === 'session') {
       navigate("/session");
     } else if (type === 'mood') {
@@ -87,6 +95,9 @@ const HomePage = () => {
     // Update the goals list to show completion
     setSelectedMood(3);
     
+    // Mark the mood goal as completed
+    setCompletedGoals(prev => [...prev, 'mood']);
+    
     // Close the dialog
     setMoodDialogOpen(false);
     
@@ -96,6 +107,11 @@ const HomePage = () => {
       description: "You earned +10 Calm Points",
     });
   };
+
+  // Calculate progress based on completed goals
+  const totalGoals = 2; // session and mood
+  const completedCount = completedGoals.length;
+  const progressPercentage = (completedCount / totalGoals) * 100;
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
@@ -136,39 +152,63 @@ const HomePage = () => {
         <div className="rounded-lg border p-6 space-y-4 bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-gray-800">Today's Goals</h3>
-            <span className="text-sm text-gray-500">20/100 Calm Points</span>
+            <span className="text-sm text-gray-500">{completedCount * 10 + 10}/100 Calm Points</span>
           </div>
 
           <div className="relative">
-            <Progress value={20} className="h-3 rounded-full" indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
-            <span className="absolute left-0 top-4 text-xs text-gray-500">20% complete</span>
+            <Progress 
+              value={progressPercentage} 
+              className="h-3 rounded-full" 
+              indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" 
+            />
+            <span className="absolute left-0 top-4 text-xs text-gray-500">{progressPercentage}% complete</span>
           </div>
 
           <ul className="space-y-3 text-sm text-gray-700 mt-10">
             <li 
-              className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
+              className={`flex items-center justify-between p-3 rounded-md transition-all border ${
+                completedGoals.includes('session') 
+                  ? 'bg-gray-50 border-green-100 opacity-80' 
+                  : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'
+              }`}
               onClick={() => handleGoalClick('session')}
             >
               <div className="flex items-center">
-                <span className="mr-2">✅</span>
-                <span>Completing a session</span>
+                <span className="mr-2">
+                  {completedGoals.includes('session') 
+                    ? <Check className="h-5 w-5 text-green-500" /> 
+                    : '✅'}
+                </span>
+                <span className={completedGoals.includes('session') ? 'line-through text-gray-500' : ''}>
+                  Completing a session
+                </span>
               </div>
               <div className="flex items-center">
                 <span className="text-indigo-600 font-semibold">+50</span>
-                <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
+                {!completedGoals.includes('session') && <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />}
               </div>
             </li>
             <li 
-              className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 transition-all cursor-pointer border border-transparent hover:border-gray-100 hover:shadow-sm"
+              className={`flex items-center justify-between p-3 rounded-md transition-all border ${
+                completedGoals.includes('mood') 
+                  ? 'bg-gray-50 border-green-100 opacity-80' 
+                  : 'hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm'
+              }`}
               onClick={() => handleGoalClick('mood')}
             >
               <div className="flex items-center">
-                <span className="mr-2">😊</span>
-                <span>Mood check-in</span>
+                <span className="mr-2">
+                  {completedGoals.includes('mood') 
+                    ? <Check className="h-5 w-5 text-green-500" /> 
+                    : '😊'}
+                </span>
+                <span className={completedGoals.includes('mood') ? 'line-through text-gray-500' : ''}>
+                  Mood check-in
+                </span>
               </div>
               <div className="flex items-center">
                 <span className="text-indigo-600 font-semibold">+10</span>
-                <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
+                {!completedGoals.includes('mood') && <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />}
               </div>
             </li>
           </ul>
