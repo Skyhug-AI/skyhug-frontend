@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart } from 'lucide-react';
+import { Heart, ChevronLeft } from 'lucide-react';
 import Header from '@/components/Header';
 import { toast } from '@/hooks/use-toast';
 import { useTherapist } from '@/context/TherapistContext';
@@ -120,11 +120,26 @@ const TherapistSelectionPage = () => {
     // Optional: auto-select the therapist
     // handleTherapistSelect(randomTherapist.id);
   };
+  const handleBackClick = () => {
+    navigate('/home');
+  };
   return <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
       <main className="flex-grow flex flex-col items-center justify-center px-4 py-10">
         <div className="max-w-5xl w-full text-center mb-0 animate-fade-in">
+          {/* Back button - added at the top left */}
+          <div className="flex justify-start w-full mb-4">
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              onClick={handleBackClick}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </div>
+          
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">Select a Therapist</h1>
           <p className="text-md sm:text-xl text-gray-500 mb-4">Choose an AI therapist to talk to</p>
           
