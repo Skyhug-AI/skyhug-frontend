@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import {
   Card,
   CardContent,
@@ -25,31 +25,64 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Switch } from '@/components/ui/switch';
-import { User, Trash2, Save, Lock, SlidersHorizontal } from 'lucide-react';
-import { Slider } from '@/components/ui/slider';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { User, Trash2, Save, Lock, UserCheck } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { useNavigate } from 'react-router-dom';
+import { useTherapist } from '@/context/TherapistContext';
 
 const SettingsForm = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { currentTherapist } = useTherapist();
   
   // Form state
   const [name, setName] = useState(user?.name || '');
   const [userDescription, setUserDescription] = useState('');
-  const [selectedTherapistId, setSelectedTherapistId] = useState('dr-sky');
-  const [therapistStyle, setTherapistStyle] = useState([50]); // Middle of the scale (0-100)
   const [localStorageOnly, setLocalStorageOnly] = useState(true);
   
-  // Therapist options
-  const therapists = [
-    { id: 'dr-sky', name: 'Dr. Sky', specialty: 'General Wellness', avatar: '/sky-avatar.png' },
-    { id: 'dr-morgan', name: 'Dr. Morgan', specialty: 'Anxiety', avatar: '/morgan-avatar.png' },
-    { id: 'dr-taylor', name: 'Dr. Taylor', specialty: 'Depression', avatar: '/taylor-avatar.png' },
-    { id: 'dr-jordan', name: 'Dr. Jordan', specialty: 'Stress Management', avatar: '/jordan-avatar.png' },
-    { id: 'dr-alex', name: 'Dr. Alex', specialty: 'Trauma', avatar: '/alex-avatar.png' },
-  ];
+  // Current therapist info
+  const therapists = {
+    'olivia': {
+      name: 'Olivia',
+      specialty: 'Anxiety, Depression',
+      avatar: '/therapists/olivia.svg',
+      bgColor: 'bg-purple-100'
+    },
+    'logan': {
+      name: 'Logan',
+      specialty: 'Productivity, Stress',
+      avatar: '/therapists/logan.svg',
+      bgColor: 'bg-blue-100'
+    },
+    'sarah': {
+      name: 'Sarah',
+      specialty: 'Grief, Relationships',
+      avatar: '/therapists/sarah.svg',
+      bgColor: 'bg-green-100'
+    },
+    'james': {
+      name: 'James',
+      specialty: 'Career, Self-esteem',
+      avatar: '/therapists/james.svg',
+      bgColor: 'bg-orange-100'
+    },
+    'maya': {
+      name: 'Maya',
+      specialty: 'Trauma, Mindfulness',
+      avatar: '/therapists/maya.svg',
+      bgColor: 'bg-yellow-100'
+    },
+    'dr-sky': {
+      name: 'Dr. Sky',
+      specialty: 'General Wellness',
+      avatar: '/sky-avatar.png',
+      bgColor: 'bg-blue-50'
+    },
+  };
+  
+  const selectedTherapist = currentTherapist ? therapists[currentTherapist] || therapists['olivia'] : therapists['olivia'];
   
   const handleSaveSettings = () => {
     // In a real app, this would save to a backend
@@ -72,6 +105,10 @@ const SettingsForm = () => {
     setTimeout(() => {
       logout();
     }, 1500);
+  };
+  
+  const handleChooseNewTherapist = () => {
+    navigate('/therapist-selection');
   };
   
   return (
@@ -128,75 +165,33 @@ const SettingsForm = () => {
         </CardContent>
       </Card>
       
-      {/* Therapist Preferences - Updated */}
+      {/* Current Therapist - Simplified */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <SlidersHorizontal className="h-5 w-5" />
-            Therapist Preferences
+            <UserCheck className="h-5 w-5" />
+            Your Therapist
           </CardTitle>
           <CardDescription>
-            Customize your therapy experience
+            View or change your current therapist
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label>Select your preferred therapist</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {therapists.map(therapist => (
-                <div 
-                  key={therapist.id}
-                  className={`flex items-start p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedTherapistId === therapist.id 
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedTherapistId(therapist.id)}
-                >
-                  <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
-                    <AvatarFallback>{therapist.name[0]}{therapist.name.split(' ')[1]?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{therapist.name}</p>
-                    <p className="text-xs text-muted-foreground">{therapist.specialty}</p>
-                  </div>
-                </div>
-              ))}
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4 p-4 bg-card rounded-lg border">
+            <div className={`${selectedTherapist.bgColor} w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0`}>
+              <Avatar className="w-14 h-14 border-2 border-white">
+                <AvatarFallback>{selectedTherapist.name[0]}</AvatarFallback>
+              </Avatar>
             </div>
-          </div>
-          
-          <div className="space-y-4">
-            <Label>Therapist interaction style</Label>
             
-            <div className="space-y-6 pt-2">
-              <div>
-                <div className="mb-4">
-                  <Slider 
-                    value={therapistStyle} 
-                    onValueChange={setTherapistStyle} 
-                    max={100} 
-                    step={1}
-                  />
-                </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>More agreeable</span>
-                  <span>More challenging</span>
-                </div>
-              </div>
-              
-              <div className="rounded-lg bg-muted p-4">
-                <h4 className="font-medium mb-2">What does this mean?</h4>
-                <p className="text-sm text-muted-foreground">
-                  {therapistStyle[0] < 33 ? (
-                    "Your therapist will be more supportive and agreeable, focusing on validation and emotional support."
-                  ) : therapistStyle[0] < 66 ? (
-                    "Your therapist will balance support with gentle challenging, helping you reflect on your thoughts and behaviors."
-                  ) : (
-                    "Your therapist will more frequently challenge your perspectives and help you explore alternatives and growth opportunities."
-                  )}
-                </p>
-              </div>
+            <div className="flex-grow">
+              <h3 className="font-medium text-lg">{selectedTherapist.name}</h3>
+              <p className="text-muted-foreground">{selectedTherapist.specialty}</p>
             </div>
+            
+            <Button variant="outline" onClick={handleChooseNewTherapist} className="flex-shrink-0">
+              Choose New Therapist
+            </Button>
           </div>
         </CardContent>
       </Card>
