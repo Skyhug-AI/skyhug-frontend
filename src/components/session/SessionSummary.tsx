@@ -84,21 +84,11 @@ const moodOptions = [
   { value: "great", emoji: "😁", label: "Great" },
 ];
 
-// AI Helpfulness rating options
-const helpfulnessOptions = [
-  { value: "not_at_all", emoji: "😡", label: "Not at all" },
-  { value: "slightly", emoji: "😕", label: "Slightly" },
-  { value: "somewhat", emoji: "🙂", label: "Somewhat" },
-  { value: "mostly", emoji: "😊", label: "Mostly" },
-  { value: "extremely", emoji: "🤩", label: "Extremely" },
-];
-
 const SessionSummary: React.FC<SessionSummaryProps> = ({
   summary = mockSummary,
   onClose,
 }) => {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [selectedHelpfulness, setSelectedHelpfulness] = useState<string | null>(null);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [comment, setComment] = useState("");
   const { toast } = useToast();
@@ -107,17 +97,9 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({
     setSelectedMood(mood);
   };
 
-  const handleHelpfulnessSelect = (rating: string) => {
-    setSelectedHelpfulness(rating);
-    // Automatically open comment box for low ratings
-    if (rating === "not_at_all" || rating === "slightly") {
-      setIsCommentOpen(true);
-    }
-  };
-
   const handleReturnToDashboard = () => {
-    // Submit feedback before closing if any rating was selected
-    if (selectedHelpfulness) {
+    // Submit feedback if comment entered
+    if (comment.trim().length > 0) {
       toast({
         title: "Thanks for your feedback!",
         description: "Your input helps us improve the AI assistant.",
@@ -199,31 +181,8 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({
               </div>
             </div>
 
-            {/* AI Helpfulness Rating */}
-            <div className="pt-4 border-t border-gray-100">
-              <h3 className="text-lg font-medium mb-3">
-                👩‍⚕️ Was the AI helpful during this session?
-              </h3>
-              <div className="flex justify-between items-center px-4 py-2">
-                {helpfulnessOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleHelpfulnessSelect(option.value)}
-                    className={`flex flex-col items-center transition-all ${
-                      selectedHelpfulness === option.value
-                        ? "transform scale-110 text-skyhug-600"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <span className="text-3xl mb-1">{option.emoji}</span>
-                    <span className="text-xs font-medium">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Optional Comment Box */}
-            <div className="pt-2">
+            <div className="pt-4 border-t border-gray-100">
               <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
                 <CollapsibleTrigger asChild>
                   <button className="flex items-center gap-2 text-sm text-skyhug-600 hover:text-skyhug-700">
