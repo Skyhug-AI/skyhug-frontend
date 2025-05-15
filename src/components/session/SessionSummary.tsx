@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Heart, Home, BookText, Clock } from "lucide-react";
+import { Calendar, Heart, BookText, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Types for the data
@@ -93,18 +93,7 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({
     setSelectedMood(mood);
   };
 
-  const handleScheduleNext = () => {
-    toast({
-      title: "Session scheduled",
-      description:
-        "Your next session has been scheduled for tomorrow at 3:00 PM",
-      duration: 3000,
-    });
-    // Navigate to home or scheduling page
-    onClose();
-  };
-
-  const handleGoHome = () => {
+  const handleReturnToDashboard = () => {
     onClose();
   };
 
@@ -182,15 +171,12 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({
           </div>
         </CardContent>
 
-        <CardFooter className="flex justify-between pt-4 border-t">
-          <Button variant="outline" onClick={handleGoHome} className="gap-2">
-            <Home className="h-4 w-4" /> Go Home
-          </Button>
+        <CardFooter className="flex justify-center pt-4 border-t">
           <Button
-            onClick={handleScheduleNext}
+            onClick={handleReturnToDashboard}
             className="bg-skyhug-500 hover:bg-skyhug-600 gap-2"
           >
-            <Calendar className="h-4 w-4" /> Schedule Next Session
+            <Calendar className="h-4 w-4" /> Return to Dashboard
           </Button>
         </CardFooter>
       </Card>
