@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BookText, Clock } from "lucide-react";
+import { BookText, Clock, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // Types for the data
 interface SessionSummaryProps {
@@ -83,18 +84,46 @@ const moodOptions = [
   { value: "great", emoji: "😁", label: "Great" },
 ];
 
+// AI Helpfulness rating options
+const helpfulnessOptions = [
+  { value: "not_at_all", emoji: "😡", label: "Not at all" },
+  { value: "slightly", emoji: "😕", label: "Slightly" },
+  { value: "somewhat", emoji: "🙂", label: "Somewhat" },
+  { value: "mostly", emoji: "😊", label: "Mostly" },
+  { value: "extremely", emoji: "🤩", label: "Extremely" },
+];
+
 const SessionSummary: React.FC<SessionSummaryProps> = ({
   summary = mockSummary,
   onClose,
 }) => {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [selectedHelpfulness, setSelectedHelpfulness] = useState<string | null>(null);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [comment, setComment] = useState("");
   const { toast } = useToast();
 
   const handleMoodSelect = (mood: string) => {
     setSelectedMood(mood);
   };
 
+  const handleHelpfulnessSelect = (rating: string) => {
+    setSelectedHelpfulness(rating);
+    // Automatically open comment box for low ratings
+    if (rating === "not_at_all" || rating === "slightly") {
+      setIsCommentOpen(true);
+    }
+  };
+
   const handleReturnToDashboard = () => {
+    // Submit feedback before closing if any rating was selected
+    if (selectedHelpfulness) {
+      toast({
+        title: "Thanks for your feedback!",
+        description: "Your input helps us improve the AI assistant.",
+        duration: 3000,
+      });
+    }
     onClose();
   };
 
@@ -168,6 +197,56 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* AI Helpfulness Rating */}
+            <div className="pt-4 border-t border-gray-100">
+              <h3 className="text-lg font-medium mb-3">
+                👩‍⚕️ Was the AI helpful during this session?
+              </h3>
+              <div className="flex justify-between items-center px-4 py-2">
+                {helpfulnessOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleHelpfulnessSelect(option.value)}
+                    className={`flex flex-col items-center transition-all ${
+                      selectedHelpfulness === option.value
+                        ? "transform scale-110 text-skyhug-600"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <span className="text-3xl mb-1">{option.emoji}</span>
+                    <span className="text-xs font-medium">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional Comment Box */}
+            <div className="pt-2">
+              <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-2 text-sm text-skyhug-600 hover:text-skyhug-700">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>
+                      {isCommentOpen
+                        ? "Hide comment box"
+                        : "Any feedback about this conversation or the AI's responses? (Optional)"}
+                    </span>
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-2">
+                  <Textarea
+                    placeholder="Click to share your thoughts..."
+                    className="min-h-[80px] resize-y rounded-2xl border-skyhug-200 focus:border-skyhug-400 transition-all"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span>✨</span> AI will learn from your input
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           </div>
         </CardContent>
