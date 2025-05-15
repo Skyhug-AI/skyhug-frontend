@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -584,11 +583,13 @@ const interruptPlayback = () => {
         >
           <div className="flex items-center gap-3 mb-4">
             <Button variant="outline" size="sm" className="text-gray-900">
-              <HelpCircle className="h-4 w-4 mr-2" />
-              Help me answer
+              I don't like your answer
             </Button>
             <Button variant="outline" size="sm" className="text-gray-900">
-              Skip question
+              Be more caring
+            </Button>
+            <Button variant="outline" size="sm" className="text-gray-900">
+              Be more challenging
             </Button>
             <Button
               variant="outline"
