@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Card,
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Heart, BookText, Clock } from "lucide-react";
+import { BookText, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Types for the data
@@ -171,12 +172,12 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({
           </div>
         </CardContent>
 
-        <CardFooter className="flex justify-center pt-4 border-t">
+        <CardFooter className="flex justify-end pt-4 border-t">
           <Button
             onClick={handleReturnToDashboard}
-            className="bg-skyhug-500 hover:bg-skyhug-600 gap-2"
+            className="bg-skyhug-500 hover:bg-skyhug-600"
           >
-            <Calendar className="h-4 w-4" /> Return to Dashboard
+            Return to Dashboard
           </Button>
         </CardFooter>
       </Card>
