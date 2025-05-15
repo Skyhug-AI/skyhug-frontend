@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useContext,
@@ -18,6 +19,7 @@ export interface Message {
   tts_path?: string | null;
   ttsHasArrived?: boolean;
   isGreeting?: boolean;
+  snippet_url?: string | null;
 }
 
 export type TherapistContextType = {
@@ -29,6 +31,11 @@ export type TherapistContextType = {
   endConversation: () => Promise<void>;
   currentTherapist: string;
   setCurrentTherapist: (therapistId: string) => void;
+  editMessage: (id: string, newContent: string) => Promise<void>;
+  invalidateFrom: (id: string) => Promise<void>;
+  regenerateAfter: (id: string) => Promise<void>;
+  conversationId: string | null;
+  setVoiceEnabled: (on: boolean) => Promise<void>;
 };
 
 const TherapistContext = createContext<TherapistContextType>({
@@ -40,6 +47,11 @@ const TherapistContext = createContext<TherapistContextType>({
   endConversation: async () => {},
   currentTherapist: "sky",
   setCurrentTherapist: () => {},
+  editMessage: async () => {},
+  invalidateFrom: async () => {},
+  regenerateAfter: async () => {},
+  conversationId: null,
+  setVoiceEnabled: async () => {},
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -470,6 +482,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         endConversation,
         currentTherapist,
         setCurrentTherapist,
+        editMessage,
+        invalidateFrom,
+        regenerateAfter,
+        conversationId,
+        setVoiceEnabled,
       }}
     >
       {children}
