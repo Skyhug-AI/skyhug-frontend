@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -140,7 +139,7 @@ const TherapistSelectionPage = () => {
     
     toast({
       title: "Therapist selected",
-      description: `You've chosen to speak with ${selectedTherapist?.name}`
+      description: `You've chosen to speak with ${selectedTherapistId!.charAt(0).toUpperCase() + selectedTherapistId!.slice(1)}`
     });
 
     // Navigate to the session page
