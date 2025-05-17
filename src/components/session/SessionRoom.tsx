@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -443,7 +444,7 @@ const interruptPlayback = () => {
 };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-full flex flex-col">
       {isVoiceMode && (
         <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm">
           {recognitionPaused ? (
@@ -461,11 +462,11 @@ const interruptPlayback = () => {
         </div>
       )}
 
-      {/* Updated: Full-width scroll container */}
+      {/* Chat scroll container - takes full width but doesn't overflow the viewport */}
       <div
         className="flex-grow overflow-y-auto py-6 scroll-smooth w-full"
         ref={chatContainerRef}
-        style={{ maxHeight: "calc(100vh - 12rem)" }}
+        style={{ height: "calc(100% - 124px)" }} /* Adjust for header and input area */
       >
         {/* Inner container to keep messages centered */}
         <div className="max-w-3xl mx-auto px-4 space-y-6 flex flex-col min-h-full">
@@ -575,7 +576,7 @@ const interruptPlayback = () => {
             y: hasStartedChat ? 0 : -200,
             position: hasStartedChat ? "sticky" : "relative",
           }}
-          className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
+          className="border-t border-gray-100 bg-white backdrop-blur-sm p-4"
         >
           <div className="flex justify-center items-center gap-4 mb-4 w-full max-w-lg mx-auto">
             <Button variant="outline" size="sm" className="text-gray-900 flex-1">

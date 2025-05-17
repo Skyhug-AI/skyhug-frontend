@@ -38,7 +38,7 @@ const SessionPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-white">
+    <div className="h-screen flex flex-col relative bg-white overflow-hidden">
       <CloudBackground />
       
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
@@ -91,7 +91,6 @@ const SessionPage = () => {
         </div>
       </header>
 
-      {/* Modified: Removed max-w-3xl to allow full-width scroll container */}
       <div className="flex-grow w-full">
         {!isSessionStarted ? (
           <div className="max-w-3xl mx-auto px-4 w-full">
