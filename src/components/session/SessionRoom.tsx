@@ -591,14 +591,6 @@ const interruptPlayback = () => {
             <Button variant="outline" size="sm" className="text-gray-900">
               Be more challenging
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900"
-              onClick={handleEndSession}
-            >
-              End chat & continue
-            </Button>
             <div className="ml-auto">
             <Button
               variant="ghost"
