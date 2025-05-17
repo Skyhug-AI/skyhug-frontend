@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
-import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboard, Search } from 'lucide-react';
+import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboard, Search, Play } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -43,14 +42,7 @@ const Header = () => {
       
       {/* Right: Session CTA + Profile */}
       <div className="flex items-center gap-3">
-        {/* Session CTA Button - updated to be less rounded */}
-        <Button 
-          onClick={() => navigate('/therapist-selection')} 
-          className="hidden md:flex bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-md"
-          size="sm"
-        >
-          Start a Session
-        </Button>
+        {/* Removed the "Start a Session" button from here */}
         
         {isAuthenticated ? (
           <DropdownMenu>
@@ -69,6 +61,10 @@ const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate('/therapist-selection')} className="cursor-pointer">
+                <Play className="mr-2 h-4 w-4 text-skyhug-500" />
+                <span>Start a Session</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/home')} className="cursor-pointer">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
