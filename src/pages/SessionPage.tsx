@@ -38,9 +38,9 @@ const SessionPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-white">
+    <div className="h-screen flex flex-col relative bg-white overflow-hidden">
       <CloudBackground />
-      
+
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-4">

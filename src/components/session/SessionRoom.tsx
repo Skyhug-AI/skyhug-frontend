@@ -5,7 +5,16 @@ import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, Mic, MessageSquare, Loader, Play, Pause, X, Edit2 } from "lucide-react";
+import {
+  HelpCircle,
+  Mic,
+  MessageSquare,
+  Loader,
+  Play,
+  Pause,
+  X,
+  Edit2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,18 +30,23 @@ const SessionRoom = () => {
     endConversation,
     conversationId,
     invalidateFrom,
-    regenerateAfter
+    regenerateAfter,
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
-  const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
+  const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<
+    string | null
+  >(null);
   const [isMicLocked, setIsMicLocked] = useState(false);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const lastSendRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
+  const lastSendRef = useRef<{ text: string; time: number }>({
+    text: "",
+    time: 0,
+  });
   const [waitingForResponse, setWaitingForResponse] = useState(false);
   // Track if we're handling voice recognition pausing/resuming
   const [recognitionPaused, setRecognitionPaused] = useState(false);
@@ -49,12 +63,9 @@ const SessionRoom = () => {
   const greetingIdRef = useRef<string | null>(null);
   const greetingPlayedRef = useRef(false);
 
-
-
   const STREAM_BASE = "http://localhost:8000";
 
-
-  const displayedMessages = messages.map(m =>
+  const displayedMessages = messages.map((m) =>
     m.snippet_url
       ? m
       : snippetUrls[m.id]
@@ -63,23 +74,25 @@ const SessionRoom = () => {
   );
 
   useEffect(() => {
-    initialAssistantCount.current = displayedMessages.filter(m => !m.isUser).length;
+    initialAssistantCount.current = displayedMessages.filter(
+      (m) => !m.isUser
+    ).length;
 
     // helper to pause & clear our single Audio instance
-      const stopAudio = () => {
-          if (!audioRef.current) return;
-          const audio = audioRef.current;
-          audio.pause();
-          // only set currentTime if duration is a valid finite number
-          if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
-            audio.currentTime = audio.duration;
-          }
-          audioRef.current = null;
-        };
-  
+    const stopAudio = () => {
+      if (!audioRef.current) return;
+      const audio = audioRef.current;
+      audio.pause();
+      // only set currentTime if duration is a valid finite number
+      if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
+        audio.currentTime = audio.duration;
+      }
+      audioRef.current = null;
+    };
+
     // 1) When the browser is about to unload (close/refresh), stop audio
     window.addEventListener("beforeunload", stopAudio);
-  
+
     return () => {
       // 2) When SessionRoom unmounts (navigating inside your SPA), also stop audio
       stopAudio();
@@ -98,23 +111,21 @@ const SessionRoom = () => {
     }
   }, [displayedMessages, isVoiceMode, voiceActive]);
 
-
   useEffect(() => {
     // for every new assistant message, figure out how many snippets it needs
-    displayedMessages.forEach(msg => {
+    displayedMessages.forEach((msg) => {
       if (!msg.isUser && snippetCountMap.current[msg.id] == null) {
-        const sentences = msg.content.split(/(?<=[.!?])\s+/)
-        snippetCountMap.current[msg.id] = sentences.length
-  
-        // seed the very first snippet URL so your UI sees it immediately
-        setSnippetUrls(prev => ({
-          ...prev,
-          [msg.id]: `${STREAM_BASE}/tts-stream/${msg.id}?snippet=0`
-        }))
-      }
-    })
-  }, [displayedMessages])
+        const sentences = msg.content.split(/(?<=[.!?])\s+/);
+        snippetCountMap.current[msg.id] = sentences.length;
 
+        // seed the very first snippet URL so your UI sees it immediately
+        setSnippetUrls((prev) => ({
+          ...prev,
+          [msg.id]: `${STREAM_BASE}/tts-stream/${msg.id}?snippet=0`,
+        }));
+      }
+    });
+  }, [displayedMessages]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -123,7 +134,7 @@ const SessionRoom = () => {
   };
 
   useEffect(() => {
-    if (messages.length > 0) setHasStartedChat(true)
+    if (messages.length > 0) setHasStartedChat(true);
     scrollToBottom();
   }, [messages]);
 
@@ -136,18 +147,18 @@ const SessionRoom = () => {
 
   useEffect(() => {
     if (!isVoiceMode) return;
-  
+
     // grab just the assistant messages
-    const assistants = displayedMessages.filter(m => !m.isUser);
-  
+    const assistants = displayedMessages.filter((m) => !m.isUser);
+
     // ────────────────────────────────────────────────────────────────────────────
     // 1) First time ever: silently "play" only _history_, but skip the greeting
     if (!initialHistoryConsumed.current) {
       // history = everything except the greeting
-      const historyAssistants = assistants.filter(m => !m.isGreeting);
-      historyAssistants.forEach(m => {
+      const historyAssistants = assistants.filter((m) => !m.isGreeting);
+      historyAssistants.forEach((m) => {
         playedSnippetsRef.current.add(m.id);
-        setStreamedMap(prev => ({ ...prev, [m.id]: true }));
+        setStreamedMap((prev) => ({ ...prev, [m.id]: true }));
       });
       // record how many we consumed so we start _after_ them
       initialAssistantCount.current = historyAssistants.length;
@@ -155,11 +166,11 @@ const SessionRoom = () => {
       return;
     }
     // ────────────────────────────────────────────────────────────────────────────
-  
+
     // 2) Now for real: autoplay only the messages beyond that snapshot
     for (let i = initialAssistantCount.current; i < assistants.length; i++) {
       const msg = assistants[i];
-  
+
       if (msg.snippet_url && !playedSnippetsRef.current.has(msg.id)) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
@@ -167,7 +178,7 @@ const SessionRoom = () => {
         handlePlayAudio(msg.id);
         return;
       }
-  
+
       if (!playedSnippetsRef.current.has(msg.id) && !streamedMap[msg.id]) {
         setWaitingForResponse(false);
         playedSnippetsRef.current.add(msg.id);
@@ -191,7 +202,6 @@ const SessionRoom = () => {
       handlePlayAudio(id);
     }
   }, [displayedMessages, isVoiceMode]);
-  
 
   useEffect(() => {
     if (!conversationId) return;
@@ -203,39 +213,42 @@ const SessionRoom = () => {
           event: "UPDATE",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`
+          filter: `conversation_id=eq.${conversationId}`,
         },
         ({ new: updated }) => {
           if (updated.snippet_url) {
-            setSnippetUrls(s => ({ ...s, [updated.id]: updated.snippet_url }));
+            setSnippetUrls((s) => ({
+              ...s,
+              [updated.id]: updated.snippet_url,
+            }));
           }
         }
       )
       .subscribe();
-  
+
     return () => supabase.removeChannel(channel);
   }, [conversationId]);
 
-  // HIDE PLAY BUTTON FOR EARLIER MESSAGES   
+  // HIDE PLAY BUTTON FOR EARLIER MESSAGES
   // 1) compute last assistant ID
-    const assistantMessages = useMemo(
-      () => displayedMessages.filter(m => !m.isUser),
-      [displayedMessages]
-    );
-    const lastAssistantId = assistantMessages.length
-      ? assistantMessages[assistantMessages.length - 1].id
-      : null;
-  
-    // 2) on first load of history, mark every existing assistant as “already played”
-    useEffect(() => {
-      if (initialHistoryConsumed.current) return;
-      if (assistantMessages.length === 0) return;
-      assistantMessages.forEach(m => {
-        playedSnippetsRef.current.add(m.id);
-        setStreamedMap(prev => ({ ...prev, [m.id]: true }));
-      });
-      initialHistoryConsumed.current = true;
-    }, [assistantMessages]);
+  const assistantMessages = useMemo(
+    () => displayedMessages.filter((m) => !m.isUser),
+    [displayedMessages]
+  );
+  const lastAssistantId = assistantMessages.length
+    ? assistantMessages[assistantMessages.length - 1].id
+    : null;
+
+  // 2) on first load of history, mark every existing assistant as “already played”
+  useEffect(() => {
+    if (initialHistoryConsumed.current) return;
+    if (assistantMessages.length === 0) return;
+    assistantMessages.forEach((m) => {
+      playedSnippetsRef.current.add(m.id);
+      setStreamedMap((prev) => ({ ...prev, [m.id]: true }));
+    });
+    initialHistoryConsumed.current = true;
+  }, [assistantMessages]);
 
   const handleSendMessage = (message: string) => {
     if (message.trim()) {
@@ -258,15 +271,15 @@ const SessionRoom = () => {
     // ①  Drop any ASR interim results while TTS is playing
     if (!voiceActive || currentlyPlayingPath) return;
 
-    console.log("🎤 ASR returned:", transcript)
+    console.log("🎤 ASR returned:", transcript);
     const trimmed = transcript.trim();
     if (!trimmed) return;
-  
+
     const now = Date.now();
     const { text: lastText, time: lastTime } = lastSendRef.current;
     if (trimmed === lastText && now - lastTime < 3000) return;
     lastSendRef.current = { text: trimmed, time: now };
-  
+
     setHasStartedChat(true);
     // start showing “Sky is thinking...” immediately
     setWaitingForResponse(true);
@@ -283,17 +296,17 @@ const SessionRoom = () => {
 
     sendMessage(trimmed);
   };
-  
-  const handlePlayAudio = (messageId?: string|null, snippetIndex = 0) => {
-    if (!messageId || streamedMap[messageId]) return
+
+  const handlePlayAudio = (messageId?: string | null, snippetIndex = 0) => {
+    if (!messageId || streamedMap[messageId]) return;
 
     // LOCK the mic immediately (this will flip shouldPauseRecognition=true)
     setIsMicLocked(true);
     setCurrentlyPlayingPath(messageId);
-  
-    const streamUrl = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`
-    console.log(`▶️  play snippet ${snippetIndex} of ${messageId}:`, streamUrl)
-  
+
+    const streamUrl = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`;
+    console.log(`▶️  play snippet ${snippetIndex} of ${messageId}:`, streamUrl);
+
     // if re-clicking the same clip, toggle pause/resume
     if (currentlyPlayingPath === messageId && audioRef.current) {
       if (audioRef.current.paused) {
@@ -313,7 +326,7 @@ const SessionRoom = () => {
       }
       return;
     }
-  
+
     // tear down any old
     if (audioRef.current) {
       audioRef.current.pause();
@@ -326,14 +339,12 @@ const SessionRoom = () => {
     setCurrentlyPlayingPath(messageId);
     setIsPaused(false);
 
-    
-  
     // 1) point at your streaming endpoint
     const url = `${STREAM_BASE}/tts-stream/${messageId}?snippet=${snippetIndex}`;
     const audio = new Audio();
     audio.src = url;
     audio.preload = "auto";
-  
+
     // **NEW** force the browser to begin fetching & decoding immediately
     audio.load();
 
@@ -341,7 +352,7 @@ const SessionRoom = () => {
     audio.addEventListener("play", () => {
       handleRecognitionPaused();
     });
-    
+
     // 2) verify streaming is chunked
     audio.addEventListener("progress", () => {
       console.log("⏳ buffered:", audio.buffered);
@@ -360,37 +371,35 @@ const SessionRoom = () => {
         handleRecognitionPaused();
       }
     });
-  
+
     audio.addEventListener("play", () => {
       console.log("▶️ playback started");
     });
-  
+
     // 3) clean up on end / error
     audio.onended = () => {
       const total = snippetCountMap.current[messageId] || 0;
       if (snippetIndex + 1 < total) {
         return handlePlayAudio(messageId, snippetIndex + 1);
       }
-    
+
       // final snippet has finished — gate everything behind a delay
-      setStreamedMap(prev => ({ ...prev, [messageId]: true }));
-    
+      setStreamedMap((prev) => ({ ...prev, [messageId]: true }));
+
       // wait a bit for the browser’s audio stack to fully tear down
       setTimeout(() => {
-        setIsMicLocked(false);             // unlock mic
+        setIsMicLocked(false); // unlock mic
         setIsPaused(false);
-        audioRef.current = null;           // drop your ref
-        setCurrentlyPlayingPath(null);     // now clear “playing” flag
-        handleRecognitionResumed();        // and finally let ASR resume
+        audioRef.current = null; // drop your ref
+        setCurrentlyPlayingPath(null); // now clear “playing” flag
+        handleRecognitionResumed(); // and finally let ASR resume
         if (messageId === greetingIdRef.current) {
-          setVoiceActive(true);          // now show the VoiceRecorder
-          setVoiceEnabled(true);         // update your TherapistContext
+          setVoiceActive(true); // now show the VoiceRecorder
+          setVoiceEnabled(true); // update your TherapistContext
         }
-      }, 1);                             
-
-
+      }, 1);
     };
-    
+
     audio.onerror = (e) => {
       console.error("🔊 stream playback error", e);
       if (voiceTimeoutRef.current) {
@@ -401,46 +410,46 @@ const SessionRoom = () => {
       setCurrentlyPlayingPath(null);
       setVoiceUnavailable(true);
     };
-  
+
     // stash and kick off load+play
     audioRef.current = audio;
     // note: we no longer call play() here directly—play() will be invoked in `canplay`
   };
-  
+
   const handleRecognitionPaused = () => {
     console.log("Voice recognition paused");
     setRecognitionPaused(true);
   };
-  
+
   const handleRecognitionResumed = () => {
     console.log("Voice recognition resumed");
-      // if there’s still audio playing, ignore this resume
-      // if (currentlyPlayingPath) {
-      //   console.log("Ignoring premature resume; audio still playing");
-      //   return;
-      // }
-      setRecognitionPaused(false);
+    // if there’s still audio playing, ignore this resume
+    // if (currentlyPlayingPath) {
+    //   console.log("Ignoring premature resume; audio still playing");
+    //   return;
+    // }
+    setRecognitionPaused(false);
   };
 
-const interruptPlayback = () => {
-  // If there’s a clip still loaded, stop & skip it
+  const interruptPlayback = () => {
+    // If there’s a clip still loaded, stop & skip it
     if (audioRef.current) {
-        const audio = audioRef.current;
-        audio.pause();
-        if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
-          audio.currentTime = audio.duration;
-       }
-        audioRef.current = null;
+      const audio = audioRef.current;
+      audio.pause();
+      if (!Number.isNaN(audio.duration) && Number.isFinite(audio.duration)) {
+        audio.currentTime = audio.duration;
       }
+      audioRef.current = null;
+    }
 
-  // Unlock the mic immediately
-  setIsMicLocked(false);
+    // Unlock the mic immediately
+    setIsMicLocked(false);
 
-  // Clear your UI “playing” flags
-  if (currentlyPlayingPath) {
-    setCurrentlyPlayingPath(null);
-  }
-};
+    // Clear your UI “playing” flags
+    if (currentlyPlayingPath) {
+      setCurrentlyPlayingPath(null);
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
@@ -455,8 +464,12 @@ const interruptPlayback = () => {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <span className={recognitionPaused ? "text-red-500" : "text-gray-600"}>
-            {recognitionPaused ? "Sky is not listening..." : "Sky is listening..."}
+          <span
+            className={recognitionPaused ? "text-red-500" : "text-gray-600"}
+          >
+            {recognitionPaused
+              ? "Sky is not listening..."
+              : "Sky is listening..."}
           </span>
         </div>
       )}
@@ -476,9 +489,9 @@ const interruptPlayback = () => {
                 /* ───────────── EDIT MODE ───────────── */
                 <ChatInput
                   initialValue={message.content}
-                  onEditMessage={async newText => {
-                    await invalidateFrom(message.id);           // ① drop downstream chats
-                    await editMessage(message.id, newText);     // ② update this turn's text
+                  onEditMessage={async (newText) => {
+                    await invalidateFrom(message.id); // ① drop downstream chats
+                    await editMessage(message.id, newText); // ② update this turn's text
                     setEditingId(null);
                   }}
                   onSendMessage={handleSendMessage}
@@ -495,10 +508,10 @@ const interruptPlayback = () => {
                   {message.isUser && (
                     <div
                       className="
-                        mt-1 
-                        flex items-center justify-end gap-1 
-                        text-xs text-gray-500 
-                        opacity-0 group-hover:opacity-100 
+                        mt-1
+                        flex items-center justify-end gap-1
+                        text-xs text-gray-500
+                        opacity-0 group-hover:opacity-100
                         transition-opacity
                         pr-4
                       "
@@ -507,7 +520,7 @@ const interruptPlayback = () => {
                         className="p-1"
                         onClick={() => {
                           setEditingId(message.id);
-                          interruptPlayback(); 
+                          interruptPlayback();
                           // setIsVoiceMode(false);
                           setRecognitionPaused(true);
                         }}
@@ -519,20 +532,26 @@ const interruptPlayback = () => {
                   )}
 
                   {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-                  {!message.isUser && isVoiceMode && message.id === lastAssistantId && !streamedMap[message.id] && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => handlePlayAudio(message.id)}
-                      disabled={isMicLocked && currentlyPlayingPath !== message.id}
-                    >
-                      {currentlyPlayingPath === message.id && !isPaused
-                        ? <Pause className="h-4 w-4" />
-                        : <Play className="h-4 w-4" />
-                      }
-                    </Button>
-                  )}
+                  {!message.isUser &&
+                    isVoiceMode &&
+                    message.id === lastAssistantId &&
+                    !streamedMap[message.id] && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handlePlayAudio(message.id)}
+                        disabled={
+                          isMicLocked && currentlyPlayingPath !== message.id
+                        }
+                      >
+                        {currentlyPlayingPath === message.id && !isPaused ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
                 </>
               )}
             </div>
@@ -542,26 +561,28 @@ const interruptPlayback = () => {
             <div className="px-4 py-2 text-sm text-red-500">
               Voice Mode not available. Use Chat Mode or come back later.
             </div>
-          ) : (isProcessing || waitingForResponse) && (
-            <div className="flex items-center gap-2 px-4 py-2">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Loader className="h-4 w-4 text-skyhug-500" />
-              </motion.div>
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-gray-600"
-              >
-                Sky is thinking...
-              </motion.span>
-            </div>
+          ) : (
+            (isProcessing || waitingForResponse) && (
+              <div className="flex items-center gap-2 px-4 py-2">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                >
+                  <Loader className="h-4 w-4 text-skyhug-500" />
+                </motion.div>
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-sm text-gray-600"
+                >
+                  Sky is thinking...
+                </motion.span>
+              </div>
+            )
           )}
 
           <div ref={messagesEndRef} />
@@ -578,13 +599,25 @@ const interruptPlayback = () => {
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
           <div className="flex justify-center items-center gap-4 mb-4 w-full max-w-lg mx-auto">
-            <Button variant="outline" size="sm" className="text-gray-900 flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-900 flex-1"
+            >
               I don't like your answer
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-900 flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-900 flex-1"
+            >
               Be more caring
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-900 flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-900 flex-1"
+            >
               Be more challenging
             </Button>
             <div className="ml-auto">
@@ -605,22 +638,27 @@ const interruptPlayback = () => {
           </div>
 
           <div className="flex gap-2">
-            {isVoiceMode && voiceActive? (
+            {isVoiceMode && voiceActive ? (
               <VoiceRecorder
                 onVoiceRecorded={handleVoiceRecorded}
                 isDisabled={isProcessing}
-                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse || Boolean(currentlyPlayingPath) }
+                shouldPauseRecognition={
+                  Boolean(editingId) ||
+                  isMicLocked ||
+                  waitingForResponse ||
+                  Boolean(currentlyPlayingPath)
+                }
                 onRecognitionPaused={handleRecognitionPaused}
                 onRecognitionResumed={handleRecognitionResumed}
-                onInterruptPlayback={interruptPlayback} 
+                onInterruptPlayback={interruptPlayback}
               />
             ) : (
               <div className="flex-grow">
-              <ChatInput
-                onSendMessage={handleSendMessage}
-                placeholder="Write your answer"
-                isDisabled={isProcessing}
-              />
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  placeholder="Write your answer"
+                  isDisabled={isProcessing}
+                />
               </div>
             )}
           </div>
