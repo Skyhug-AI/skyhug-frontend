@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -581,7 +582,7 @@ const interruptPlayback = () => {
           }}
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex justify-center items-center gap-3 mb-4">
             <Button variant="outline" size="sm" className="text-gray-900">
               I don't like your answer
             </Button>
