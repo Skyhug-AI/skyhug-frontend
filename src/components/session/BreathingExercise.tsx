@@ -133,6 +133,14 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
               </Button>
             </div>
 
+            {/* Timer - Made smaller */}
+            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-white/20 px-4 py-1.5 rounded-full flex items-center gap-1.5">
+              <Timer className="h-4 w-4 text-white" />
+              <span className="text-white text-base font-mono">
+                {formatTime(timeRemaining)}
+              </span>
+            </div>
+
             {showSettings && (
               <div className="absolute top-16 right-4 bg-white p-4 rounded-md shadow-lg w-64">
                 <div className="space-y-4">
@@ -185,14 +193,7 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
             )}
 
             <div className="flex flex-col items-center justify-center">
-              {/* Countdown timer */}
-              <div className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-white/20 px-6 py-2 rounded-full flex items-center gap-2">
-                <Timer className="h-5 w-5 text-white" />
-                <span className="text-white text-xl font-mono">
-                  {formatTime(timeRemaining)}
-                </span>
-              </div>
-
+              {/* Breathing circle animation */}
               <motion.div
                 animate={{
                   scale: isBreathingIn ? 2 : 1,
@@ -202,21 +203,22 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
                   duration: isBreathingIn ? breatheInDuration : breatheOutDuration,
                   ease: "easeInOut",
                 }}
-                className="w-32 h-32 bg-purple-400 bg-opacity-50 rounded-full flex items-center justify-center mb-8"
+                className="w-32 h-32 bg-purple-400 bg-opacity-50 rounded-full"
               />
 
+              {/* Text instruction - Moved below the circle with more spacing */}
               <motion.div
                 key={isBreathingIn ? "in" : "out"}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5 }}
-                className="text-white text-3xl font-light"
+                className="text-white text-3xl font-light mt-16"
               >
                 {isBreathingIn ? "Breathe in..." : "Breathe out..."}
               </motion.div>
 
-              <div className="mt-6 text-white text-xl">
+              <div className="mt-4 text-white text-lg">
                 <span className="opacity-50">
                   {isBreathingIn
                     ? `${breatheInDuration}s in`
