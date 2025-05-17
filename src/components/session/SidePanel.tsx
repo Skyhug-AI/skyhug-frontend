@@ -39,13 +39,76 @@ const SidePanel = () => {
 
   return (
     <div className="h-full overflow-y-auto bg-white">
-      <Tabs defaultValue="form" className="w-full">
+      <Tabs defaultValue="treatment" className="w-full">
         <div className="p-4 border-b">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="treatment">Treatment Plan</TabsTrigger>
             <TabsTrigger value="form">Contact Form</TabsTrigger>
             <TabsTrigger value="info">Information</TabsTrigger>
           </TabsList>
         </div>
+
+        <TabsContent value="treatment" className="p-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">Your Treatment Plan</h2>
+            <p className="text-gray-600 mt-2">
+              An overview of your personalized therapy journey
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-medium text-blue-800 mb-2">Weekly Goals</h3>
+              <ul className="list-disc list-inside text-blue-700 space-y-1">
+                <li>Practice mindfulness for 10 minutes daily</li>
+                <li>Complete 2 cognitive restructuring exercises</li>
+                <li>Journal about emotions for 3 days</li>
+                <li>Identify 2 stress triggers and responses</li>
+              </ul>
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h3 className="font-medium text-purple-800 mb-2">Focus Areas</h3>
+              <div className="space-y-2">
+                <div>
+                  <h4 className="text-sm font-medium text-purple-800">Anxiety Management</h4>
+                  <div className="w-full bg-purple-200 rounded-full h-2.5">
+                    <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: "70%" }}></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-purple-800">Communication Skills</h4>
+                  <div className="w-full bg-purple-200 rounded-full h-2.5">
+                    <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: "45%" }}></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-purple-800">Self-Compassion</h4>
+                  <div className="w-full bg-purple-200 rounded-full h-2.5">
+                    <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: "30%" }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="font-medium text-green-800 mb-2">Recommended Exercises</h3>
+              <ul className="list-disc list-inside text-green-700 space-y-1">
+                <li>Deep breathing exercises</li>
+                <li>Thought stopping techniques</li>
+                <li>Progressive muscle relaxation</li>
+                <li>Gratitude journaling</li>
+              </ul>
+            </div>
+
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="font-medium text-amber-800 mb-2">Next Steps</h3>
+              <p className="text-amber-700">
+                Based on your progress, we'll review your anxiety management techniques in our next session and introduce new cognitive behavioral strategies.
+              </p>
+            </div>
+          </div>
+        </TabsContent>
 
         <TabsContent value="form" className="p-6">
           <div className="mb-6">
