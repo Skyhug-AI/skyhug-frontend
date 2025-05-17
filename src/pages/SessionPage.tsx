@@ -4,13 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import SessionIntro from "@/components/session/SessionIntro";
 import SessionRoom from "@/components/session/SessionRoom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PanelRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import CloudBackground from "@/components/CloudBackground";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import SidePanel from "@/components/session/SidePanel";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
@@ -35,6 +38,10 @@ const SessionPage = () => {
   const handleEndSession = async () => {
     await endConversation();
     navigate("/session-summary");
+  };
+
+  const toggleSidePanel = () => {
+    setIsSidePanelOpen(!isSidePanelOpen);
   };
 
   return (
@@ -78,27 +85,55 @@ const SessionPage = () => {
             )}
           </div>
 
-          {isSessionStarted && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-              onClick={handleEndSession}
-            >
-              End Chat & Continue
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {isSessionStarted && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                onClick={toggleSidePanel}
+              >
+                {isSidePanelOpen ? <X className="h-4 w-4 mr-2" /> : <PanelRight className="h-4 w-4 mr-2" />}
+                {isSidePanelOpen ? "Close Panel" : "Open Panel"}
+              </Button>
+            )}
+
+            {isSessionStarted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                onClick={handleEndSession}
+              >
+                End Chat & Continue
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Modified: Removed max-w-3xl to allow full-width scroll container */}
       <div className="flex-grow w-full">
         {!isSessionStarted ? (
           <div className="max-w-3xl mx-auto px-4 w-full">
             <SessionIntro onStartSession={handleStartSession} />
           </div>
         ) : (
-          <SessionRoom />
+          <div className="w-full h-full">
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={isSidePanelOpen ? 60 : 100} minSize={30}>
+                <SessionRoom />
+              </ResizablePanel>
+              
+              {isSidePanelOpen && (
+                <>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={40} minSize={20} className="border-l border-gray-200">
+                    <SidePanel />
+                  </ResizablePanel>
+                </>
+              )}
+            </ResizablePanelGroup>
+          </div>
         )}
       </div>
     </div>
