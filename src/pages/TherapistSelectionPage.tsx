@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { useTherapist } from '@/context/TherapistContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 interface TherapistCardProps {
   id: string;
@@ -71,7 +70,7 @@ const TherapistSelectionPage = () => {
   
   // Selected therapist states
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
-  const [showDialog, setShowDialog] = useState<boolean>(false);
+  const [showSidebar, setShowSidebar] = useState<boolean>(false);
 
   const therapists = [{
     id: 'olivia',
@@ -130,8 +129,8 @@ const TherapistSelectionPage = () => {
   const handleTherapistSelect = (therapistId: string) => {
     // Set the selected therapist
     setSelectedTherapistId(therapistId);
-    // Open the dialog
-    setShowDialog(true);
+    // Open the sidebar
+    setShowSidebar(true);
   };
 
   const handleConfirmTherapist = () => {
@@ -158,7 +157,7 @@ const TherapistSelectionPage = () => {
 
     // Set the selected therapist
     setSelectedTherapistId(randomTherapist.id);
-    setShowDialog(true);
+    setShowSidebar(true);
   };
   
   const handleBackClick = () => {
@@ -256,12 +255,12 @@ const TherapistSelectionPage = () => {
         </div>
       </main>
 
-      {/* Therapist Details Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      {/* Therapist Details Sidebar - Made wider */}
+      <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
+        <SheetContent className="w-[500px] sm:max-w-lg overflow-y-auto">
           {selectedTherapist && (
-            <div className="flex flex-col">
-              <DialogHeader className="text-left">
+            <div className="h-full flex flex-col">
+              <SheetHeader className="text-left">
                 <div className="flex items-start gap-4">
                   <div className={`${selectedTherapist.bgColor} w-20 h-20 rounded-full flex items-center justify-center shrink-0`}>
                     <Avatar className="w-16 h-16 border-4 border-white">
@@ -271,8 +270,8 @@ const TherapistSelectionPage = () => {
                   </div>
                   
                   <div>
-                    <DialogTitle className="text-2xl mb-1">{selectedTherapist.name}</DialogTitle>
-                    <DialogDescription className="text-base">{selectedTherapist.description}</DialogDescription>
+                    <SheetTitle className="text-2xl mb-1">{selectedTherapist.name}</SheetTitle>
+                    <SheetDescription className="text-base">{selectedTherapist.description}</SheetDescription>
                     
                     <div className="flex flex-wrap gap-1 mt-2">
                       {selectedTherapist.specialties.map((specialty) => (
@@ -283,9 +282,9 @@ const TherapistSelectionPage = () => {
                     </div>
                   </div>
                 </div>
-              </DialogHeader>
+              </SheetHeader>
               
-              <div className="space-y-6 mt-6">
+              <div className="space-y-6 mt-6 flex-grow overflow-auto pr-2">
                 <div>
                   <h3 className="font-medium text-lg mb-2">About me</h3>
                   <p className="text-gray-700">{selectedTherapist.bio}</p>
@@ -302,8 +301,8 @@ const TherapistSelectionPage = () => {
                 </div>
               </div>
               
-              {/* Start Session Button */}
-              <div className="mt-6 pt-4 border-t">
+              {/* Start Session Button - Fixed at bottom */}
+              <div className="mt-6 pt-4 border-t sticky bottom-0 bg-background">
                 <Button 
                   className="w-full flex items-center justify-center gap-2" 
                   onClick={handleConfirmTherapist}
@@ -315,8 +314,8 @@ const TherapistSelectionPage = () => {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
