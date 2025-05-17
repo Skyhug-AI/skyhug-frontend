@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -6,6 +7,7 @@ import SessionRoom from "@/components/session/SessionRoom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import CloudBackground from "@/components/CloudBackground";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -37,7 +39,7 @@ const SessionPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative bg-white">
-      {/* Removed sunrise gradient background */}
+      <CloudBackground />
       
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
