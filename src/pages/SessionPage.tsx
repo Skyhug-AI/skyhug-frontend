@@ -38,7 +38,7 @@ const SessionPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative bg-white">
       <CloudBackground />
       
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
@@ -91,11 +91,9 @@ const SessionPage = () => {
         </div>
       </header>
 
-      <div className="flex-grow w-full">
+      <div className="flex-grow max-w-3xl mx-auto px-4 w-full">
         {!isSessionStarted ? (
-          <div className="max-w-3xl mx-auto px-4">
-            <SessionIntro onStartSession={handleStartSession} />
-          </div>
+          <SessionIntro onStartSession={handleStartSession} />
         ) : (
           <SessionRoom />
         )}
