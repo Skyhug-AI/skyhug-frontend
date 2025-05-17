@@ -91,9 +91,12 @@ const SessionPage = () => {
         </div>
       </header>
 
-      <div className="flex-grow max-w-3xl mx-auto px-4 w-full">
+      {/* Modified: Removed max-w-3xl to allow full-width scroll container */}
+      <div className="flex-grow w-full">
         {!isSessionStarted ? (
-          <SessionIntro onStartSession={handleStartSession} />
+          <div className="max-w-3xl mx-auto px-4 w-full">
+            <SessionIntro onStartSession={handleStartSession} />
+          </div>
         ) : (
           <SessionRoom />
         )}

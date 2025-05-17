@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -445,7 +444,7 @@ const interruptPlayback = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
-            {isVoiceMode && (
+      {isVoiceMode && (
         <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm">
           {recognitionPaused ? (
             <X className="w-4 h-4 text-red-500" />
@@ -462,112 +461,108 @@ const interruptPlayback = () => {
         </div>
       )}
 
-
+      {/* Updated: Full-width scroll container */}
       <div
-        className="flex-grow overflow-y-auto py-6 scroll-smooth"
+        className="flex-grow overflow-y-auto py-6 scroll-smooth w-full"
         ref={chatContainerRef}
         style={{ maxHeight: "calc(100vh - 12rem)" }}
       >
-        <div className="space-y-6 flex flex-col min-h-full">
+        {/* Inner container to keep messages centered */}
+        <div className="max-w-3xl mx-auto px-4 space-y-6 flex flex-col min-h-full">
           <div className="flex-grow" />
           {displayedMessages.map((message) => (
             <div key={message.id} className="relative group">
-  {editingId === message.id ? (
-    /* ───────────── EDIT MODE ───────────── */
-    <ChatInput
-      initialValue={message.content}
-      onEditMessage={async newText => {
-        await invalidateFrom(message.id);           // ① drop downstream chats
-        await editMessage(message.id, newText);     // ② update this turn’s text
-        setEditingId(null);
-      }}
-      onSendMessage={handleSendMessage}
-      isDisabled={isProcessing}
-    />
-  ) : (
-    /* ─────────── NORMAL CHAT BUBBLE ─────────── */
-    <>
-      <ChatBubble
-        message={message.content}
-        isUser={message.isUser}
-      />
+              {editingId === message.id ? (
+                /* ───────────── EDIT MODE ───────────── */
+                <ChatInput
+                  initialValue={message.content}
+                  onEditMessage={async newText => {
+                    await invalidateFrom(message.id);           // ① drop downstream chats
+                    await editMessage(message.id, newText);     // ② update this turn's text
+                    setEditingId(null);
+                  }}
+                  onSendMessage={handleSendMessage}
+                  isDisabled={isProcessing}
+                />
+              ) : (
+                /* ─────────── NORMAL CHAT BUBBLE ─────────── */
+                <>
+                  <ChatBubble
+                    message={message.content}
+                    isUser={message.isUser}
+                  />
 
-      {message.isUser && (
-        <div
-          className="
-            mt-1 
-            flex items-center justify-end gap-1 
-            text-xs text-gray-500 
-            opacity-0 group-hover:opacity-100 
-            transition-opacity
-            pr-4
-          "
-        >
-          <button
-            className="p-1"
-            onClick={() => {
-              setEditingId(message.id);
-              interruptPlayback(); 
-              // setIsVoiceMode(false);
-              setRecognitionPaused(true);
-            }}
-          >
-            <Edit2 className="h-4 w-4 text-gray-500" />
-          </button>
-          <span>{message.timestamp}</span>
-        </div>
-      )}
+                  {message.isUser && (
+                    <div
+                      className="
+                        mt-1 
+                        flex items-center justify-end gap-1 
+                        text-xs text-gray-500 
+                        opacity-0 group-hover:opacity-100 
+                        transition-opacity
+                        pr-4
+                      "
+                    >
+                      <button
+                        className="p-1"
+                        onClick={() => {
+                          setEditingId(message.id);
+                          interruptPlayback(); 
+                          // setIsVoiceMode(false);
+                          setRecognitionPaused(true);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4 text-gray-500" />
+                      </button>
+                      <span>{message.timestamp}</span>
+                    </div>
+                  )}
 
-      {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-      {!message.isUser && isVoiceMode && message.id === lastAssistantId && !streamedMap[message.id] && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => handlePlayAudio(message.id)}
-          disabled={isMicLocked && currentlyPlayingPath !== message.id}
-        >
-          {currentlyPlayingPath === message.id && !isPaused
-            ? <Pause className="h-4 w-4" />
-            : <Play className="h-4 w-4" />
-          }
-        </Button>
-      )}
+                  {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
+                  {!message.isUser && isVoiceMode && message.id === lastAssistantId && !streamedMap[message.id] && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handlePlayAudio(message.id)}
+                      disabled={isMicLocked && currentlyPlayingPath !== message.id}
+                    >
+                      {currentlyPlayingPath === message.id && !isPaused
+                        ? <Pause className="h-4 w-4" />
+                        : <Play className="h-4 w-4" />
+                      }
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
 
-
-    </>
-  )}
-</div>
-
-))}
-
-
-            {voiceUnavailable ? (
-              <div className="px-4 py-2 text-sm text-red-500">
-                Voice Mode not available. Use Chat Mode or come back later.
-              </div>
-            ) : (isProcessing || waitingForResponse) && (
-              <div className="flex items-center gap-2 px-4 py-2">
-                              <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                              ease: "linear",
-                            }}
-                          >
-                            <Loader className="h-4 w-4 text-skyhug-500" />
-                          </motion.div>
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-sm text-gray-600"
-                          >
-                            Sky is thinking...
-                          </motion.span>
-              </div>
-            )}
-
+          {voiceUnavailable ? (
+            <div className="px-4 py-2 text-sm text-red-500">
+              Voice Mode not available. Use Chat Mode or come back later.
+            </div>
+          ) : (isProcessing || waitingForResponse) && (
+            <div className="flex items-center gap-2 px-4 py-2">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <Loader className="h-4 w-4 text-skyhug-500" />
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-sm text-gray-600"
+              >
+                Sky is thinking...
+              </motion.span>
+            </div>
+          )}
 
           <div ref={messagesEndRef} />
         </div>
