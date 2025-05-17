@@ -4,16 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
 import SessionIntro from "@/components/session/SessionIntro";
 import SessionRoom from "@/components/session/SessionRoom";
-import { ArrowLeft, PanelRight, X } from "lucide-react";
+import { ArrowLeft, PanelRight, X, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import CloudBackground from "@/components/CloudBackground";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import SidePanel from "@/components/session/SidePanel";
+import BreathingExercise from "@/components/session/BreathingExercise";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
@@ -42,6 +44,10 @@ const SessionPage = () => {
 
   const toggleSidePanel = () => {
     setIsSidePanelOpen(!isSidePanelOpen);
+  };
+
+  const toggleBreathingExercise = () => {
+    setIsBreathingExerciseOpen(!isBreathingExerciseOpen);
   };
 
   return (
@@ -87,15 +93,27 @@ const SessionPage = () => {
 
           <div className="flex items-center gap-2">
             {isSessionStarted && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                onClick={toggleSidePanel}
-              >
-                {isSidePanelOpen ? <X className="h-4 w-4 mr-2" /> : <PanelRight className="h-4 w-4 mr-2" />}
-                {isSidePanelOpen ? "Close Panel" : "Open Panel"}
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-purple-500 hover:text-purple-600 hover:bg-purple-50"
+                  onClick={toggleBreathingExercise}
+                >
+                  <Wind className="h-4 w-4 mr-2" />
+                  Breathing
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                  onClick={toggleSidePanel}
+                >
+                  {isSidePanelOpen ? <X className="h-4 w-4 mr-2" /> : <PanelRight className="h-4 w-4 mr-2" />}
+                  {isSidePanelOpen ? "Close Panel" : "Open Panel"}
+                </Button>
+              </>
             )}
 
             {isSessionStarted && (
@@ -136,6 +154,11 @@ const SessionPage = () => {
           </div>
         )}
       </div>
+
+      <BreathingExercise 
+        isOpen={isBreathingExerciseOpen} 
+        onClose={() => setIsBreathingExerciseOpen(false)} 
+      />
     </div>
   );
 };
