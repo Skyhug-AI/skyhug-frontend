@@ -25,7 +25,8 @@ export interface Message {
 export type TherapistContextType = {
   messages: Message[];
   isProcessing: boolean;
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string) => Promise<void>;
+  sendAudioMessage: (blob: Blob) => Promise<void>;
   clearMessages: () => Promise<void>;
   triggerTTSForMessage: (tts_path: string) => Promise<void>;
   endConversation: () => Promise<void>;
@@ -42,6 +43,7 @@ const TherapistContext = createContext<TherapistContextType>({
   messages: [],
   isProcessing: false,
   sendMessage: () => {},
+  sendAudioMessage: async () => {},
   clearMessages: async () => {},
   triggerTTSForMessage: async () => {},
   endConversation: async () => {},

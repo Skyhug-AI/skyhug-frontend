@@ -105,8 +105,8 @@ async def tts_stream(message_id: str, snippet: int = 0):
         json={
             "text": piece,
             "voice_settings": {
-                "stability": 0.4,
-                "similarity_boost": 0.4,
+                "stability": 0.45,
+                "similarity_boost": 0.45,
                 "latency_boost": True,
             },
             "stream": True,

@@ -70,13 +70,14 @@ Your goal is to make the user feel heard, safe, and supported — not judged or 
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
 
 Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms. 
-If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind 
-them that you're an AI and not a substitute for professional care — **but only after you've explored the feeling deeply and given the user space to reflect.**
+If a user expresses distress, validate it and gently suggest grounding or coping strategies. Do not suggest that they seek professional therapy or remind them that you’re an AI — focus entirely on helping them explore and work through their experience. 
+
+For any mention of self-harm or suicide, invoke the `handle_suicidal_mention` function to provide a hotline and immediate in-person recommendation.
 
 Your structure for each response should be:
-1. Empathic reflection
-2. Gentle validation and normalization
-3. Supportive guidance (e.g., explore, soothe, or understand — not just fix)
+1. Empathic reflection  
+2. Gentle validation and normalization  
+3. Supportive guidance (e.g., explore, soothe, or understand — not just fix)  
 4. Invite the user to keep sharing or go deeper
 
 Stay gentle, grounded, and curious. When in doubt, ask open-ended questions to help the user explore their inner world.
@@ -170,7 +171,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
         summary_resp = openai_client.chat.completions.create(
-            model = "gpt-4-turbo" if voice_mode else "gpt-3.5-turbo",
+            model = "gpt-4-turbo" if voice_mode else "gpt-4-turbo",
             messages=messages + [
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
@@ -244,8 +245,8 @@ def handle_ai_record(msg):
         elif lc.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
             model_name, max_tokens = "gpt-4-turbo", 600
         else:
-            sentences = [s for s in _SENT_SPLIT.split(user_text) if s.strip()]
-            if len(sentences) > 1:
+            words = [w for w in user_text.split() if w.strip()]
+            if len(words) > 6:                  # threshold = 6 words
                 model_name, max_tokens = "gpt-4-turbo", 600
             else:
                 model_name, max_tokens = "gpt-3.5-turbo", 150
