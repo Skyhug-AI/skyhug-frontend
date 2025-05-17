@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -463,7 +464,7 @@ const interruptPlayback = () => {
 
 
       <div
-        className="flex-grow overflow-y-auto py-6 scroll-smooth"
+        className="flex-grow overflow-y-auto py-6 scroll-smooth bg-white rounded-xl shadow-sm border border-gray-100 mx-2"
         ref={chatContainerRef}
         style={{ maxHeight: "calc(100vh - 12rem)" }}
       >
@@ -477,7 +478,7 @@ const interruptPlayback = () => {
       initialValue={message.content}
       onEditMessage={async newText => {
         await invalidateFrom(message.id);           // ① drop downstream chats
-        await editMessage(message.id, newText);     // ② update this turn’s text
+        await editMessage(message.id, newText);     // ② update this turn's text
         setEditingId(null);
       }}
       onSendMessage={handleSendMessage}
