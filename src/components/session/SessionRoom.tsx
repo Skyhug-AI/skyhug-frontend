@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTherapist } from "@/context/TherapistContext";
@@ -449,7 +450,7 @@ const SessionRoom = () => {
         className="flex-grow max-w-4xl mx-auto px-4 w-full"
       >
         <div 
-          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-y-auto py-6 px-4 scroll-smooth my-4"
+          className="rounded-xl shadow-sm border border-gray-100 bg-transparent overflow-y-auto py-6 px-4 scroll-smooth my-4"
           ref={chatContainerRef}
           style={{ maxHeight: "calc(100vh - 12rem)" }}
         >
@@ -462,8 +463,8 @@ const SessionRoom = () => {
                   <ChatInput
                     initialValue={message.content}
                     onEditMessage={async newText => {
-                      await invalidateFrom(message.id);           // ① drop downstream chats
-                      await editMessage(message.id, newText);     // ② update this turn's text
+                      await invalidateFrom(message.id);           
+                      await editMessage(message.id, newText);     
                       setEditingId(null);
                     }}
                     onSendMessage={handleSendMessage}
@@ -553,7 +554,7 @@ const SessionRoom = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+        <div className="rounded-xl shadow-sm border border-gray-100 bg-transparent p-4 mb-4">
           <AnimatePresence>
             <motion.div
               initial={false}
