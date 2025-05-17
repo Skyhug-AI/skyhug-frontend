@@ -582,30 +582,30 @@ const interruptPlayback = () => {
           }}
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
-          <div className="flex justify-center items-center gap-3 mb-4">
-            <Button variant="outline" size="sm" className="text-gray-900">
+          <div className="flex justify-center items-center gap-4 mb-4 w-full max-w-lg mx-auto">
+            <Button variant="outline" size="sm" className="text-gray-900 flex-1">
               I don't like your answer
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-900">
+            <Button variant="outline" size="sm" className="text-gray-900 flex-1">
               Be more caring
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-900">
+            <Button variant="outline" size="sm" className="text-gray-900 flex-1">
               Be more challenging
             </Button>
             <div className="ml-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={async () => {
-                setVoiceUnavailable(false);
-                const next = !isVoiceMode;
-                setIsVoiceMode(next);
-                await setVoiceEnabled(next);
-              }}
-              className="rounded-full w-8 h-8"
-            >
-              {isVoiceMode ? <MessageSquare /> : <Mic />}
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  setVoiceUnavailable(false);
+                  const next = !isVoiceMode;
+                  setIsVoiceMode(next);
+                  await setVoiceEnabled(next);
+                }}
+                className="rounded-full w-8 h-8"
+              >
+                {isVoiceMode ? <MessageSquare /> : <Mic />}
+              </Button>
             </div>
           </div>
 
