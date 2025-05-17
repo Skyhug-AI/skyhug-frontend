@@ -446,176 +446,182 @@ const SessionRoom = () => {
       )}
 
       <div 
-        className="flex-grow overflow-y-auto py-6 scroll-smooth bg-white rounded-xl shadow-sm border border-gray-100 mx-6 my-4"
-        ref={chatContainerRef}
-        style={{ maxHeight: "calc(100vh - 12rem)" }}
+        className="flex-grow max-w-4xl mx-auto px-4 w-full"
       >
-        <div className="space-y-6 flex flex-col min-h-full px-4">
-          <div className="flex-grow" />
-          {displayedMessages.map((message) => (
-            <div key={message.id} className="relative group">
-              {editingId === message.id ? (
-                /* ───────────── EDIT MODE ───────────── */
-                <ChatInput
-                  initialValue={message.content}
-                  onEditMessage={async newText => {
-                    await invalidateFrom(message.id);           // ① drop downstream chats
-                    await editMessage(message.id, newText);     // ② update this turn's text
-                    setEditingId(null);
-                  }}
-                  onSendMessage={handleSendMessage}
-                  isDisabled={isProcessing}
-                />
-              ) : (
-                /* ─────────── NORMAL CHAT BUBBLE ─────────── */
-                <>
-                  <ChatBubble
-                    message={message.content}
-                    isUser={message.isUser}
-                  />
-
-                  {message.isUser && (
-                    <div
-                      className="
-                        mt-1 
-                        flex items-center justify-end gap-1 
-                        text-xs text-gray-500 
-                        opacity-0 group-hover:opacity-100 
-                        transition-opacity
-                        pr-4
-                      "
-                    >
-                      <button
-                        className="p-1"
-                        onClick={() => {
-                          setEditingId(message.id);
-                          interruptPlayback(); 
-                          // setIsVoiceMode(false);
-                          setRecognitionPaused(true);
-                        }}
-                      >
-                        <Edit2 className="h-4 w-4 text-gray-500" />
-                      </button>
-                      <span>{message.timestamp}</span>
-                    </div>
-                  )}
-
-                  {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-                  {!message.isUser && isVoiceMode && message.id === lastAssistantId && !streamedMap[message.id] && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => handlePlayAudio(message.id)}
-                      disabled={isMicLocked && currentlyPlayingPath !== message.id}
-                    >
-                      {currentlyPlayingPath === message.id && !isPaused
-                        ? <Pause className="h-4 w-4" />
-                        : <Play className="h-4 w-4" />
-                      }
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-
-          {voiceUnavailable ? (
-            <div className="px-4 py-2 text-sm text-red-500">
-              Voice Mode not available. Use Chat Mode or come back later.
-            </div>
-          ) : (isProcessing || waitingForResponse) && (
-            <div className="flex items-center gap-2 px-4 py-2">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Loader className="h-4 w-4 text-skyhug-500" />
-              </motion.div>
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-gray-600"
-              >
-                Sky is thinking...
-              </motion.span>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      <AnimatePresence>
-        <motion.div
-          initial={false}
-          animate={{
-            y: hasStartedChat ? 0 : -200,
-            position: hasStartedChat ? "sticky" : "relative",
-          }}
-          className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
+        <div 
+          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-y-auto py-6 px-4 scroll-smooth my-4"
+          ref={chatContainerRef}
+          style={{ maxHeight: "calc(100vh - 12rem)" }}
         >
-          <div className="flex items-center gap-3 mb-4">
-            <Button variant="outline" size="sm" className="text-gray-900">
-              I don't like your answer
-            </Button>
-            <Button variant="outline" size="sm" className="text-gray-900">
-              Be more caring
-            </Button>
-            <Button variant="outline" size="sm" className="text-gray-900">
-              Be more challenging
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900"
-              onClick={handleEndSession}
-            >
-              End chat & continue
-            </Button>
-            <div className="ml-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={async () => {
-                  setVoiceUnavailable(false);
-                  const next = !isVoiceMode;
-                  setIsVoiceMode(next);
-                  await setVoiceEnabled(next);
-                }}
-                className="rounded-full w-8 h-8"
-              >
-                {isVoiceMode ? <MessageSquare /> : <Mic />}
-              </Button>
-            </div>
-          </div>
+          <div className="space-y-6 flex flex-col min-h-full">
+            <div className="flex-grow" />
+            {displayedMessages.map((message) => (
+              <div key={message.id} className="relative group">
+                {editingId === message.id ? (
+                  /* ───────────── EDIT MODE ───────────── */
+                  <ChatInput
+                    initialValue={message.content}
+                    onEditMessage={async newText => {
+                      await invalidateFrom(message.id);           // ① drop downstream chats
+                      await editMessage(message.id, newText);     // ② update this turn's text
+                      setEditingId(null);
+                    }}
+                    onSendMessage={handleSendMessage}
+                    isDisabled={isProcessing}
+                  />
+                ) : (
+                  /* ─────────── NORMAL CHAT BUBBLE ─────────── */
+                  <>
+                    <ChatBubble
+                      message={message.content}
+                      isUser={message.isUser}
+                    />
 
-          <div className="flex gap-2">
-            {isVoiceMode && voiceActive? (
-              <VoiceRecorder
-                onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing}
-                shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse || Boolean(currentlyPlayingPath) }
-                onRecognitionPaused={handleRecognitionPaused}
-                onRecognitionResumed={handleRecognitionResumed}
-                onInterruptPlayback={interruptPlayback} 
-              />
-            ) : (
-              <div className="flex-grow">
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  placeholder="Write your answer"
-                  isDisabled={isProcessing}
-                />
+                    {message.isUser && (
+                      <div
+                        className="
+                          mt-1 
+                          flex items-center justify-end gap-1 
+                          text-xs text-gray-500 
+                          opacity-0 group-hover:opacity-100 
+                          transition-opacity
+                          pr-4
+                        "
+                      >
+                        <button
+                          className="p-1"
+                          onClick={() => {
+                            setEditingId(message.id);
+                            interruptPlayback(); 
+                            // setIsVoiceMode(false);
+                            setRecognitionPaused(true);
+                          }}
+                        >
+                          <Edit2 className="h-4 w-4 text-gray-500" />
+                        </button>
+                        <span>{message.timestamp}</span>
+                      </div>
+                    )}
+
+                    {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
+                    {!message.isUser && isVoiceMode && message.id === lastAssistantId && !streamedMap[message.id] && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handlePlayAudio(message.id)}
+                        disabled={isMicLocked && currentlyPlayingPath !== message.id}
+                      >
+                        {currentlyPlayingPath === message.id && !isPaused
+                          ? <Pause className="h-4 w-4" />
+                          : <Play className="h-4 w-4" />
+                        }
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+
+            {voiceUnavailable ? (
+              <div className="px-4 py-2 text-sm text-red-500">
+                Voice Mode not available. Use Chat Mode or come back later.
+              </div>
+            ) : (isProcessing || waitingForResponse) && (
+              <div className="flex items-center gap-2 px-4 py-2">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                >
+                  <Loader className="h-4 w-4 text-skyhug-500" />
+                </motion.div>
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-sm text-gray-600"
+                >
+                  Sky is thinking...
+                </motion.span>
               </div>
             )}
+
+            <div ref={messagesEndRef} />
           </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+          <AnimatePresence>
+            <motion.div
+              initial={false}
+              animate={{
+                y: hasStartedChat ? 0 : -200,
+                position: hasStartedChat ? "sticky" : "relative",
+              }}
+              className="backdrop-blur-sm"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Button variant="outline" size="sm" className="text-gray-900">
+                  I don't like your answer
+                </Button>
+                <Button variant="outline" size="sm" className="text-gray-900">
+                  Be more caring
+                </Button>
+                <Button variant="outline" size="sm" className="text-gray-900">
+                  Be more challenging
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-900"
+                  onClick={handleEndSession}
+                >
+                  End chat & continue
+                </Button>
+                <div className="ml-auto">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={async () => {
+                      setVoiceUnavailable(false);
+                      const next = !isVoiceMode;
+                      setIsVoiceMode(next);
+                      await setVoiceEnabled(next);
+                    }}
+                    className="rounded-full w-8 h-8"
+                  >
+                    {isVoiceMode ? <MessageSquare /> : <Mic />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                {isVoiceMode && voiceActive? (
+                  <VoiceRecorder
+                    onVoiceRecorded={handleVoiceRecorded}
+                    isDisabled={isProcessing}
+                    shouldPauseRecognition={Boolean(editingId) || isMicLocked || waitingForResponse || Boolean(currentlyPlayingPath) }
+                    onRecognitionPaused={handleRecognitionPaused}
+                    onRecognitionResumed={handleRecognitionResumed}
+                    onInterruptPlayback={interruptPlayback} 
+                  />
+                ) : (
+                  <div className="flex-grow">
+                    <ChatInput
+                      onSendMessage={handleSendMessage}
+                      placeholder="Write your answer"
+                      isDisabled={isProcessing}
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 };
