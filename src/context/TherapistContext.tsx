@@ -94,8 +94,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       ttsHasArrived: Boolean(msg.tts_path && msg.tts_status === "done"),
       isGreeting:
         msg.sender_role === "assistant" &&
-        (msg.assistant_text?.startsWith("Hi there, I'm Sky") ||
-         msg.assistant_text?.startsWith("Last time we spoke"))
+        (
+          msg.assistant_text?.startsWith(`Hi there, I'm ${personaName}`) ||
+          msg.assistant_text?.startsWith('Last time we spoke')
+        )
     };
   };
 

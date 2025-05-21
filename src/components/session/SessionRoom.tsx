@@ -22,7 +22,8 @@ const SessionRoom = () => {
     endConversation,
     conversationId,
     invalidateFrom,
-    regenerateAfter
+    regenerateAfter, 
+    therapistMeta
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [hasStartedChat, setHasStartedChat] = useState(false);
