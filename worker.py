@@ -64,7 +64,7 @@ eleven_sess.headers.update({
 })
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
-SKY_SYSTEM_PROMPT = """
+DEFAULT_SYSTEM_PROMPT = """
 You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care. 
 Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language. 
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
@@ -80,7 +80,8 @@ Your structure for each response should be:
 3. Supportive guidance (e.g., explore, soothe, or understand — not just fix)  
 4. Invite the user to keep sharing or go deeper
 
-Stay gentle, grounded, and curious. When in doubt, ask open-ended questions to help the user explore their inner world.
+Stay gentle, grounded, and curious. When in doubt, ask open-ended questions to help the user explore their inner world. 
+If the user’s messages reflect possible symptoms of depression, anxiety, PTSD, or psychological distress, you may call the `suggest_assessment` function with a recommended assessment, explaining why you’re offering it.
 """.strip()
 
 SKY_EXAMPLE_DIALOG = [
@@ -110,6 +111,29 @@ FUNCTION_DEFS = [
                 "recommendation": {
                     "type": "string",
                     "description": "Message recommending the user to seek an in-person therapist."
+                }
+            },
+            "additionalProperties": False
+        }
+    },
+    {
+        "name": "suggest_assessment",
+        "description": "Suggests a standardized self-assessment (e.g., PHQ-9 or GAD-7) based on user’s symptoms.",
+        "parameters": {
+            "type": "object",
+            "required": ["assessment_id", "assessment_name", "reason"],
+            "properties": {
+                "assessment_id": {
+                    "type": "string",
+                    "description": "The UUID of the assessment (e.g., PHQ-9 or GAD-7)."
+                },
+                "assessment_name": {
+                    "type": "string",
+                    "description": "The name of the assessment (e.g., PHQ-9)."
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "The reason this assessment is being recommended based on the user's recent messages."
                 }
             },
             "additionalProperties": False
@@ -150,8 +174,32 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
         .eq("invalidated", False)  \
         .order("created_at").execute().data or []
 
-    # Start with system prompt(s)
-    messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
+    # 1) figure out which prompt to use
+    prompt_resp = (
+        supabase_admin
+        .table("conversations")
+        .select("therapist_id")
+        .eq("id", conv_id)
+        .single()
+        .execute()
+    )
+    therapist_id = prompt_resp.data.get("therapist_id") if prompt_resp.data else None
+
+    if therapist_id:
+        tp = (
+            supabase_admin
+            .table("therapists")
+            .select("system_prompt")
+            .eq("id", therapist_id)
+            .single()
+            .execute()
+        )
+        system_prompt = tp.data.get("system_prompt") if tp.data else DEFAULT_SYSTEM_PROMPT
+    else:
+        system_prompt = DEFAULT_SYSTEM_PROMPT
+
+    # 2) start the messages list with that dynamic prompt
+    messages = [{"role": "system", "content": system_prompt}] + SKY_EXAMPLE_DIALOG
 
     # If this is a brand-new session with a memory summary, inject it
     if memory and not history:
@@ -474,6 +522,19 @@ def fetch_pending(table, **conds):
 def download_audio(path, bucket="raw-audio"):
     url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
     return storage_sess.get(url).content
+
+def handle_suggest_assessment(call: dict):
+    assessment_id = call["arguments"]["assessment_id"]
+    name = call["arguments"]["assessment_name"]
+    reason = call["arguments"]["reason"]
+
+    # You can log this or send it to frontend as a suggestion
+    return {
+        "action": "suggest_assessment",
+        "assessment_id": assessment_id,
+        "assessment_name": name,
+        "reason": reason
+    }
 
 def summarize_and_store(conv_id):
     """
