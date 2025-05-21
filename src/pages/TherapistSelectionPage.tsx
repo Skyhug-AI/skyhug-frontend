@@ -151,35 +151,30 @@ const TherapistSelectionPage = () => {
   };
 
   const handleConfirmTherapist = async () => {
-    console.log("Selected therapist ID:", selectedTherapistId);
-    console.log("Selected therapist:", selectedTherapist);
-    console.log("Conversation ID:", conversationId);
-    console.log("User:", user);
     if (!selectedTherapistId) return;
 
-    // make sure we have both a user and an open conversation
     if (!user) {
       toast({ title: "You must be logged in", variant: "destructive" });
       return;
     }
-    if (!conversationId) {
-      toast({ title: "No active session found", variant: "destructive" });
-      return;
-    }
+    // if (!conversationId) {
+    //   toast({ title: "No active session found", variant: "destructive" });
+    //   return;
+    // }
 
-    // 1) Link the therapist to that conversation row
-    const { error } = await supabase
-      .from("conversations")
-      .update({ therapist_id: selectedTherapistId })
-      .eq("id", conversationId);
+    // // 1) Link the therapist to that conversation row
+    // const { error } = await supabase
+    //   .from("conversations")
+    //   .update({ therapist_id: selectedTherapistId })
+    //   .eq("id", conversationId);
 
-    if (error) {
-      console.error("Error setting therapist:", error);
-      toast({ title: "Could not start session", variant: "destructive" });
-      return;
-    }
+    // if (error) {
+    //   console.error("Error setting therapist:", error);
+    //   toast({ title: "Could not start session", variant: "destructive" });
+    //   return;
+    // }
 
-    // 2) Tell context which persona we're about to chat with
+    // Set the therapist in context
     setCurrentTherapist(selectedTherapistId);
 
     toast({
@@ -187,7 +182,7 @@ const TherapistSelectionPage = () => {
       description: `Starting session with ${selectedTherapist?.name}`,
     });
 
-    // 3) Drop into your session page
+    // Navigate to session page where conversation will be created
     navigate("/session");
   };
 
