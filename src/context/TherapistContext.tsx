@@ -95,7 +95,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       isGreeting:
         msg.sender_role === "assistant" &&
         (
-          msg.assistant_text?.startsWith(`Hi there, I'm ${personaName}`) ||
+          msg.assistant_text?.startsWith(`Hi there, I'm ${therapistMeta?.name ?? 'Sky'}`) ||
           msg.assistant_text?.startsWith('Last time we spoke')
         )
     };
