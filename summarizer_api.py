@@ -4,9 +4,6 @@ from pydantic import BaseModel
 import os
 from worker import summarize_and_store, close_inactive_conversations
 
-# bring in your worker’s summary logic
-from worker import summarize_and_store
-
 app = FastAPI()
 
 # allow your React dev server (localhost:8080) to talk to us

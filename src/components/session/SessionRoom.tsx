@@ -30,6 +30,7 @@ const SessionRoom = () => {
     endConversation,
     conversationId,
     invalidateFrom,
+    therapistMeta,
     regenerateAfter,
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);
@@ -59,7 +60,7 @@ const SessionRoom = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const initialAssistantCount = useRef(0);
   const initialHistoryConsumed = useRef(false);
-  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(true);
   const greetingIdRef = useRef<string | null>(null);
   const greetingPlayedRef = useRef(false);
 

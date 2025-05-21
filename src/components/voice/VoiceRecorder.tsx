@@ -34,7 +34,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const finalSegments = useRef<string[]>([]);
 
   const handleVoiceActivity = useCallback((isSpeaking: boolean, volume: number) => {
-    //console.log(`[VAD] speaking=${isSpeaking} volume=${volume}`);
+    //console.log(`[VAD] speaking=${isSpeaking} volume=${volume.toFixed(3)}`);
     if (isSpeaking) {
       setHasSpeechStarted(true);
       setLastSpeechTime(Date.now());
@@ -46,10 +46,14 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   useEffect(() => {
     let silenceTimeout: NodeJS.Timeout;
     if (isRecording && hasSpeechStarted && lastSpeechTime > 0) {
+      console.log('⌛ starting silence timer (1s)');
       silenceTimeout = setTimeout(() => {
-        if (Date.now() - lastSpeechTime > 1000 && !silenceSentRef.current) {
+        const delta = Date.now() - lastSpeechTime;
+        console.log(`⌛ silence check: ${delta}ms since last speech`);
+        if (delta > 1000 && !silenceSentRef.current) {
           const trimmed = transcript.trim();
           if (trimmed) {
+            console.log('✋ silence detected—sending transcript:', trimmed);
             silenceSentRef.current = true;
   
             // 1) Send the transcript
@@ -103,6 +107,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       recognition.lang = 'en-US';
 
       recognition.onstart = async () => {
+        console.log('⏺️ ASR started');
         setIsRecording(true);
       
         // kick off VAD and keep its cleanup fn
@@ -116,43 +121,73 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         onRecognitionResumed?.();
       };
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-          // collect any newly-finalized bits
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let sawSomething = false;
+
+      // collect any newly-finalized bits
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
+        console.log(`[ASR] result #${i}: isFinal=${result.isFinal}`, result[0].transcript);
         if (result.isFinal) {
           finalSegments.current.push(result[0].transcript);
+          setLastSpeechTime(Date.now());
+          sawSomething = true;
         }
       }
-      // grab the most recent interim if there is one
+
+      // grab the most recent interim (if there is one)
       const last = event.results[event.results.length - 1];
       const interim = last.isFinal ? '' : last[0].transcript;
 
+      if (interim) {
+        sawSomething = true;
+        // (we don’t bump lastSpeechTime here – that stays for final only)
+      }
+
+      // as soon as we see any ASR data, mark speech started
+      if (sawSomething) {
+        setHasSpeechStarted(true);
+      }
+
+      // update the transcript state
       const full = finalSegments.current.join('') + interim;
+      console.log('[ASR] full transcript:', full);
       setTranscript(full);
-        setLastSpeechTime(Date.now());
-      };
+    };
+
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('Speech recognition error', event.error);
-      
-        // Treat "no-speech" as an intentional stop:
+        // if the engine times out for no-speech, send whatever we have
         if (event.error === 'no-speech') {
-          // this will stop the recognizer, flip your flags, and fire onRecognitionPaused()
+          console.log('🚫 engine no-speech; final transcript:', transcript);
+          const trimmed = transcript.trim();
+          if (trimmed && !silenceSentRef.current) {
+            silenceSentRef.current = true;
+            console.log('✋ onerror no-speech → sending transcript', trimmed);
+            onVoiceRecorded(trimmed);
+          }
           pauseRecognition();
           return;
         }
-      
-        // for any other errors, just set recording state to false without showing toast
+
+        // any other error, just bail
+        console.error('Speech recognition error', event.error);
         setIsRecording(false);
         setRecognitionManuallyPaused(false);
       };
       
 
       recognition.onend = () => {
+        console.log('🔇 ASR onend, final transcript:', transcript);
+        const trimmed = transcript.trim();
+        if (trimmed && !silenceSentRef.current) {
+          silenceSentRef.current = true;
+          console.log('✋ onend → sending transcript', trimmed);
+          onVoiceRecorded(trimmed);
+        }
         setIsRecording(false);
         setRecognitionManuallyPaused(true);
-        if (onRecognitionPaused) onRecognitionPaused();
+        onRecognitionPaused?.();
       };
       
       
@@ -193,18 +228,21 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const pauseRecognition = () => {
     // tear down VAD…
-    cleanupVadRef.current?.()
-    cleanupVadRef.current = undefined
-  
+    cleanupVadRef.current?.();
+    cleanupVadRef.current = undefined;
+
     if (recognitionInstance) {
-      recognitionInstance.onend = null
-      recognitionInstance.stop()
+      // remove handlers so abort() doesn’t fire onerror/onend
+      recognitionInstance.onerror = null;
+      recognitionInstance.onend = null;
+      // abort immediately without triggering the no-speech error
+      recognitionInstance.abort();
     }
-  
-    setIsRecording(false)
-    setRecognitionManuallyPaused(true)
-    onRecognitionPaused?.()
-  }
+
+    setIsRecording(false);
+    setRecognitionManuallyPaused(true);
+    onRecognitionPaused?.();
+  };
   
   const resumeRecognition = () => {
     silenceSentRef.current = false;
