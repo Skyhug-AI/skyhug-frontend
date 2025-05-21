@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { useTherapist } from '@/context/TherapistContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { supabase } from "@/integrations/supabase/client";
 
 interface TherapistCardProps {
   id: string;
@@ -72,59 +73,46 @@ const TherapistSelectionPage = () => {
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
 
-  const therapists = [{
-    id: 'olivia',
-    name: 'Olivia',
-    description: 'Supportive and empathetic',
-    specialties: ['Anxiety', 'Depression'],
-    avatarSrc: '/therapists/olivia.svg',
-    bgColor: 'bg-purple-100',
-    bio: 'I\'m a compassionate AI therapist focused on creating a safe space where you can explore emotions and develop coping strategies. My approach combines cognitive behavioral therapy with mindfulness techniques.',
-    approach: 'Supportive and empathetic, I use evidence-based techniques to help you navigate life\'s challenges.',
-    session_structure: 'Sessions start with a brief check-in, followed by guided conversation and practicing coping techniques.'
-  }, {
-    id: 'logan',
-    name: 'Logan',
-    description: 'Friendly and motivating',
-    specialties: ['Productivity', 'Stress'],
-    avatarSrc: '/therapists/logan.svg',
-    bgColor: 'bg-blue-100',
-    bio: 'I specialize in helping people overcome challenges related to work-life balance and career stress. My goal-oriented approach focuses on practical strategies you can implement right away.',
-    approach: 'I blend cognitive behavioral therapy with practical, action-oriented strategies for immediate results.',
-    session_structure: 'We\'ll identify specific goals and develop actionable steps for each session. I focus on measurable progress.'
-  }, {
-    id: 'sarah',
-    name: 'Sarah',
-    description: 'Calm and non-judgmental',
-    specialties: ['Grief', 'Relationships'],
-    avatarSrc: '/therapists/sarah.svg',
-    bgColor: 'bg-green-100',
-    bio: 'I provide a calm, safe space for processing grief and relationship challenges. I help clients navigate emotional pain and build healthier relationships.',
-    approach: 'I use a person-centered approach combined with narrative therapy to help you process your experiences.',
-    session_structure: 'My sessions allow for open exploration of feelings with gentle guidance toward healing and growth.'
-  }, {
-    id: 'james',
-    name: 'James',
-    description: 'Practical and goal-oriented',
-    specialties: ['Career', 'Self-esteem'],
-    avatarSrc: '/therapists/james.svg',
-    bgColor: 'bg-orange-100',
-    bio: 'With a background in both psychology and organizational support, I help professionals overcome career challenges and build confidence. My focus is on practical solutions and measurable growth.',
-    approach: 'I use a solution-focused approach to identify strengths and develop actionable strategies.',
-    session_structure: 'Sessions are structured around specific goals with exercises to build confidence and self-awareness.'
-  }, {
-    id: 'maya',
-    name: 'Maya',
-    description: 'Patient and reflective',
-    specialties: ['Trauma', 'Mindfulness'],
-    avatarSrc: '/therapists/maya.svg',
-    bgColor: 'bg-yellow-100',
-    bio: 'I specialize in trauma-informed care and mindfulness practices. I create a patient, supportive environment where you can safely process difficult experiences and develop resilience.',
-    approach: 'I integrate mindfulness, somatic experiencing, and cognitive approaches to support healing.',
-    session_structure: 'Sessions move at your pace, with emphasis on safety, grounding techniques, and gentle exploration.'
-  }];
-  
+  const [therapists, setTherapists] = useState<TherapistCardProps[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const selectedTherapist = therapists.find(t => t.id === selectedTherapistId);
+
+  useEffect(() => {
+    setLoading(true);
+
+    let query = supabase
+      .from('therapists')
+      .select('*');
+
+    // apply identity filter if set
+    if (identityFilter) {
+      query = query.eq('identity->>gender', identityFilter);
+    }
+
+    // apply topics filter
+    if (topicsFilter) {
+      query = query.contains('specialties', [topicsFilter]);
+    }
+
+    // apply style filter
+    if (styleFilter) {
+      query = query.contains('styles', [styleFilter]);
+    }
+
+    query
+      .order('name', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching therapists:', error);
+          toast({ title: 'Error loading therapists', variant: 'destructive' });
+        } else {
+          setTherapists(data || []);
+        }
+      })
+      .finally(() => setLoading(false));
+}, [identityFilter, topicsFilter, styleFilter]);
+
 
   const handleTherapistSelect = (therapistId: string) => {
     // Set the selected therapist
@@ -133,18 +121,32 @@ const TherapistSelectionPage = () => {
     setShowSidebar(true);
   };
 
-  const handleConfirmTherapist = () => {
-    // Set the therapist in context
-    setCurrentTherapist(selectedTherapistId!);
-    
+  const handleConfirmTherapist = async () => {
+    if (!selectedTherapistId) return;
+
+    // Insert a new conversation row linked to this therapist
+    const { data, error } = await supabase
+      .from('conversations')
+      .insert({
+        patient_id: currentPatientId,      // however you get this
+        therapist_id: selectedTherapistId,
+        voice_enabled: false
+      });
+
+    if (error) {
+      console.error('Error creating conversation:', error);
+      toast({ title: 'Could not start session', variant: 'destructive' });
+      return;
+    }
+
     toast({
-      title: "Therapist selected",
-      description: `You've chosen to speak with ${selectedTherapistId!.charAt(0).toUpperCase() + selectedTherapistId!.slice(1)}`
+      title: 'Therapist selected',
+      description: `Starting session with ${selectedTherapist.name}`
     });
 
-    // Navigate to the session page
     navigate('/session');
   };
+
 
   const handleMatchClick = () => {
     // In a real app, this would use an algorithm to match based on preferences
@@ -163,6 +165,22 @@ const TherapistSelectionPage = () => {
   const handleBackClick = () => {
     navigate('/home');
   };
+
+    if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading therapists…
+      </div>
+    );
+  }
+
+  if (!loading && therapists.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        No therapists match your filters.
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -236,6 +254,9 @@ const TherapistSelectionPage = () => {
             </Select>
           </div>
         </div>
+
+
+
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl justify-items-center">
           {therapists.map((therapist, index) => <div key={therapist.id} className="animate-fade-in" style={{
