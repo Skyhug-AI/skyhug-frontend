@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +37,7 @@ const SidePanel = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-white">
+    <div className="min-h-screen bg-white">
       <Tabs defaultValue="treatment" className="w-full">
         <div className="p-4 border-b">
           <TabsList className="grid w-full grid-cols-3">
@@ -50,7 +49,9 @@ const SidePanel = () => {
 
         <TabsContent value="treatment" className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Your Treatment Plan</h2>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Your Treatment Plan
+            </h2>
             <p className="text-gray-600 mt-2">
               Personalized therapy journey based on your needs and goals.
             </p>
@@ -68,16 +69,22 @@ const SidePanel = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Focus Areas</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Focus Areas
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gray-200 rounded-md p-4">
-                  <h4 className="font-medium text-purple-700">Managing Anxiety</h4>
+                  <h4 className="font-medium text-purple-700">
+                    Managing Anxiety
+                  </h4>
                   <p className="text-sm text-gray-600 mt-1">
                     Techniques to reduce anxious thoughts and physical symptoms.
                   </p>
                 </div>
                 <div className="border border-gray-200 rounded-md p-4">
-                  <h4 className="font-medium text-green-700">Building Resilience</h4>
+                  <h4 className="font-medium text-green-700">
+                    Building Resilience
+                  </h4>
                   <p className="text-sm text-gray-600 mt-1">
                     Strengthening your ability to adapt to life's challenges.
                   </p>
@@ -89,7 +96,9 @@ const SidePanel = () => {
                   </p>
                 </div>
                 <div className="border border-gray-200 rounded-md p-4">
-                  <h4 className="font-medium text-amber-700">Emotional Regulation</h4>
+                  <h4 className="font-medium text-amber-700">
+                    Emotional Regulation
+                  </h4>
                   <p className="text-sm text-gray-600 mt-1">
                     Learning to identify and manage difficult emotions.
                   </p>
@@ -98,16 +107,21 @@ const SidePanel = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Recommended Exercises</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Recommended Exercises
+              </h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-md">
                   <div className="bg-green-100 p-2 rounded-full text-green-700">
                     1
                   </div>
                   <div>
-                    <h4 className="font-medium">Progressive Muscle Relaxation</h4>
+                    <h4 className="font-medium">
+                      Progressive Muscle Relaxation
+                    </h4>
                     <p className="text-sm text-gray-600 mt-1">
-                      Tense and relax each muscle group to reduce physical tension.
+                      Tense and relax each muscle group to reduce physical
+                      tension.
                     </p>
                   </div>
                 </div>
@@ -118,7 +132,8 @@ const SidePanel = () => {
                   <div>
                     <h4 className="font-medium">Breathing Exercises</h4>
                     <p className="text-sm text-gray-600 mt-1">
-                      Practice deep breathing to activate your parasympathetic nervous system.
+                      Practice deep breathing to activate your parasympathetic
+                      nervous system.
                     </p>
                   </div>
                 </div>
@@ -137,10 +152,12 @@ const SidePanel = () => {
             </div>
 
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Next Steps</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Next Steps
+              </h3>
               <p className="text-gray-600 mb-4">
-                Your treatment plan will adapt as we progress together. We'll review and adjust
-                based on what works best for you.
+                Your treatment plan will adapt as we progress together. We'll
+                review and adjust based on what works best for you.
               </p>
               <Button className="w-full">Schedule Next Session</Button>
             </div>
@@ -157,7 +174,10 @@ const SidePanel = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="text-sm font-medium text-gray-700"
+              >
                 Name
               </label>
               <Input
@@ -170,7 +190,10 @@ const SidePanel = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <Input
@@ -184,7 +207,10 @@ const SidePanel = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="message" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="message"
+                className="text-sm font-medium text-gray-700"
+              >
                 Message
               </label>
               <Textarea
@@ -219,7 +245,9 @@ const SidePanel = () => {
 
         <TabsContent value="info" className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Information</h2>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Information
+            </h2>
             <p className="text-gray-600 mt-2">
               Important details about our services and support.
             </p>
@@ -229,15 +257,19 @@ const SidePanel = () => {
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-medium text-blue-800 mb-2">Support Hours</h3>
               <p className="text-blue-700">
-                Monday to Friday: 9am - 5pm<br />
+                Monday to Friday: 9am - 5pm
+                <br />
                 Weekend: Closed
               </p>
             </div>
 
             <div className="bg-purple-50 p-4 rounded-lg">
-              <h3 className="font-medium text-purple-800 mb-2">Emergency Contact</h3>
+              <h3 className="font-medium text-purple-800 mb-2">
+                Emergency Contact
+              </h3>
               <p className="text-purple-700">
-                For urgent matters, please call:<br />
+                For urgent matters, please call:
+                <br />
                 <strong>(555) 123-4567</strong>
               </p>
             </div>
