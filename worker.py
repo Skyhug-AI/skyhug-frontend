@@ -91,6 +91,20 @@ SKY_EXAMPLE_DIALOG = [
     {"role": "assistant", "content": "That sounds so uncomfortable. Feeling that kind of pressure in social situations can be really overwhelming. You're not alone in this — many people find those moments incredibly hard to manage. What do you think makes those moments feel especially intense for you?"}
 ]
 
+# ─── Persona Template ───────────────────────────────────────────────────────
+PERSONA_TEMPLATE = """
+You are {name}, {description}.  
+{bio}
+
+Your approach: {approach}  
+Session structure: {session_structure}  
+You specialize in: {specialties_list}
+
+Always speak in a warm, empathetic, patient-centered tone.  
+If the user expresses self-harm, call `handle_suicidal_mention`.  
+For symptom-based recommendations, call `suggest_assessment`.
+""".strip()
+
 # ─── Function Definition for Suicidal Mentions ───────────────────────────────
 FUNCTION_DEFS = [
     {
@@ -174,7 +188,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
         .eq("invalidated", False)  \
         .order("created_at").execute().data or []
 
-    # 1) figure out which prompt to use
+     # fetch which therapist this convo is using
     prompt_resp = (
         supabase_admin
         .table("conversations")
@@ -185,21 +199,41 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     )
     therapist_id = prompt_resp.data.get("therapist_id") if prompt_resp.data else None
 
+    # pull the raw override + structured fields in one go
     if therapist_id:
-        tp = (
+        trow = (
             supabase_admin
             .table("therapists")
-            .select("system_prompt")
+            .select(
+                "system_prompt, name, description, bio, approach, session_structure, specialties"
+            )
             .eq("id", therapist_id)
             .single()
             .execute()
+        ).data or {}
+    else:
+        trow = {}
+
+    # 1) use override if present
+    if trow.get("system_prompt"):
+        system_prompt = trow["system_prompt"]
+    # 2) otherwise fill in from template
+    elif trow:
+        specialties_list = ", ".join(trow.get("specialties", []))
+        system_prompt = PERSONA_TEMPLATE.format(
+            name                = trow["name"],
+            description         = trow["description"],
+            bio                 = trow["bio"],
+            approach            = trow["approach"],
+            session_structure   = trow["session_structure"],
+            specialties_list    = specialties_list
         )
-        system_prompt = tp.data.get("system_prompt") if tp.data else DEFAULT_SYSTEM_PROMPT
+    # 3) fallback to your original generic prompt
     else:
         system_prompt = DEFAULT_SYSTEM_PROMPT
 
-    # 2) start the messages list with that dynamic prompt
-    messages = [{"role": "system", "content": system_prompt}] + SKY_EXAMPLE_DIALOG
+    # now inject into the messages list
+    messages = [{"role":"system", "content": system_prompt}] + SKY_EXAMPLE_DIALOG
 
     # If this is a brand-new session with a memory summary, inject it
     if memory and not history:
