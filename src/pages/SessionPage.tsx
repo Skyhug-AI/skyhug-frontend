@@ -11,7 +11,7 @@ import CloudBackground from "@/components/CloudBackground";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
-  const { clearMessages, endConversation } = useTherapist();
+  const { clearMessages, endConversation, therapistMeta } = useTherapist();
   const navigate = useNavigate();
 
   // Memoize this function to prevent unnecessary rerenders
@@ -56,9 +56,9 @@ const SessionPage = () => {
 
             {isSessionStarted && (
               <div className="flex items-center gap-2 text-gray-600 text-sm">
-                <span>
-                  You're in a therapy session with Sky — your AI companion 💙
-                </span>
+                 <span>
++                    You're in a therapy session with {therapistMeta?.name ?? "Sky"} — your AI companion 💙
++                </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
                     className="w-2 h-2 rounded-full bg-skyhug-500"

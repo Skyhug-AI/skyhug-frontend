@@ -37,6 +37,8 @@ export type TherapistContextType = {
   regenerateAfter: (id: string) => Promise<void>;
   conversationId: string | null;
   setVoiceEnabled: (on: boolean) => Promise<void>;
+  voiceId: string;
+  therapistMeta: { name: string; avatar_url: string } | null;
 };
 
 const TherapistContext = createContext<TherapistContextType>({
@@ -54,6 +56,8 @@ const TherapistContext = createContext<TherapistContextType>({
   regenerateAfter: async () => {},
   conversationId: null,
   setVoiceEnabled: async () => {},
+  voiceId: "FuOBXzQ4ziLb7pl9lYjZ",
+  therapistMeta: null,
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -61,7 +65,14 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [voiceId, setVoiceId] = useState<string>("FuOBXzQ4ziLb7pl9lYjZ");
+  const [therapistMeta, setTherapistMeta] = useState<{
+    name: string;
+    avatar_url: string;
+  } | null>(null);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
@@ -185,14 +196,16 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   
 
   const createConversation = async () => {
+    // 1) must be logged in
     if (!user) {
       console.warn("⏳ Waiting for user to be ready...");
       return;
     }
 
+    // 2) Look for an open conversation
     const { data: existing, error: findError } = await supabase
       .from("conversations")
-      .select("id")
+      .select("id, therapist_id")
       .eq("patient_id", user.id)
       .eq("ended", false)
       .order("created_at", { ascending: false })
@@ -203,18 +216,39 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("❌ Error checking for existing conversation:", findError);
       return;
     }
+
+    // 3) If found, resume it
     if (existing) {
       console.log("🔁 Resuming previous conversation:", existing.id);
       setConversationId(existing.id);
+
+      const therapistId = existing.therapist_id;
+      if (therapistId) {
+        const { data: t, error: terr } = await supabase
+          .from("therapists")
+          .select("name, avatar_url, elevenlabs_voice_id")
+          .eq("id", therapistId)
+          .single();
+
+        if (terr) {
+          console.error("❌ Error fetching therapist metadata:", terr);
+        } else if (t) {
+          setTherapistMeta({ name: t.name, avatar_url: t.avatar_url });
+          setVoiceId(t.elevenlabs_voice_id || "FuOBXzQ4ziLb7pl9lYjZ");
+        }
+      }
+
       await loadHistory(existing.id);
       return;
     }
 
+    // 4) Ensure the patient record exists
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
       .select("id")
       .eq("id", user.id)
       .single();
+
     if (checkError && checkError.code !== "PGRST116") {
       console.error("❌ Error checking patient:", checkError);
       return;
@@ -229,18 +263,25 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
 
+    // 5) Create a brand-new conversation
     console.log("🟡 Creating new conversation...");
     const { data, error } = await supabase
       .from("conversations")
-      .insert({ patient_id: user.id, title: "Therapy Session", ended: false })
+      .insert({
+        patient_id: user.id,
+        title: "Therapy Session",
+        ended: false,
+      })
       .select()
       .single();
+
     if (error || !data) {
       console.error("❌ Supabase error creating conversation:", error);
       return;
     }
     setConversationId(data.id);
 
+    // 6) Optionally pull last memory
     const {
       data: prev,
       error: memErr,
@@ -253,40 +294,37 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .limit(1)
       .maybeSingle();
 
-    console.log("🔍 Previous conversation summary check:", { 
-      found: !!prev, 
-      summary: prev?.memory_summary,
-      error: memErr 
-    });
-
     if (memErr && memErr.code !== "PGRST116") {
       console.error("❌ Error fetching memory_summary:", memErr);
     }
 
+    // 7) Build your greeting
+    const personaName = therapistMeta?.name ?? "Sky";
     const greeting = prev?.memory_summary
-    ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
-    : "Hi there, I'm Sky. How are you feeling today?";
-  
+      ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
+      : `Hi there, I'm ${personaName}. How are you feeling today?`;
 
     console.log("👋 Selected greeting:", greeting);
 
-    const { data: messageData, error: messageError } = await supabase.from("messages").insert({
-      conversation_id: data.id,
-      sender_role: "assistant",
-      assistant_text: greeting,
-      ai_status: "done",
-      tts_status: "pending",
-    }).select().single();
+    // 8) Insert the assistant greeting
+    const { error: messageError } = await supabase
+      .from("messages")
+      .insert({
+        conversation_id: data.id,
+        sender_role: "assistant",
+        assistant_text: greeting,
+        ai_status: "done",
+        tts_status: "pending",
+      });
 
     if (messageError) {
       console.error("❌ Error inserting greeting message:", messageError);
-    } else {
-      console.log("✅ Greeting message inserted:", messageData);
     }
 
-
+    // 9) Load it into state
     await loadHistory(data.id);
   };
+
 
   const clearMessages = createConversation;
 
@@ -474,26 +512,29 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   
 
   return (
-    <TherapistContext.Provider
-      value={{
-        messages,
-        isProcessing,
-        sendMessage,
-        clearMessages,
-        triggerTTSForMessage,
-        endConversation,
-        currentTherapist,
-        setCurrentTherapist,
-        editMessage,
-        invalidateFrom,
-        regenerateAfter,
-        conversationId,
-        setVoiceEnabled,
-      }}
-    >
-      {children}
-    </TherapistContext.Provider>
-  );
+      <TherapistContext.Provider
+        value={{
+          messages,
+          isProcessing,
+          sendMessage,
+          sendAudioMessage,
+          clearMessages,
+          triggerTTSForMessage,
+          endConversation,
+          currentTherapist,
+          setCurrentTherapist,
+          editMessage,
+          invalidateFrom,
+          regenerateAfter,
+          conversationId,
+          setVoiceEnabled,
+          voiceId,
+          therapistMeta,
+        }}
+      >
+        {children}
+      </TherapistContext.Provider>
+    );
 };
 
 export const useTherapist = (): TherapistContextType => {

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/context/AuthContext';
 
 interface TherapistCardProps {
   id: string;
@@ -60,9 +61,9 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
 
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
-  const {
-    setCurrentTherapist
-  } = useTherapist();
+
+  const { user } = useAuth();
+  const { conversationId, setCurrentTherapist } = useTherapist();
 
   // Filter states
   const [identityFilter, setIdentityFilter] = useState<string>("");
@@ -121,31 +122,43 @@ const TherapistSelectionPage = () => {
     setShowSidebar(true);
   };
 
-  const handleConfirmTherapist = async () => {
-    if (!selectedTherapistId) return;
+const handleConfirmTherapist = async () => {
+  if (!selectedTherapistId) return;
 
-    // Insert a new conversation row linked to this therapist
-    const { data, error } = await supabase
-      .from('conversations')
-      .insert({
-        patient_id: currentPatientId,      // however you get this
-        therapist_id: selectedTherapistId,
-        voice_enabled: false
-      });
+  // make sure we have both a user and an open conversation
+  if (!user) {
+    toast({ title: 'You must be logged in', variant: 'destructive' });
+    return;
+  }
+  if (!conversationId) {
+    toast({ title: 'No active session found', variant: 'destructive' });
+    return;
+  }
 
-    if (error) {
-      console.error('Error creating conversation:', error);
-      toast({ title: 'Could not start session', variant: 'destructive' });
-      return;
-    }
+  // 1) Link the therapist to that conversation row
+  const { error } = await supabase
+    .from('conversations')
+    .update({ therapist_id: selectedTherapistId })
+    .eq('id', conversationId);
 
-    toast({
-      title: 'Therapist selected',
-      description: `Starting session with ${selectedTherapist.name}`
-    });
+  if (error) {
+    console.error('Error setting therapist:', error);
+    toast({ title: 'Could not start session', variant: 'destructive' });
+    return;
+  }
 
-    navigate('/session');
-  };
+  // 2) Tell context which persona we're about to chat with
+  setCurrentTherapist(selectedTherapistId);
+
+  toast({
+    title: 'Therapist selected',
+    description: `Starting session with ${selectedTherapist?.name}`
+  });
+
+  // 3) Drop into your session page
+  navigate('/session');
+};
+
 
 
   const handleMatchClick = () => {
