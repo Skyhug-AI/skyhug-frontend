@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ChevronLeft, Calendar, Clock, X } from "lucide-react";
+import { Heart, ChevronLeft, Calendar} from "lucide-react";
 import Header from "@/components/Header";
 import { toast } from "@/hooks/use-toast";
 import { useTherapist } from "@/context/TherapistContext";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { therapistService } from "@/services/therapist.service";
 
 interface TherapistCardProps {
   id: string;
@@ -88,21 +89,15 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
 
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
-
   const { user } = useAuth();
   const { conversationId, setCurrentTherapist } = useTherapist();
-
-  // Filter states
   const [identityFilter, setIdentityFilter] = useState<string>("");
   const [topicsFilter, setTopicsFilter] = useState<string>("");
   const [styleFilter, setStyleFilter] = useState<string>("");
-
-  // Selected therapist states
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(
     null
   );
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
-
   const [therapists, setTherapists] = useState<TherapistCardProps[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -111,42 +106,27 @@ const TherapistSelectionPage = () => {
   );
 
   useEffect(() => {
-    setLoading(true);
-
-    let query = supabase.from("therapists").select("*");
-
-    // apply identity filter if set
-    if (identityFilter) {
-      query = query.eq("identity->>gender", identityFilter);
-    }
-
-    // apply topics filter
-    if (topicsFilter) {
-      query = query.contains("specialties", [topicsFilter]);
-    }
-
-    // apply style filter
-    if (styleFilter) {
-      query = query.contains("styles", [styleFilter]);
-    }
-
-    query
-      .order("name", { ascending: true })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("Error fetching therapists:", error);
-          toast({ title: "Error loading therapists", variant: "destructive" });
-        } else {
-          setTherapists(data || []);
-        }
-      })
-      .finally(() => setLoading(false));
+    const fetchTherapists = async () => {
+      setLoading(true);
+      try {
+        const data = await therapistService.getTherapists({
+          identity: identityFilter,
+          topics: topicsFilter,
+          style: styleFilter,
+        });
+        setTherapists(data);
+      } catch (error) {
+        console.error(error);
+        toast({ title: "Error loading therapists", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTherapists();
   }, [identityFilter, topicsFilter, styleFilter]);
 
   const handleTherapistSelect = (therapistId: string) => {
-    // Set the selected therapist
     setSelectedTherapistId(therapistId);
-    // Open the sidebar
     setShowSidebar(true);
   };
 
@@ -174,20 +154,11 @@ const TherapistSelectionPage = () => {
     //   return;
     // }
 
-    // Set the therapist in context
     setCurrentTherapist(selectedTherapistId);
-
-    toast({
-      title: "Therapist selected",
-      description: `Starting session with ${selectedTherapist?.name}`,
-    });
-
-    // Navigate to session page where conversation will be created
     navigate("/session");
   };
 
   const handleMatchClick = () => {
-    // In a real app, this would use an algorithm to match based on preferences
     const randomIndex = Math.floor(Math.random() * therapists.length);
     const randomTherapist = therapists[randomIndex];
     toast({
@@ -195,7 +166,6 @@ const TherapistSelectionPage = () => {
       description: `${randomTherapist.name} might be a good fit based on your needs`,
     });
 
-    // Set the selected therapist
     setSelectedTherapistId(randomTherapist.id);
     setShowSidebar(true);
   };
@@ -220,114 +190,139 @@ const TherapistSelectionPage = () => {
     );
   }
 
+  const renderHeader = () => (
+    <div className="max-w-5xl w-full text-center mb-0 animate-fade-in">
+      <div className="flex items-center justify-center mb-2 relative">
+        <Button
+          variant="ghost"
+          className="absolute left-0 flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          onClick={handleBackClick}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+        <h1 className="text-4xl sm:text-5xl font-bold text-gray-800">
+          Select a Therapist
+        </h1>
+      </div>
+
+      <p className="text-md sm:text-xl text-gray-500 mb-4">
+        Choose an AI therapist to talk to
+      </p>
+    </div>
+  );
+
+  const renderQuickMatch = () => (
+    <div className="flex justify-center mb-4">
+      <Button
+        variant="outline"
+        className="border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-2"
+        onClick={handleMatchClick}
+      >
+        <div className="flex items-center justify-center w-5 h-5 rounded-full border border-gray-400 text-xs">
+          ?
+        </div>
+        Let us match you
+      </Button>
+    </div>
+  );
+
+  const renderFilters = () => (
+    <div className="flex flex-wrap justify-center gap-4 mb-12">
+      <Select value={identityFilter} onValueChange={setIdentityFilter}>
+        <SelectTrigger className="w-[180px] bg-white">
+          <SelectValue placeholder="Identity" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="female">Female</SelectItem>
+          <SelectItem value="male">Male</SelectItem>
+          <SelectItem value="nonbinary">Non-binary</SelectItem>
+          <SelectItem value="lgbtq">LGBTQ+</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={topicsFilter} onValueChange={setTopicsFilter}>
+        <SelectTrigger className="w-[180px] bg-white">
+          <SelectValue placeholder="Topics" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="anxiety">Anxiety</SelectItem>
+          <SelectItem value="depression">Depression</SelectItem>
+          <SelectItem value="relationships">Relationships</SelectItem>
+          <SelectItem value="stress">Stress Management</SelectItem>
+          <SelectItem value="career">Career</SelectItem>
+          <SelectItem value="grief">Grief</SelectItem>
+          <SelectItem value="trauma">Trauma</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={styleFilter} onValueChange={setStyleFilter}>
+        <SelectTrigger className="w-[180px] bg-white">
+          <SelectValue placeholder="Therapy Style" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="supportive">Supportive</SelectItem>
+          <SelectItem value="motivational">Motivational</SelectItem>
+          <SelectItem value="direct">Direct</SelectItem>
+          <SelectItem value="reflective">Reflective</SelectItem>
+          <SelectItem value="goal-oriented">Goal-oriented</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const renderTherapistGrid = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl justify-items-center">
+      {therapists.map((therapist, index) => (
+        <div
+          key={therapist.id}
+          className="animate-fade-in"
+          style={{
+            animationDelay: `${index * 0.1}s`,
+          }}
+        >
+          <TherapistCard
+            id={therapist.id}
+            name={therapist.name}
+            description={therapist.description}
+            specialties={therapist.specialties}
+            avatarSrc={therapist.avatarSrc}
+            bgColor={therapist.bgColor}
+            onClick={() => handleTherapistSelect(therapist.id)}
+            isSelected={selectedTherapistId === therapist.id}
+          />
+        </div>
+      ))}
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading therapists…
+      </div>
+    );
+  }
+
+  if (!loading && therapists.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        No therapists match your filters.
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
       <main className="flex-grow flex flex-col items-center justify-center px-4 py-10">
-        <div className="max-w-5xl w-full text-center mb-0 animate-fade-in">
-          {/* Title section with back button on the same level */}
-          <div className="flex items-center justify-center mb-2 relative">
-            <Button
-              variant="ghost"
-              className="absolute left-0 flex items-center gap-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              onClick={handleBackClick}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-800">
-              Select a Therapist
-            </h1>
-          </div>
-
-          <p className="text-md sm:text-xl text-gray-500 mb-4">
-            Choose an AI therapist to talk to
-          </p>
-
-          {/* Match button - centered above filters */}
-          <div className="flex justify-center mb-4">
-            <Button
-              variant="outline"
-              className="border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-2"
-              onClick={handleMatchClick}
-            >
-              <div className="flex items-center justify-center w-5 h-5 rounded-full border border-gray-400 text-xs">
-                ?
-              </div>
-              Let us match you
-            </Button>
-          </div>
-
-          {/* Filter dropdowns */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Select value={identityFilter} onValueChange={setIdentityFilter}>
-              <SelectTrigger className="w-[180px] bg-white">
-                <SelectValue placeholder="Identity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="nonbinary">Non-binary</SelectItem>
-                <SelectItem value="lgbtq">LGBTQ+</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={topicsFilter} onValueChange={setTopicsFilter}>
-              <SelectTrigger className="w-[180px] bg-white">
-                <SelectValue placeholder="Topics" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="anxiety">Anxiety</SelectItem>
-                <SelectItem value="depression">Depression</SelectItem>
-                <SelectItem value="relationships">Relationships</SelectItem>
-                <SelectItem value="stress">Stress Management</SelectItem>
-                <SelectItem value="career">Career</SelectItem>
-                <SelectItem value="grief">Grief</SelectItem>
-                <SelectItem value="trauma">Trauma</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={styleFilter} onValueChange={setStyleFilter}>
-              <SelectTrigger className="w-[180px] bg-white">
-                <SelectValue placeholder="Therapy Style" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="supportive">Supportive</SelectItem>
-                <SelectItem value="motivational">Motivational</SelectItem>
-                <SelectItem value="direct">Direct</SelectItem>
-                <SelectItem value="reflective">Reflective</SelectItem>
-                <SelectItem value="goal-oriented">Goal-oriented</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl justify-items-center">
-          {therapists.map((therapist, index) => (
-            <div
-              key={therapist.id}
-              className="animate-fade-in"
-              style={{
-                animationDelay: `${index * 0.1}s`,
-              }}
-            >
-              <TherapistCard
-                id={therapist.id}
-                name={therapist.name}
-                description={therapist.description}
-                specialties={therapist.specialties}
-                avatarSrc={therapist.avatarSrc}
-                bgColor={therapist.bgColor}
-                onClick={() => handleTherapistSelect(therapist.id)}
-                isSelected={selectedTherapistId === therapist.id}
-              />
-            </div>
-          ))}
-        </div>
+        {renderHeader()}
+        {renderQuickMatch()}
+        {renderFilters()}
+        {renderTherapistGrid()}
       </main>
 
-      {/* Therapist Details Sidebar - Made wider */}
       <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
         <SheetContent className="w-[500px] sm:max-w-lg overflow-y-auto">
           {selectedTherapist && (
@@ -392,7 +387,6 @@ const TherapistSelectionPage = () => {
                 </div>
               </div>
 
-              {/* Start Session Button - Fixed at bottom */}
               <div className="mt-6 pt-4 border-t sticky bottom-0 bg-background">
                 <Button
                   className="w-full flex items-center justify-center gap-2"
