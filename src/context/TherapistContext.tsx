@@ -92,8 +92,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
 
-  console.log(currentTherapist, "currentTherapist-----");
-
   const fetchTherapists = async (
     setLoading: (loading: boolean) => void,
     identityFilter: string,
