@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/hooks/use-toast";
+import { therapistService } from "@/services/therapist.service";
 
 export interface Message {
   id: string;
@@ -29,15 +30,24 @@ export type TherapistContextType = {
   clearMessages: () => Promise<void>;
   triggerTTSForMessage: (tts_path: string) => Promise<void>;
   endConversation: () => Promise<void>;
-  currentTherapist: string;
-  setCurrentTherapist: (therapistId: string) => void;
   editMessage: (id: string, newContent: string) => Promise<void>;
   invalidateFrom: (id: string) => Promise<void>;
   regenerateAfter: (id: string) => Promise<void>;
   conversationId: string | null;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   voiceId: string;
-  therapistMeta: { name: string; avatar_url: string } | null;
+  currentTherapist: { id: string; name: string; avatar_url: string } | null;
+  setCurrentTherapist: (
+    therapist: { id: string; name: string; avatar_url: string } | null
+  ) => void;
+  therapists: any[];
+  setTherapists: (therapists: any[]) => void;
+  fetchTherapists: (
+    setLoading: (loading: boolean) => void,
+    identityFilter: string,
+    topicsFilter: string[],
+    styleFilter: string
+  ) => Promise<void>;
 };
 
 const TherapistContext = createContext<TherapistContextType>({
@@ -56,7 +66,8 @@ const TherapistContext = createContext<TherapistContextType>({
   conversationId: null,
   setVoiceEnabled: async () => {},
   voiceId: "FuOBXzQ4ziLb7pl9lYjZ",
-  therapistMeta: null,
+  therapists: [],
+  fetchTherapists: () => {},
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -67,7 +78,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [voiceId, setVoiceId] = useState<string>("FuOBXzQ4ziLb7pl9lYjZ");
-  const [therapistMeta, setTherapistMeta] = useState<{
+  const [therapists, setTherapists] = useState<any[]>([]);
+  const [currentTherapist, setCurrentTherapist] = useState<{
+    id: string;
     name: string;
     avatar_url: string;
   } | null>(null);
@@ -78,7 +91,28 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     null
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
-  const [currentTherapist, setCurrentTherapist] = useState<string>("sky");
+
+  const fetchTherapists = async (
+    setLoading: (loading: boolean) => void,
+    identityFilter: string,
+    topicsFilter: string[],
+    styleFilter: string
+  ) => {
+    setLoading(true);
+    try {
+      const data = await therapistService.getTherapists({
+        identity: identityFilter,
+        topics: topicsFilter,
+        style: styleFilter,
+      });
+      setTherapists(data);
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error loading therapists", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatMessage = (
     msg: any
@@ -96,7 +130,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       isGreeting:
         msg.sender_role === "assistant" &&
         (msg.assistant_text?.startsWith(
-          `Hi there, I'm ${therapistMeta?.name ?? "Sky"}`
+          `Hi there, I'm ${currentTherapist?.name ?? "Sky"}`
         ) ||
           msg.assistant_text?.startsWith("Last time we spoke")),
     };
@@ -235,7 +269,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         if (terr) {
           console.error("❌ Error fetching therapist metadata:", terr);
         } else if (t) {
-          setTherapistMeta({ name: t.name, avatar_url: t.avatar_url });
+          setCurrentTherapist({
+            id: t.id,
+            name: t.name,
+            avatar_url: t.avatar_url,
+          });
           setVoiceId(t.elevenlabs_voice_id || "FuOBXzQ4ziLb7pl9lYjZ");
         }
       }
@@ -273,7 +311,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         patient_id: user.id,
         title: "Therapy Session",
         ended: false,
-        therapist_id: currentTherapist, // Include the selected therapist
+        therapist_id: currentTherapist.id, // Include the selected therapist
       })
       .select()
       .single();
@@ -302,7 +340,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     // 7) Build your greeting
-    const personaName = therapistMeta?.name ?? "Sky";
+    const personaName = currentTherapist?.name ?? "Sky";
     const greeting = prev?.memory_summary
       ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
       : `Hi there, I'm ${personaName}. How are you feeling today?`;
@@ -533,7 +571,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         conversationId,
         setVoiceEnabled,
         voiceId,
-        therapistMeta,
+        therapists,
+        setTherapists,
+        fetchTherapists,
       }}
     >
       {children}

@@ -30,7 +30,7 @@ const SessionRoom = () => {
     endConversation,
     conversationId,
     invalidateFrom,
-    therapistMeta,
+    currentTherapist,
     regenerateAfter,
   } = useTherapist();
   const [isVoiceMode, setIsVoiceMode] = useState(true);

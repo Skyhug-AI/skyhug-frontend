@@ -17,7 +17,7 @@ import BreathingExercise from "@/components/session/BreathingExercise";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
-  const { clearMessages, endConversation, therapistMeta } = useTherapist();
+  const { clearMessages, endConversation, currentTherapist } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ const SessionPage = () => {
               <div className="flex items-center gap-2 text-gray-600 text-sm">
                 <span>
                   You're in a therapy session with{" "}
-                  {therapistMeta?.name ?? "Sky"} — your AI companion 💙
+                  {currentTherapist?.name ?? "Sky"} — your AI companion 💙
                 </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div

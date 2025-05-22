@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ChevronLeft, Calendar} from "lucide-react";
+import { Heart, ChevronLeft, Calendar } from "lucide-react";
 import Header from "@/components/Header";
 import { toast } from "@/hooks/use-toast";
 import { useTherapist } from "@/context/TherapistContext";
@@ -22,7 +22,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { therapistService } from "@/services/therapist.service";
 
@@ -90,7 +89,8 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { conversationId, setCurrentTherapist } = useTherapist();
+  const { conversationId, setCurrentTherapist, therapists, fetchTherapists } =
+    useTherapist();
   const [identityFilter, setIdentityFilter] = useState<string>("");
   const [topicsFilter, setTopicsFilter] = useState<string>("");
   const [styleFilter, setStyleFilter] = useState<string>("");
@@ -98,7 +98,6 @@ const TherapistSelectionPage = () => {
     null
   );
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
-  const [therapists, setTherapists] = useState<TherapistCardProps[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const selectedTherapist = therapists.find(
@@ -106,23 +105,7 @@ const TherapistSelectionPage = () => {
   );
 
   useEffect(() => {
-    const fetchTherapists = async () => {
-      setLoading(true);
-      try {
-        const data = await therapistService.getTherapists({
-          identity: identityFilter,
-          topics: topicsFilter,
-          style: styleFilter,
-        });
-        setTherapists(data);
-      } catch (error) {
-        console.error(error);
-        toast({ title: "Error loading therapists", variant: "destructive" });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTherapists();
+    fetchTherapists(setLoading, identityFilter, topicsFilter, styleFilter);
   }, [identityFilter, topicsFilter, styleFilter]);
 
   const handleTherapistSelect = (therapistId: string) => {
@@ -153,6 +136,8 @@ const TherapistSelectionPage = () => {
     //   toast({ title: "Could not start session", variant: "destructive" });
     //   return;
     // }
+
+    console.log(selectedTherapistId, "selectedTherapistId");
 
     setCurrentTherapist(selectedTherapistId);
     navigate("/session");
