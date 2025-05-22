@@ -58,7 +58,7 @@ const TherapistContext = createContext<TherapistContextType>({
   clearMessages: async () => {},
   triggerTTSForMessage: async () => {},
   endConversation: async () => {},
-  currentTherapist: "sky",
+  currentTherapist: null,
   setCurrentTherapist: () => {},
   editMessage: async () => {},
   invalidateFrom: async () => {},
@@ -91,6 +91,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     null
   );
   const [isAudioPaused, setIsAudioPaused] = useState(false);
+
+  console.log(currentTherapist, "currentTherapist-----");
 
   const fetchTherapists = async (
     setLoading: (loading: boolean) => void,

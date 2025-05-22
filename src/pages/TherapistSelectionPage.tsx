@@ -108,8 +108,9 @@ const TherapistSelectionPage = () => {
     fetchTherapists(setLoading, identityFilter, topicsFilter, styleFilter);
   }, [identityFilter, topicsFilter, styleFilter]);
 
-  const handleTherapistSelect = (therapistId: string) => {
-    setSelectedTherapistId(therapistId);
+  const handleTherapistSelect = (therapist) => {
+    setSelectedTherapistId(therapist.id);
+
     setShowSidebar(true);
   };
 
@@ -137,9 +138,7 @@ const TherapistSelectionPage = () => {
     //   return;
     // }
 
-    console.log(selectedTherapistId, "selectedTherapistId");
-
-    setCurrentTherapist(selectedTherapistId);
+    setCurrentTherapist(selectedTherapist);
     navigate("/session");
   };
 
@@ -273,7 +272,7 @@ const TherapistSelectionPage = () => {
             specialties={therapist.specialties}
             avatarSrc={therapist.avatarSrc}
             bgColor={therapist.bgColor}
-            onClick={() => handleTherapistSelect(therapist.id)}
+            onClick={() => handleTherapistSelect(therapist)}
             isSelected={selectedTherapistId === therapist.id}
           />
         </div>
