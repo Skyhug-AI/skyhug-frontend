@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import CloudBackground from '@/components/CloudBackground';
-import AnimatedSunLoader from '@/components/ui/AnimatedSunLoader';
+import React from "react";
+import { motion } from "framer-motion";
+import CloudBackground from "@/components/CloudBackground";
+import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
 
 interface SessionIntroProps {
   onStartSession: () => void;

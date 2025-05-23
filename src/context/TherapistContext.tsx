@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useContext,
@@ -10,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/hooks/use-toast";
+import { therapistService } from "@/services/therapist.service";
 
 export interface Message {
   id: string;
@@ -27,18 +27,27 @@ export type TherapistContextType = {
   isProcessing: boolean;
   sendMessage: (content: string) => Promise<void>;
   sendAudioMessage: (blob: Blob) => Promise<void>;
-  clearMessages: () => Promise<void>;
+  createOrStartActiveSession: () => Promise<void>;
   triggerTTSForMessage: (tts_path: string) => Promise<void>;
   endConversation: () => Promise<void>;
-  currentTherapist: string;
-  setCurrentTherapist: (therapistId: string) => void;
   editMessage: (id: string, newContent: string) => Promise<void>;
   invalidateFrom: (id: string) => Promise<void>;
   regenerateAfter: (id: string) => Promise<void>;
-  conversationId: string | null;
+  activeConversationId: string | null;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   voiceId: string;
-  therapistMeta: { name: string; avatar_url: string } | null;
+  currentTherapist: { id: string; name: string; avatar_url: string } | null;
+  setCurrentTherapist: (
+    therapist: { id: string; name: string; avatar_url: string } | null
+  ) => void;
+  therapists: any[];
+  setTherapists: (therapists: any[]) => void;
+  fetchTherapists: (
+    setLoading: (loading: boolean) => void,
+    identityFilter: string,
+    topicsFilter: string[],
+    styleFilter: string
+  ) => Promise<void>;
 };
 
 const TherapistContext = createContext<TherapistContextType>({
@@ -46,18 +55,19 @@ const TherapistContext = createContext<TherapistContextType>({
   isProcessing: false,
   sendMessage: () => {},
   sendAudioMessage: async () => {},
-  clearMessages: async () => {},
+  createOrStartActiveSession: async () => {},
   triggerTTSForMessage: async () => {},
   endConversation: async () => {},
-  currentTherapist: "sky",
+  currentTherapist: null,
   setCurrentTherapist: () => {},
   editMessage: async () => {},
   invalidateFrom: async () => {},
   regenerateAfter: async () => {},
-  conversationId: null,
+  activeConversationId: null,
   setVoiceEnabled: async () => {},
   voiceId: "FuOBXzQ4ziLb7pl9lYjZ",
-  therapistMeta: null,
+  therapists: [],
+  fetchTherapists: () => {},
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -66,9 +76,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
   const [voiceId, setVoiceId] = useState<string>("FuOBXzQ4ziLb7pl9lYjZ");
-  const [therapistMeta, setTherapistMeta] = useState<{
+  const [therapists, setTherapists] = useState<any[]>([]);
+  const [currentTherapist, setCurrentTherapist] = useState<{
+    id: string;
     name: string;
     avatar_url: string;
   } | null>(null);
@@ -78,10 +92,32 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
-  const [isAudioPaused, setIsAudioPaused] = useState(false);
-  const [currentTherapist, setCurrentTherapist] = useState<string>("sky");
 
-  const formatMessage = (msg: any): Message & { ttsHasArrived?: boolean, isGreeting?: boolean } => {
+  const fetchTherapists = async (
+    setLoading: (loading: boolean) => void,
+    identityFilter: string,
+    topicsFilter: string[],
+    styleFilter: string
+  ) => {
+    setLoading(true);
+    try {
+      const data = await therapistService.getTherapists({
+        identity: identityFilter,
+        topics: topicsFilter,
+        style: styleFilter,
+      });
+      setTherapists(data);
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error loading therapists", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatMessage = (
+    msg: any
+  ): Message & { ttsHasArrived?: boolean; isGreeting?: boolean } => {
     return {
       id: msg.id,
       content: msg.transcription ?? msg.assistant_text ?? "[No content]",
@@ -94,18 +130,18 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       ttsHasArrived: Boolean(msg.tts_path && msg.tts_status === "done"),
       isGreeting:
         msg.sender_role === "assistant" &&
-        (
-          msg.assistant_text?.startsWith(`Hi there, I'm ${therapistMeta?.name ?? 'Sky'}`) ||
-          msg.assistant_text?.startsWith('Last time we spoke')
-        )
+        (msg.assistant_text?.startsWith(
+          `Hi there, I'm ${currentTherapist?.name ?? "Sky"}`
+        ) ||
+          msg.assistant_text?.startsWith("Last time we spoke")),
     };
   };
 
   const editMessage = async (id: string, newContent: string) => {
-    if (!conversationId) return;
-  
+    if (!activeConversationId) return;
+
     setIsProcessing(true);
-  
+
     // 1) Update the edited message
     await supabase
       .from("messages")
@@ -114,7 +150,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         edited_at: new Date().toISOString(),
       })
       .eq("id", id);
-  
+
     // 2) Invalidate every downstream message
     //    (those with created_at > the edited one)
     const { data: orig } = await supabase
@@ -122,21 +158,21 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .select("created_at")
       .eq("id", id)
       .single();
-  
+
     if (orig?.created_at) {
       await supabase
         .from("messages")
         .update({ invalidated: true })
-        .eq("conversation_id", conversationId)
+        .eq("conversation_id", activeConversationId)
         .gt("created_at", orig.created_at);
     }
-  
+
     // 3) Mark conversation to re-summarize
     await supabase
       .from("conversations")
       .update({ needs_resummarization: true })
-      .eq("id", conversationId);
-  
+      .eq("id", activeConversationId);
+
     // 4) Re-enqueue this message for AI reply
     //    by resetting its ai_status to “pending”
     await supabase
@@ -146,16 +182,16 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         edited_at: new Date().toISOString(),
         ai_status: "pending",
         invalidated: false,
-        ai_started: false,        // ← reset here too
+        ai_started: false, // ← reset here too
       })
       .eq("id", id);
-  
+
     setIsProcessing(false);
   };
 
   /** Invalidate all messages created after the given one (so they drop out of UI) */
   const invalidateFrom = async (id: string) => {
-    if (!conversationId) return;
+    if (!activeConversationId) return;
     // 1) lookup the pivot message’s timestamp
     const { data: orig } = await supabase
       .from("messages")
@@ -167,7 +203,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     await supabase
       .from("messages")
       .update({ invalidated: true })
-      .eq("conversation_id", conversationId)
+      .eq("conversation_id", activeConversationId)
       .gt("created_at", orig.created_at);
   };
 
@@ -184,66 +220,42 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .from("messages")
       .select("id, sender_role, transcription, assistant_text, created_at")
       .eq("conversation_id", convId)
-      .eq("invalidated", false)    
+      .eq("invalidated", false)
       .order("created_at");
-  
+
     if (error) {
       console.error("Error loading conversation history:", error);
       return;
     }
-  
+
     // No more ttsHasArrived check—just show every assistant row immediately
     setMessages(rows.map(formatMessage));
   };
-  
 
-  const createConversation = async () => {
-    // 1) must be logged in
-    if (!user) {
-      console.warn("⏳ Waiting for user to be ready...");
-      return;
+  const createOrStartActiveSession = async () => {
+    if (!user) return;
+    if (activeConversationId) {
+      await resumeSession();
+    } else {
+      await createNewSession();
     }
+  };
 
-    // 2) Look for an open conversation
-    const { data: existing, error: findError } = await supabase
+  const resumeSession = async () => {
+    console.log("🔁 Resuming previous conversation:", activeConversationId);
+    const { error, data: existing } = await supabase
       .from("conversations")
-      .select("id, therapist_id")
-      .eq("patient_id", user.id)
-      .eq("ended", false)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+      .update({ therapist_id: currentTherapist.id })
+      .eq("id", activeConversationId);
 
-    if (findError && findError.code !== "PGRST116") {
-      console.error("❌ Error checking for existing conversation:", findError);
-      return;
-    }
+    // NEED TO SELECT VOICE ID / STORE IT IN CURRENT THERAPISTS FIELD - TODO
+    setVoiceId("FuOBXzQ4ziLb7pl9lYjZ");
+    // currentTherapist.elevenlabs_voice_id || "FuOBXzQ4ziLb7pl9lYjZ"
 
-    // 3) If found, resume it
-    if (existing) {
-      console.log("🔁 Resuming previous conversation:", existing.id);
-      setConversationId(existing.id);
+    await loadHistory(activeConversationId);
+  };
 
-      const therapistId = existing.therapist_id;
-      if (therapistId) {
-        const { data: t, error: terr } = await supabase
-          .from("therapists")
-          .select("name, avatar_url, elevenlabs_voice_id")
-          .eq("id", therapistId)
-          .single();
-
-        if (terr) {
-          console.error("❌ Error fetching therapist metadata:", terr);
-        } else if (t) {
-          setTherapistMeta({ name: t.name, avatar_url: t.avatar_url });
-          setVoiceId(t.elevenlabs_voice_id || "FuOBXzQ4ziLb7pl9lYjZ");
-        }
-      }
-
-      await loadHistory(existing.id);
-      return;
-    }
-
+  const createNewSession = async () => {
     // 4) Ensure the patient record exists
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
@@ -273,6 +285,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         patient_id: user.id,
         title: "Therapy Session",
         ended: false,
+        therapist_id: currentTherapist.id, // Include the selected therapist
       })
       .select()
       .single();
@@ -281,8 +294,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("❌ Supabase error creating conversation:", error);
       return;
     }
-    setConversationId(data.id);
-
+    setActiveConversationId(data.id);
     // 6) Optionally pull last memory
     const {
       data: prev,
@@ -301,7 +313,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     // 7) Build your greeting
-    const personaName = therapistMeta?.name ?? "Sky";
+    const personaName = currentTherapist?.name ?? "Sky";
     const greeting = prev?.memory_summary
       ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
       : `Hi there, I'm ${personaName}. How are you feeling today?`;
@@ -309,15 +321,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     console.log("👋 Selected greeting:", greeting);
 
     // 8) Insert the assistant greeting
-    const { error: messageError } = await supabase
-      .from("messages")
-      .insert({
-        conversation_id: data.id,
-        sender_role: "assistant",
-        assistant_text: greeting,
-        ai_status: "done",
-        tts_status: "pending",
-      });
+    const { error: messageError } = await supabase.from("messages").insert({
+      conversation_id: data.id,
+      sender_role: "assistant",
+      assistant_text: greeting,
+      ai_status: "done",
+      tts_status: "pending",
+    });
 
     if (messageError) {
       console.error("❌ Error inserting greeting message:", messageError);
@@ -327,16 +337,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     await loadHistory(data.id);
   };
 
-
-  const clearMessages = createConversation;
-
   const sendMessage = async (content: string) => {
-    if (!conversationId || !content.trim()) return;
+    if (!activeConversationId || !content.trim()) return;
     console.log("📤 Sending message to Supabase...");
     setIsProcessing(true);
 
     const { error } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
+      conversation_id: activeConversationId,
       sender_role: "user",
       transcription: content,
       transcription_status: "done",
@@ -351,7 +358,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const sendAudioMessage = async (blob: Blob) => {
-    if (!conversationId || !user) return;
+    if (!activeConversationId || !user) return;
     setIsProcessing(true);
     const key = `${user.id}/${uuidv4()}.webm`;
 
@@ -366,7 +373,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     const { error: insertError } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
+      conversation_id: activeConversationId,
       sender_role: "user",
       audio_path: key,
       transcription_status: "pending",
@@ -381,17 +388,17 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const setVoiceEnabled = async (on: boolean) => {
-    if (!conversationId) return;
+    if (!activeConversationId) return;
     const { error } = await supabase
       .from("conversations")
       .update({ voice_enabled: on })
-      .eq("id", conversationId);
+      .eq("id", activeConversationId);
     if (error) console.error("Error updating voice_enabled:", error);
   };
 
   const endConversation = async () => {
-    console.log("📕 Attempting to end conversation:", conversationId);
-    if (!conversationId) {
+    console.log("📕 Attempting to end conversation:", activeConversationId);
+    if (!activeConversationId) {
       console.warn("⚠️ No conversationId set; cannot end.");
       return;
     }
@@ -399,7 +406,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     const { error } = await supabase
       .from("conversations")
       .update({ ended: true })
-      .eq("id", conversationId);
+      .eq("id", activeConversationId);
 
     if (error) {
       console.error("❌ Supabase error ending conversation:", error);
@@ -411,9 +418,9 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       await fetch("http://localhost:8001/summarize_conversation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversation_id: conversationId }),
+        body: JSON.stringify({ conversation_id: activeConversationId }),
       });
-      console.log("🧠 Summarization triggered for conv", conversationId);
+      console.log("🧠 Summarization triggered for conv", activeConversationId);
     } catch (e) {
       console.error("❌ Failed to trigger summarization:", e);
     }
@@ -421,52 +428,58 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
   const playMessageAudio = (messageId: string) => {
     // tear down any old audio
-    currentAudio?.pause()
-    currentAudio && (currentAudio.currentTime = 0)
-  
+    currentAudio?.pause();
+    currentAudio && (currentAudio.currentTime = 0);
+
     // stream directly from your FastAPI proxy
-    const streamUrl = `http://localhost:8000/tts-stream/${messageId}`
-  
-    const audio = new Audio(streamUrl)
-    audio.preload = 'auto'
-    audio.onplay = () => setIsAudioPaused(false)
-    audio.onended = () => setIsAudioPaused(true)
-    audio.onerror = e => {
-      console.error("Stream playback error", e)
-      toast({ title: "Audio error", description: "Could not play stream", variant: "destructive" })
-    }
-  
-    setCurrentAudio(audio)
-    audio.play().catch(err => console.error("Play() failed:", err))
-  }
+    const streamUrl = `http://localhost:8000/tts-stream/${messageId}`;
+
+    const audio = new Audio(streamUrl);
+    audio.preload = "auto";
+    audio.onerror = (e) => {
+      console.error("Stream playback error", e);
+      toast({
+        title: "Audio error",
+        description: "Could not play stream",
+        variant: "destructive",
+      });
+    };
+
+    setCurrentAudio(audio);
+    audio.play().catch((err) => console.error("Play() failed:", err));
+  };
 
   const triggerTTSForMessage = async (tts_path: string) => {
-    if (!conversationId) return;
-    const { data, error } = await supabase.from("messages").select("id").eq("tts_path", tts_path).single();
+    if (!activeConversationId) return;
+    const { data, error } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("tts_path", tts_path)
+      .single();
     if (error) {
       console.error("Error fetching message ID for tts_path:", error);
       return;
     }
     playMessageAudio(data.id);
-  }
+  };
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!activeConversationId) return;
     const channel = supabase
-      .channel(`messages-updates-${conversationId}`)
+      .channel(`messages-updates-${activeConversationId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
+          filter: `conversation_id=eq.${activeConversationId}`,
         },
         (payload) => {
           const msg = formatMessage(payload.new);
-          setMessages(prev => {
-            if (prev.some(m => m.id === msg.id)) return prev;
-            return [...prev, msg]; 
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === msg.id)) return prev;
+            return [...prev, msg];
           });
           setIsProcessing(false);
         }
@@ -477,66 +490,64 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
           event: "UPDATE",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
+          filter: `conversation_id=eq.${activeConversationId}`,
         },
-                (payload) => {
-                    const n = payload.new as any;
-          
-                    // 1) if this row was invalidated, drop it entirely
-                    if (n.invalidated) {
-                      setMessages(prev => prev.filter(m => m.id !== n.id));
-                      setIsProcessing(false);
-                      return;
-                    }
-          
-                    // 2) only update when we actually got new text
-                    //    (a) user edits => payload.new.transcription
-                    //    (b) AI streams => payload.new.assistant_text
-                    if (n.transcription !== undefined || n.assistant_text !== undefined) {
-                      const msg = formatMessage(n);
-                      setMessages(prev =>
-                        prev.map(m => m.id === msg.id ? msg : m)
-                      );
-                  }
-          
-                    // any other UPDATE (ai_status flip, etc.) we ignore
-                    setIsProcessing(false);
-                  }
+        (payload) => {
+          const n = payload.new as any;
+
+          // 1) if this row was invalidated, drop it entirely
+          if (n.invalidated) {
+            setMessages((prev) => prev.filter((m) => m.id !== n.id));
+            setIsProcessing(false);
+            return;
+          }
+
+          // 2) only update when we actually got new text
+          //    (a) user edits => payload.new.transcription
+          //    (b) AI streams => payload.new.assistant_text
+          if (n.transcription !== undefined || n.assistant_text !== undefined) {
+            const msg = formatMessage(n);
+            setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+          }
+
+          // any other UPDATE (ai_status flip, etc.) we ignore
+          setIsProcessing(false);
+        }
       )
 
-
       .subscribe();
-  
+
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
-  
+  }, [activeConversationId]);
 
   return (
-      <TherapistContext.Provider
-        value={{
-          messages,
-          isProcessing,
-          sendMessage,
-          sendAudioMessage,
-          clearMessages,
-          triggerTTSForMessage,
-          endConversation,
-          currentTherapist,
-          setCurrentTherapist,
-          editMessage,
-          invalidateFrom,
-          regenerateAfter,
-          conversationId,
-          setVoiceEnabled,
-          voiceId,
-          therapistMeta,
-        }}
-      >
-        {children}
-      </TherapistContext.Provider>
-    );
+    <TherapistContext.Provider
+      value={{
+        messages,
+        isProcessing,
+        sendMessage,
+        sendAudioMessage,
+        createOrStartActiveSession,
+        triggerTTSForMessage,
+        endConversation,
+        currentTherapist,
+        setCurrentTherapist,
+        editMessage,
+        invalidateFrom,
+        regenerateAfter,
+        activeConversationId,
+        setVoiceEnabled,
+        voiceId,
+        therapists,
+        setTherapists,
+        fetchTherapists,
+      }}
+    >
+      {children}
+    </TherapistContext.Provider>
+  );
 };
 
 export const useTherapist = (): TherapistContextType => {

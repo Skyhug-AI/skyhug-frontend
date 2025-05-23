@@ -17,7 +17,12 @@ import BreathingExercise from "@/components/session/BreathingExercise";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
-  const { clearMessages, endConversation, therapistMeta } = useTherapist();
+  const {
+    createOrStartActiveSession,
+    endConversation,
+    currentTherapist,
+    activeConversationId,
+  } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
@@ -30,13 +35,11 @@ const SessionPage = () => {
 
   // Use separate useEffect to handle one-time initialization
   useEffect(() => {
-    // This will run once when the component mounts
     const initSession = async () => {
-      console.log("✨ Initializing session - clearing messages");
-      await clearMessages();
+      await createOrStartActiveSession();
     };
-
     initSession();
+
     // Don't include clearMessages in deps to prevent multiple calls
   }, []);
 
@@ -74,7 +77,7 @@ const SessionPage = () => {
               <div className="flex items-center gap-2 text-gray-600 text-sm">
                 <span>
                   You're in a therapy session with{" "}
-                  {therapistMeta?.name ?? "Sky"} — your AI companion 💙
+                  {currentTherapist?.name ?? "Sky"} — your AI companion 💙
                 </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
