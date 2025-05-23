@@ -17,7 +17,7 @@ const ChatPage = () => {
     isProcessing,
     sendMessage,
     sendAudioMessage,
-    clearMessages,
+    createOrStartActiveSession,
     endConversation,
   } = useTherapist();
 
@@ -75,7 +75,7 @@ const ChatPage = () => {
                 onClick={async () => {
                   if (canStartChat) {
                     await endConversation();
-                    clearMessages();
+                    createOrStartActiveSession();
                   } else {
                     console.warn("⏳ Patient row not ready yet...");
                   }

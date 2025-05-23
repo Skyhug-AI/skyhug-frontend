@@ -4,15 +4,28 @@ import { Database } from "@/types/supabase";
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
 
+
+
 export const conversationService = {
-  async loadHistory(conversationId: string) {
-    return await supabase
+  async loadHistory(
+    activeConversationId: string,
+    setMessages: (messages: Message[]) => void
+  ) {
+    const { data: rows, error } = await supabase
       .from("messages")
       .select("id, sender_role, transcription, assistant_text, created_at")
-      .eq("conversation_id", conversationId)
+      .eq("conversation_id", activeConversationId)
       .eq("invalidated", false)
       .order("created_at");
+
+    if (error) {
+      console.error("Error loading conversation history:", error);
+      return;
+    }
+    setMessages(rows.map(formatMessage));
   },
+
+
 
   async findExistingConversation(userId: string) {
     return await supabase
@@ -63,9 +76,9 @@ export const conversationService = {
       .maybeSingle();
   },
 
-  async sendMessage(conversationId: string, content: string) {
+  async sendMessage(activeConversationId: string, content: string) {
     return await supabase.from("messages").insert({
-      conversation_id: conversationId,
+      conversation_id: activeConversationId,
       sender_role: "user",
       transcription: content,
       transcription_status: "done",
@@ -74,9 +87,9 @@ export const conversationService = {
     });
   },
 
-  async sendAudioMessage(conversationId: string, audioPath: string) {
+  async sendAudioMessage(activeConversationId: string, audioPath: string) {
     return await supabase.from("messages").insert({
-      conversation_id: conversationId,
+      conversation_id: activeConversationId,
       sender_role: "user",
       audio_path: audioPath,
       transcription_status: "pending",
@@ -91,21 +104,25 @@ export const conversationService = {
       .upload(key, blob, { contentType: "audio/webm" });
   },
 
-  async setVoiceEnabled(conversationId: string, enabled: boolean) {
+  async setVoiceEnabled(activeConversationId: string, enabled: boolean) {
     return await supabase
       .from("conversations")
       .update({ voice_enabled: enabled })
-      .eq("id", conversationId);
+      .eq("id", activeConversationId);
   },
 
-  async endConversation(conversationId: string) {
+  async endConversation(activeConversationId: string) {
     return await supabase
       .from("conversations")
       .update({ ended: true })
-      .eq("id", conversationId);
+      .eq("id", activeConversationId);
   },
 
-  async editMessage(conversationId: string, messageId: string, newContent: string) {
+  async editMessage(
+    activeConversationId: string,
+    messageId: string,
+    newContent: string
+  ) {
     const updates = [];
 
     // Update the edited message
@@ -132,7 +149,7 @@ export const conversationService = {
         supabase
           .from("messages")
           .update({ invalidated: true })
-          .eq("conversation_id", conversationId)
+          .eq("conversation_id", activeConversationId)
           .gt("created_at", orig.created_at)
       );
 
@@ -141,7 +158,7 @@ export const conversationService = {
         supabase
           .from("conversations")
           .update({ needs_resummarization: true })
-          .eq("id", conversationId)
+          .eq("id", activeConversationId)
       );
 
       // Reset AI status
@@ -162,7 +179,7 @@ export const conversationService = {
     return await Promise.all(updates);
   },
 
-  async invalidateFrom(conversationId: string, messageId: string) {
+  async invalidateFrom(activeConversationId: string, messageId: string) {
     const { data: orig } = await supabase
       .from("messages")
       .select("created_at")
@@ -173,7 +190,7 @@ export const conversationService = {
       return await supabase
         .from("messages")
         .update({ invalidated: true })
-        .eq("conversation_id", conversationId)
+        .eq("conversation_id", activeConversationId)
         .gt("created_at", orig.created_at);
     }
   },
@@ -185,13 +202,13 @@ export const conversationService = {
       .eq("id", messageId);
   },
 
-  async insertGreeting(conversationId: string, greeting: string) {
+  async insertGreeting(activeConversationId: string, greeting: string) {
     return await supabase.from("messages").insert({
-      conversation_id: conversationId,
+      conversation_id: activeConversationId,
       sender_role: "assistant",
       assistant_text: greeting,
       ai_status: "done",
       tts_status: "pending",
     });
-  }
+  },
 };

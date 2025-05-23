@@ -28,7 +28,7 @@ const SessionRoom = () => {
     isProcessing,
     setVoiceEnabled,
     endConversation,
-    conversationId,
+    activeConversationId,
     invalidateFrom,
     currentTherapist,
     regenerateAfter,
@@ -205,16 +205,16 @@ const SessionRoom = () => {
   }, [displayedMessages, isVoiceMode]);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!activeConversationId) return;
     const channel = supabase
-      .channel(`snippet-updates-${conversationId}`)
+      .channel(`snippet-updates-${activeConversationId}`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
+          filter: `conversation_id=eq.${activeConversationId}`,
         },
         ({ new: updated }) => {
           if (updated.snippet_url) {
@@ -228,7 +228,7 @@ const SessionRoom = () => {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [conversationId]);
+  }, [activeConversationId]);
 
   // HIDE PLAY BUTTON FOR EARLIER MESSAGES
   // 1) compute last assistant ID

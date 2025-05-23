@@ -17,7 +17,12 @@ import BreathingExercise from "@/components/session/BreathingExercise";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
-  const { clearMessages, endConversation, currentTherapist } = useTherapist();
+  const {
+    createOrStartActiveSession,
+    endConversation,
+    currentTherapist,
+    activeConversationId,
+  } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
@@ -30,13 +35,11 @@ const SessionPage = () => {
 
   // Use separate useEffect to handle one-time initialization
   useEffect(() => {
-    // This will run once when the component mounts
     const initSession = async () => {
-      console.log("✨ Initializing session - clearing messages");
-      await clearMessages();
+      await createOrStartActiveSession();
     };
-
     initSession();
+
     // Don't include clearMessages in deps to prevent multiple calls
   }, []);
 

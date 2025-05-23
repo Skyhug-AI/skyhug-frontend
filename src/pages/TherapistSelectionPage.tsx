@@ -89,8 +89,7 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
 const TherapistSelectionPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { conversationId, setCurrentTherapist, therapists, fetchTherapists } =
-    useTherapist();
+  const { setCurrentTherapist, therapists, fetchTherapists } = useTherapist();
   const [identityFilter, setIdentityFilter] = useState<string>("");
   const [topicsFilter, setTopicsFilter] = useState<string>("");
   const [styleFilter, setStyleFilter] = useState<string>("");
