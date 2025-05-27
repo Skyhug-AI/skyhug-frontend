@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/types/supabase";
 
-type Tables = Database['public']['Tables'];
-type TherapistRow = Tables['therapists']['Row'];
+type Tables = Database["public"]["Tables"];
+type TherapistRow = Tables["therapists"]["Row"];
 
 export interface TherapistFilters {
   identity?: string;
@@ -19,10 +19,13 @@ export interface Therapist {
   bgColor: string;
   bio: string;
   approach: string;
-  session_structure: string;
+  sessionStructure: string;
+  elevenLabsVoiceId: string;
 }
 
-const mapTherapist = (dbTherapist: Tables['therapists']['Row']): Therapist => ({
+export const mapTherapist = (
+  dbTherapist: Tables["therapists"]["Row"]
+): Therapist => ({
   id: dbTherapist.id,
   name: dbTherapist.name,
   description: dbTherapist.description,
@@ -31,29 +34,32 @@ const mapTherapist = (dbTherapist: Tables['therapists']['Row']): Therapist => ({
   bgColor: dbTherapist.bg_color,
   bio: dbTherapist.bio,
   approach: dbTherapist.approach,
-  session_structure: dbTherapist.session_structure
+  sessionStructure: dbTherapist.session_structure,
+  elevenLabsVoiceId: dbTherapist.elevenlabs_voice_id,
 });
 
 export const therapistService = {
   async getTherapists(filters: TherapistFilters = {}): Promise<Therapist[]> {
-    let query = supabase.from('therapists').select<'therapists', Tables['therapists']['Row']>();
+    let query = supabase
+      .from("therapists")
+      .select<"therapists", Tables["therapists"]["Row"]>();
 
     // Apply identity filter
     if (filters.identity) {
-      query = query.eq('identity->>gender', filters.identity);
+      query = query.eq("identity->>gender", filters.identity);
     }
 
     // Apply topics filter
     if (filters.topics) {
-      query = query.contains('specialties', [filters.topics]);
+      query = query.contains("specialties", [filters.topics]);
     }
 
     // Apply style filter
     if (filters.style) {
-      query = query.contains('styles', [filters.style]);
+      query = query.contains("styles", [filters.style]);
     }
 
-    const { data, error } = await query.order('name', { ascending: true });
+    const { data, error } = await query.order("name", { ascending: true });
 
     if (error) {
       throw new Error(`Error fetching therapists: ${error.message}`);
@@ -64,9 +70,9 @@ export const therapistService = {
 
   async getTherapistById(id: string): Promise<Therapist | null> {
     const { data, error } = await supabase
-      .from('therapists')
-      .select<'therapists', Tables['therapists']['Row']>()
-      .eq('id', id)
+      .from("therapists")
+      .select<"therapists", Tables["therapists"]["Row"]>()
+      .eq("id", id)
       .single();
 
     if (error) {
@@ -74,5 +80,5 @@ export const therapistService = {
     }
 
     return data ? mapTherapist(data) : null;
-  }
+  },
 };

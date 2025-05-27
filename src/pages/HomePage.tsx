@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
+import { useTherapist } from "@/context/TherapistContext";
+
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
 };
@@ -25,6 +27,16 @@ const HomePage = () => {
   const [moodDialogOpen, setMoodDialogOpen] = useState(false);
   const firstName = getFirstName(user?.name);
   const navigate = useNavigate();
+  const {
+    activeConversationId,
+    getActiveSessionIdAndTherapist,
+    currentTherapist,
+    isLoadingSession,
+  } = useTherapist();
+
+  useEffect(() => {
+    getActiveSessionIdAndTherapist();
+  }, []);
 
   // Track completed goals
   const [completedGoals, setCompletedGoals] = useState<string[]>([]);
@@ -105,6 +117,14 @@ const HomePage = () => {
   const totalGoals = 2; // session and mood
   const completedCount = completedGoals.length;
   const progressPercentage = (completedCount / totalGoals) * 100;
+  if (isLoadingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
       <CloudBackground />
@@ -134,12 +154,21 @@ const HomePage = () => {
               Tap below to begin a voice or reflection session.
             </p>
           </div>
-          <Button
-            className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-            onClick={() => navigate("/therapist-selection")}
-          >
-            Start Session
-          </Button>
+          {!activeConversationId ? (
+            <Button
+              className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+              onClick={() => navigate("/therapist-selection")}
+            >
+              Start Session
+            </Button>
+          ) : (
+            <Button
+              className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+              onClick={() => navigate("/session")}
+            >
+              Resume Session
+            </Button>
+          )}
         </div>
 
         {/* Goals + Calm Points */}

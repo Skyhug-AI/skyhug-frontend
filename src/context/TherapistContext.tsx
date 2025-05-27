@@ -9,50 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/hooks/use-toast";
-import { therapistService } from "@/services/therapist.service";
-
-export interface Message {
-  id: string;
-  content: string;
-  isUser: boolean;
-  timestamp: string;
-  tts_path?: string | null;
-  ttsHasArrived?: boolean;
-  isGreeting?: boolean;
-  snippet_url?: string | null;
-}
-
-export type TherapistContextType = {
-  messages: Message[];
-  isProcessing: boolean;
-  sendMessage: (content: string) => Promise<void>;
-  sendAudioMessage: (blob: Blob) => Promise<void>;
-  createOrStartActiveSession: () => Promise<void>;
-  triggerTTSForMessage: (tts_path: string) => Promise<void>;
-  endConversation: () => Promise<void>;
-  editMessage: (id: string, newContent: string) => Promise<void>;
-  invalidateFrom: (id: string) => Promise<void>;
-  regenerateAfter: (id: string) => Promise<void>;
-  activeConversationId: string | null;
-  setVoiceEnabled: (on: boolean) => Promise<void>;
-  voiceId: string;
-  currentTherapist: { id: string; name: string; avatar_url: string } | null;
-  setCurrentTherapist: (
-    therapist: { id: string; name: string; avatar_url: string } | null
-  ) => void;
-  therapists: any[];
-  setTherapists: (therapists: any[]) => void;
-  fetchTherapists: (
-    setLoading: (loading: boolean) => void,
-    identityFilter: string,
-    topicsFilter: string[],
-    styleFilter: string
-  ) => Promise<void>;
-};
+import { mapTherapist, therapistService } from "@/services/therapist.service";
+import { TherapistContextType, Message } from "./types";
 
 const TherapistContext = createContext<TherapistContextType>({
   messages: [],
   isProcessing: false,
+  isLoadingSession: true,
   sendMessage: () => {},
   sendAudioMessage: async () => {},
   createOrStartActiveSession: async () => {},
@@ -65,9 +28,9 @@ const TherapistContext = createContext<TherapistContextType>({
   regenerateAfter: async () => {},
   activeConversationId: null,
   setVoiceEnabled: async () => {},
-  voiceId: "FuOBXzQ4ziLb7pl9lYjZ",
   therapists: [],
   fetchTherapists: () => {},
+  getActiveSessionIdAndTherapist: async () => {},
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -75,16 +38,16 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
-  const [voiceId, setVoiceId] = useState<string>("FuOBXzQ4ziLb7pl9lYjZ");
   const [therapists, setTherapists] = useState<any[]>([]);
   const [currentTherapist, setCurrentTherapist] = useState<{
     id: string;
     name: string;
     avatar_url: string;
+    elevenLabsVoiceId: string;
   } | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -215,6 +178,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .eq("id", id);
   };
 
+  // TODO: CREATE ENDPOINT --> LOAD CHAT HISTORY
   const loadHistory = async (convId: string) => {
     const { data: rows, error } = await supabase
       .from("messages")
@@ -232,9 +196,41 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     setMessages(rows.map(formatMessage));
   };
 
+  const getActiveSessionIdAndTherapist = async () => {
+    setIsLoadingSession(true);
+    try {
+      const { data: patient } = await supabase
+        .from("patients")
+        .select("active_conversation_id")
+        .eq("id", user.id)
+        .single();
+
+      const activeId = patient?.active_conversation_id ?? null;
+      setActiveConversationId(activeId);
+
+      const { data: therapistId } = await supabase
+        .from("conversations")
+        .select("therapist_id")
+        .eq("id", activeId)
+        .single();
+
+      const therapistData = await therapistService.getTherapistById(
+        therapistId.therapist_id
+      );
+
+      setCurrentTherapist(therapistData);
+    } catch (error) {
+      console.error("Error fetching active session:", error);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
+
   const createOrStartActiveSession = async () => {
     if (!user) return;
+
     if (activeConversationId) {
+      console.log(activeConversationId, "activeConversationId***");
       await resumeSession();
     } else {
       await createNewSession();
@@ -242,21 +238,21 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const resumeSession = async () => {
-    console.log("🔁 Resuming previous conversation:", activeConversationId);
-    const { error, data: existing } = await supabase
-      .from("conversations")
-      .update({ therapist_id: currentTherapist.id })
-      .eq("id", activeConversationId);
-
-    // NEED TO SELECT VOICE ID / STORE IT IN CURRENT THERAPISTS FIELD - TODO
-    setVoiceId("FuOBXzQ4ziLb7pl9lYjZ");
-    // currentTherapist.elevenlabs_voice_id || "FuOBXzQ4ziLb7pl9lYjZ"
+    console.log(
+      "🔁 Resuming previous conversation active conversation id:",
+      activeConversationId
+    );
+    // const { error, data: existing } = await supabase
+    //   .from("conversations")
+    //   .update({ therapist_id: currentTherapist.id })
+    //   .eq("id", activeConversationId);
 
     await loadHistory(activeConversationId);
   };
 
   const createNewSession = async () => {
     // 4) Ensure the patient record exists
+    // TO DO: ENDPOINT - get_or_create_patient (upon profile creation?)
     const { data: patientExists, error: checkError } = await supabase
       .from("patients")
       .select("id")
@@ -277,6 +273,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
 
+    // ENDPOINT - COMBINE
     // 5) Create a brand-new conversation
     console.log("🟡 Creating new conversation...");
     const { data, error } = await supabase
@@ -284,7 +281,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       .insert({
         patient_id: user.id,
         title: "Therapy Session",
-        ended: false,
         therapist_id: currentTherapist.id, // Include the selected therapist
       })
       .select()
@@ -294,8 +290,15 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("❌ Supabase error creating conversation:", error);
       return;
     }
+    // MARK SESSION AS ACTIVE UNDER PATIENT
+    // TODO: DELETE ended = True / False in DB? Unnecessary. And throughout code
+    await supabase
+      .from("patients")
+      .update({ active_conversation_id: data.id })
+      .eq("id", user.id);
+
     setActiveConversationId(data.id);
-    // 6) Optionally pull last memory
+
     const {
       data: prev,
       error: memErr,
@@ -403,10 +406,18 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    const { error } = await supabase
+    // REMOVE and replace?
+    await supabase
       .from("conversations")
       .update({ ended: true })
       .eq("id", activeConversationId);
+
+    const { error } = await supabase
+      .from("patients")
+      .update({ active_conversation_id: null })
+      .eq("id", user.id);
+
+    setActiveConversationId(null);
 
     if (error) {
       console.error("❌ Supabase error ending conversation:", error);
@@ -527,6 +538,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       value={{
         messages,
         isProcessing,
+        isLoadingSession,
         sendMessage,
         sendAudioMessage,
         createOrStartActiveSession,
@@ -539,10 +551,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         regenerateAfter,
         activeConversationId,
         setVoiceEnabled,
-        voiceId,
         therapists,
         setTherapists,
         fetchTherapists,
+        getActiveSessionIdAndTherapist,
       }}
     >
       {children}

@@ -19,6 +19,7 @@ const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   const {
     createOrStartActiveSession,
+    getActiveSessionIdAndTherapist,
     endConversation,
     currentTherapist,
     activeConversationId,
