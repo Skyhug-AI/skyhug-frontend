@@ -23,6 +23,7 @@ const SessionPage = () => {
     endConversation,
     currentTherapist,
     activeConversationId,
+    isLoadingSession,
   } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
@@ -34,15 +35,25 @@ const SessionPage = () => {
     setIsSessionStarted(true);
   }, []);
 
-  // Use separate useEffect to handle one-time initialization
+  // First fetch active session info if it exists
   useEffect(() => {
-    const initSession = async () => {
-      await createOrStartActiveSession();
-    };
-    initSession();
-
-    // Don't include clearMessages in deps to prevent multiple calls
+    getActiveSessionIdAndTherapist();
   }, []);
+
+  // Then initialize or resume session once we have session info
+  useEffect(() => {
+    if (!isLoadingSession) {
+      const initSession = async () => {
+        await createOrStartActiveSession();
+      };
+      initSession();
+
+      // If we have an active conversation, we should show the session UI
+      if (activeConversationId) {
+        setIsSessionStarted(true);
+      }
+    }
+  }, [isLoadingSession, activeConversationId]);
 
   const handleEndSession = async () => {
     await endConversation();
@@ -56,6 +67,14 @@ const SessionPage = () => {
   const toggleBreathingExercise = () => {
     setIsBreathingExerciseOpen(!isBreathingExerciseOpen);
   };
+
+  if (isLoadingSession) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col relative bg-white overflow-hidden">
