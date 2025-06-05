@@ -17,9 +17,16 @@ import BreathingExercise from "@/components/session/BreathingExercise";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
+  const {
+    createOrStartActiveSession,
+    getActiveSessionIdAndTherapist,
+    endConversation,
+    currentTherapist,
+    activeConversationId,
+    isLoadingSession,
+  } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
-  const { clearMessages, endConversation } = useTherapist();
   const navigate = useNavigate();
 
   // Memoize this function to prevent unnecessary rerenders
@@ -28,17 +35,25 @@ const SessionPage = () => {
     setIsSessionStarted(true);
   }, []);
 
-  // Use separate useEffect to handle one-time initialization
+  // First fetch active session info if it exists
   useEffect(() => {
-    // This will run once when the component mounts
-    const initSession = async () => {
-      console.log("✨ Initializing session - clearing messages");
-      await clearMessages();
-    };
-
-    initSession();
-    // Don't include clearMessages in deps to prevent multiple calls
+    getActiveSessionIdAndTherapist();
   }, []);
+
+  // Then initialize or resume session once we have session info
+  useEffect(() => {
+    if (!isLoadingSession) {
+      const initSession = async () => {
+        await createOrStartActiveSession();
+      };
+      initSession();
+
+      // If we have an active conversation, we should show the session UI
+      if (activeConversationId) {
+        setIsSessionStarted(true);
+      }
+    }
+  }, [isLoadingSession, activeConversationId]);
 
   const handleEndSession = async () => {
     await endConversation();
@@ -52,6 +67,14 @@ const SessionPage = () => {
   const toggleBreathingExercise = () => {
     setIsBreathingExerciseOpen(!isBreathingExerciseOpen);
   };
+
+  if (isLoadingSession) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col relative bg-white overflow-hidden">
@@ -73,7 +96,8 @@ const SessionPage = () => {
             {isSessionStarted && (
               <div className="flex items-center gap-2 text-gray-600 text-sm">
                 <span>
-                  You're in a therapy session with Sky — your AI companion 💙
+                  You're in a therapy session with{" "}
+                  {currentTherapist?.name ?? "Sky"} — your AI companion 💙
                 </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
