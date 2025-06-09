@@ -532,7 +532,7 @@ const SessionRoom = () => {
                   )}
 
                   {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-                  {!message.isUser &&
+                  {/* {!message.isUser &&
                     isVoiceMode &&
                     message.id === lastAssistantId &&
                     !streamedMap[message.id] && (
@@ -551,7 +551,7 @@ const SessionRoom = () => {
                           <Play className="h-4 w-4" />
                         )}
                       </Button>
-                    )}
+                    )} */}
                 </>
               )}
             </div>
