@@ -455,7 +455,7 @@ const SessionRoom = () => {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
-        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm">
+        <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 text-sm">
           {recognitionPaused ? (
             <X className="w-4 h-4 text-red-500" />
           ) : (
@@ -465,15 +465,14 @@ const SessionRoom = () => {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <span
-            className={recognitionPaused ? "text-red-500" : "text-gray-600"}
-          >
+          <span className={recognitionPaused ? "text-red-500" : "text-gray-600"}>
             {recognitionPaused
               ? "Sky is not listening..."
               : "Sky is listening..."}
           </span>
         </div>
       )}
+
 
       {/* Updated: Full-width scroll container */}
       <div
