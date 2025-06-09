@@ -638,31 +638,36 @@ const SessionRoom = () => {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            {isVoiceMode && voiceActive ? (
-              <VoiceRecorder
-                onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing}
-                shouldPauseRecognition={
-                  Boolean(editingId) ||
-                  isMicLocked ||
-                  waitingForResponse ||
-                  Boolean(currentlyPlayingPath)
-                }
-                onRecognitionPaused={handleRecognitionPaused}
-                onRecognitionResumed={handleRecognitionResumed}
-                onInterruptPlayback={interruptPlayback}
-              />
-            ) : (
-              <div className="flex-grow">
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  placeholder="Write your answer"
-                  isDisabled={isProcessing}
-                />
-              </div>
-            )}
+          <div className="w-full max-w-3xl mx-auto px-4">
+      <div className="flex gap-2">
+        {isVoiceMode && voiceActive ? (
+          <VoiceRecorder
+            onVoiceRecorded={handleVoiceRecorded}
+            isDisabled={isProcessing}
+            shouldPauseRecognition={
+              Boolean(editingId) ||
+              isMicLocked ||
+              waitingForResponse ||
+              Boolean(currentlyPlayingPath)
+            }
+            onRecognitionPaused={handleRecognitionPaused}
+            onRecognitionResumed={handleRecognitionResumed}
+            onInterruptPlayback={interruptPlayback}
+          />
+        ) : (
+          <div className="flex-grow">
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              placeholder="Write your answer"
+              isDisabled={isProcessing}
+            />
           </div>
+        )}
+      </div>
+    </div>
+
+
+
         </motion.div>
       </AnimatePresence>
     </div>
