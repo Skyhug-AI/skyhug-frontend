@@ -452,6 +452,8 @@ const SessionRoom = () => {
     }
   };
 
+  const persona = currentTherapist?.name ?? "Sky";
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
@@ -467,9 +469,9 @@ const SessionRoom = () => {
           )}
           <span className={recognitionPaused ? "text-red-500" : "text-gray-600"}>
             {recognitionPaused
-              ? "Sky is not listening..."
-              : "Sky is listening..."}
-          </span>
+              ? `${persona} is not listening…`
+              : `${persona} is listening…`}
+                    </span>
         </div>
       )}
 
@@ -579,7 +581,7 @@ const SessionRoom = () => {
                   animate={{ opacity: 1 }}
                   className="text-sm text-gray-600"
                 >
-                  Sky is thinking...
+                  {persona} is thinking...`
                 </motion.span>
               </div>
             )
