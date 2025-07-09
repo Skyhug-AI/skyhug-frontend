@@ -16,7 +16,7 @@ const TherapistContext = createContext<TherapistContextType>({
   messages: [],
   isProcessing: false,
   isLoadingSession: true,
-  sendMessage: () => {},
+  sendMessage: async (_content: string) => {},
   sendAudioMessage: async () => {},
   createOrStartActiveSession: async () => {},
   triggerTTSForMessage: async () => {},
@@ -29,7 +29,12 @@ const TherapistContext = createContext<TherapistContextType>({
   activeConversationId: null,
   setVoiceEnabled: async () => {},
   therapists: [],
-  fetchTherapists: () => {},
+  fetchTherapists: async (
+    _setLoading: (l: boolean) => void,
+    _identityFilter: string,
+    _topicsFilter: string[],
+    _styleFilter: string
+  ) => {},
   getActiveSessionIdAndTherapist: async () => {},
 });
 
@@ -315,15 +320,40 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       console.error("❌ Error fetching memory_summary:", memErr);
     }
 
-    // 7) Build your greeting
+// 7) Build your greeting with optional profile-based variation
     const personaName = currentTherapist?.name ?? "Sky";
-    const greeting = prev?.memory_summary
-      ? `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`
-      : `Hi there, I'm ${personaName}. How are you feeling today?`;
+    let greeting: string;
+
+    if (prev?.memory_summary) {
+      greeting = `Last time we spoke, we discussed ${prev.memory_summary}. Would you like to pick up where we left off?`;
+    } else {
+      let usedProfileGreeting = false;
+      try {
+        const { data: profileData } = await supabase
+          .from("user_profiles")
+          .select("topics_on_mind")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profileData?.topics_on_mind?.length && Math.random() < 0.33) {
+          const topics = profileData.topics_on_mind;
+          const oneTopic = topics[Math.floor(Math.random() * topics.length)];
+          greeting = `Hi there, I'm ${personaName}. I know you’ve been thinking a lot about ${oneTopic}. Would you like to start there?`;
+          usedProfileGreeting = true;
+        }
+      } catch {
+        // ignore errors and fallback
+      }
+
+      if (!usedProfileGreeting) {
+        greeting = `Hi there, I'm ${personaName}. How are you feeling today?`;
+      }
+    }
 
     console.log("👋 Selected greeting:", greeting);
 
-    // 8) Insert the assistant greeting
+
+    // // 8) Insert the assistant greeting
     const { error: messageError } = await supabase.from("messages").insert({
       conversation_id: data.id,
       sender_role: "assistant",
@@ -331,6 +361,46 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       ai_status: "done",
       tts_status: "pending",
     });
+
+    // ─── DEBUG: surface user profile immediately to makes sure injection actually happens 
+    // try {
+    //   const { data: profileData } = await supabase
+    //     .from("user_profiles")
+    //     .select("age, gender, career, self_diagnosed_issues, topics_on_mind")
+    //     .eq("user_id", user.id)
+    //     .single();
+
+    //   if (profileData) {
+    //     const lines: string[] = [];
+    //     for (const [key, val] of Object.entries(profileData)) {
+    //       if (val) {
+    //         const prettyKey = key.replace(/_/g, " ");
+    //         const prettyVal = Array.isArray(val) ? val.join(", ") : val;
+    //         lines.push(`${prettyKey}: ${prettyVal}`);
+    //       }
+    //     }
+
+    //     await supabase.from("messages").insert({
+    //       conversation_id: data.id,
+    //       sender_role: "assistant",
+    //       assistant_text: `PROFILE CONTEXT:\n${lines.join("\n")}`,
+    //       ai_status: "done",
+    //       tts_status: "pending",
+    //     });
+    //   }
+    // } catch {
+    //   // ignore any errors
+    // }
+
+    // 9) Insert the assistant greeting
+    // const { error: messageError } = await supabase.from("messages").insert({
+    //   conversation_id: data.id,
+    //   sender_role: "assistant",
+    //   assistant_text: greeting,
+    //   ai_status: "done",
+    //   tts_status: "pending",
+    // });
+
 
     if (messageError) {
       console.error("❌ Error inserting greeting message:", messageError);
