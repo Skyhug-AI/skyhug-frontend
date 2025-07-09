@@ -48,7 +48,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const { isPlayingAudio } = useTherapist();
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
 

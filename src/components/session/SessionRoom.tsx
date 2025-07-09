@@ -452,10 +452,12 @@ const SessionRoom = () => {
     }
   };
 
+  const persona = currentTherapist?.name ?? "Sky";
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
       {isVoiceMode && (
-        <div className="fixed bottom-4 left-4 flex items-center gap-2 text-sm">
+        <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 text-sm">
           {recognitionPaused ? (
             <X className="w-4 h-4 text-red-500" />
           ) : (
@@ -465,15 +467,14 @@ const SessionRoom = () => {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <span
-            className={recognitionPaused ? "text-red-500" : "text-gray-600"}
-          >
+          <span className={recognitionPaused ? "text-red-500" : "text-gray-600"}>
             {recognitionPaused
-              ? "Sky is not listening..."
-              : "Sky is listening..."}
-          </span>
+              ? `${persona} is not listening…`
+              : `${persona} is listening…`}
+                    </span>
         </div>
       )}
+
 
       {/* Updated: Full-width scroll container */}
       <div
@@ -533,7 +534,7 @@ const SessionRoom = () => {
                   )}
 
                   {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-                  {!message.isUser &&
+                  {/* {!message.isUser &&
                     isVoiceMode &&
                     message.id === lastAssistantId &&
                     !streamedMap[message.id] && (
@@ -552,7 +553,7 @@ const SessionRoom = () => {
                           <Play className="h-4 w-4" />
                         )}
                       </Button>
-                    )}
+                    )} */}
                 </>
               )}
             </div>
@@ -580,7 +581,7 @@ const SessionRoom = () => {
                   animate={{ opacity: 1 }}
                   className="text-sm text-gray-600"
                 >
-                  Sky is thinking...
+                  {persona} is thinking...`
                 </motion.span>
               </div>
             )
@@ -638,31 +639,36 @@ const SessionRoom = () => {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            {isVoiceMode && voiceActive ? (
-              <VoiceRecorder
-                onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={isProcessing}
-                shouldPauseRecognition={
-                  Boolean(editingId) ||
-                  isMicLocked ||
-                  waitingForResponse ||
-                  Boolean(currentlyPlayingPath)
-                }
-                onRecognitionPaused={handleRecognitionPaused}
-                onRecognitionResumed={handleRecognitionResumed}
-                onInterruptPlayback={interruptPlayback}
-              />
-            ) : (
-              <div className="flex-grow">
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  placeholder="Write your answer"
-                  isDisabled={isProcessing}
-                />
-              </div>
-            )}
+          <div className="w-full max-w-3xl mx-auto px-4">
+      <div className="flex gap-2">
+        {isVoiceMode && voiceActive ? (
+          <VoiceRecorder
+            onVoiceRecorded={handleVoiceRecorded}
+            isDisabled={isProcessing}
+            shouldPauseRecognition={
+              Boolean(editingId) ||
+              isMicLocked ||
+              waitingForResponse ||
+              Boolean(currentlyPlayingPath)
+            }
+            onRecognitionPaused={handleRecognitionPaused}
+            onRecognitionResumed={handleRecognitionResumed}
+            onInterruptPlayback={interruptPlayback}
+          />
+        ) : (
+          <div className="flex-grow">
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              placeholder="Write your answer"
+              isDisabled={isProcessing}
+            />
           </div>
+        )}
+      </div>
+    </div>
+
+
+
         </motion.div>
       </AnimatePresence>
     </div>
