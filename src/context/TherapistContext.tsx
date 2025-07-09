@@ -60,7 +60,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
-
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+ 
   const fetchTherapists = async (
     setLoading: (loading: boolean) => void,
     identityFilter: string,
@@ -515,13 +516,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const playMessageAudio = (messageId: string) => {
-    // tear down any old audio
+    // 1) tear down any old audio
     currentAudio?.pause();
-    currentAudio && (currentAudio.currentTime = 0);
+    if (currentAudio) currentAudio.currentTime = 0;
 
-    // stream directly from your FastAPI proxy
+    // 2) create a new <audio> streaming from your TTS endpoint
     const streamUrl = `http://localhost:8000/tts-stream/${messageId}`;
-
     const audio = new Audio(streamUrl);
     audio.preload = "auto";
     audio.onerror = (e) => {
@@ -533,9 +533,25 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       });
     };
 
+    // 3) set up the onended so we know when playback finishes
+    audio.onended = () => {
+      // clear the “playing” flag
+      setIsPlayingAudio(false);
+      // optional: drop reference to the old audio element
+      setCurrentAudio(null);
+    };
+
+    // 4) hold onto this audio element in state
     setCurrentAudio(audio);
-    audio.play().catch((err) => console.error("Play() failed:", err));
+
+    // 5) start playback and flip the “playing” flag
+    audio.play()
+      .then(() => {
+        setIsPlayingAudio(true);
+      })
+      .catch(err => console.error("Play() failed:", err));
   };
+
 
   const triggerTTSForMessage = async (tts_path: string) => {
     if (!activeConversationId) return;
