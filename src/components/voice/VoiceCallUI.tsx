@@ -48,7 +48,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const { isPlayingAudio } = useTherapist();
+  const { isPlayingAudio, playMessageAudio } = useTherapist();
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -85,84 +85,88 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   };
   
 
-const handlePlayAudio = (messageId?: string | null) => {
-  if (!messageId || streamedMap[messageId]) return;
+// const handlePlayAudio = (messageId?: string | null) => {
+//   if (!messageId || streamedMap[messageId]) return;
 
-  const STREAM_BASE = "http://localhost:8000";
+//   const STREAM_BASE = "http://localhost:8000";
 
 
-  // If already playing this clip, toggle pause/resume
-  if (currentlyPlayingPath === messageId && audioRef.current) {
-    if (!isPaused) {
-      audioRef.current.pause();
-      setIsPaused(true);
-    } else {
-      audioRef.current.play();
-      setIsPaused(false);
-    }
-    return;
-  }
+//   // If already playing this clip, toggle pause/resume
+//   if (currentlyPlayingPath === messageId && audioRef.current) {
+//     if (!isPaused) {
+//       audioRef.current.pause();
+//       setIsPaused(true);
+//     } else {
+//       audioRef.current.play();
+//       setIsPaused(false);
+//     }
+//     return;
+//   }
 
-  // Tear down any previous player
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-  }
+//   // Tear down any previous player
+//   if (audioRef.current) {
+//     audioRef.current.pause();
+//     audioRef.current.currentTime = 0;
+//   }
 
-  // 1) Create a streaming <audio>
-  const streamUrl = `http://localhost:8000/tts-stream/${messageId}`; 
-  // ↪️ adjust host/origin for production
+//   // 1) Create a streaming <audio>
+//   const streamUrl = `http://localhost:8000/tts-stream/${messageId}`; 
+//   // ↪️ adjust host/origin for production
 
-  const audio = new Audio(streamUrl);
-  audio.crossOrigin = "anonymous"; 
-  audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
-  audio.preload = 'auto';  // start buffering immediately
-  audioRef.current = audio;
-  setCurrentlyPlayingPath(messageId);
-  setIsPaused(false);
+//   const audio = new Audio(streamUrl);
+//   audio.crossOrigin = "anonymous"; 
+//   audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
+//   audio.preload = 'auto';  // start buffering immediately
+//   audioRef.current = audio;
+//   setCurrentlyPlayingPath(messageId);
+//   setIsPaused(false);
 
-  // 2) when it ends…
-  audio.onended = () => {
-    setCurrentlyPlayingPath(null);
-    setIsPaused(false);
-    setStreamedMap(prev => ({ ...prev, [messageId]: true }));
-  };
-  audio.onerror = () => {
-    console.error("Audio playback error");
-    // optionally toast an error
-  };
+//   // 2) when it ends…
+//   audio.onended = () => {
+//     setCurrentlyPlayingPath(null);
+//     setIsPaused(false);
+//     setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+//   };
+//   audio.onerror = () => {
+//     console.error("Audio playback error");
+//     // optionally toast an error
+//   };
 
-  audio.addEventListener("error", (e) => {
-    console.error("🔊 <audio> error:", {
-      networkState:   audio.networkState,
-      readyState:     audio.readyState,
-      currentSrc:     audio.currentSrc,
-      event:          e,
-    });
-  });
-  audio.addEventListener("stalled", () => {
-    console.warn("🔊 <audio> stalled (no data arriving).");
-  });
+//   audio.addEventListener("error", (e) => {
+//     console.error("🔊 <audio> error:", {
+//       networkState:   audio.networkState,
+//       readyState:     audio.readyState,
+//       currentSrc:     audio.currentSrc,
+//       event:          e,
+//     });
+//   });
+//   audio.addEventListener("stalled", () => {
+//     console.warn("🔊 <audio> stalled (no data arriving).");
+//   });
 
-    // 3) kick it off
-    audio.play().catch(err => {
-      console.error("Play() failed:", err, "— falling back to fetch+blob");
-      // fallback: download the entire stream as a Blob
-      fetch(`${STREAM_BASE}/tts-stream/${messageId}`, { mode: "cors" })
-        .then(res => {
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          return res.blob();
-        })
-        .then(blob => {
-          const objectUrl = URL.createObjectURL(blob);
-          const fallbackAudio = new Audio(objectUrl);
-          fallbackAudio.play().catch(e => console.error("Fallback play failed:", e));
-        })
-        .catch(e => console.error("Fallback fetch+blob error:", e));
-    });
+//     // 3) kick it off
+//     audio.play().catch(err => {
+//       console.error("Play() failed:", err, "— falling back to fetch+blob");
+//       // fallback: download the entire stream as a Blob
+//       fetch(`${STREAM_BASE}/tts-stream/${messageId}`, { mode: "cors" })
+//         .then(res => {
+//           if (!res.ok) throw new Error(`status ${res.status}`);
+//           return res.blob();
+//         })
+//         .then(blob => {
+//           const objectUrl = URL.createObjectURL(blob);
+//           const fallbackAudio = new Audio(objectUrl);
+//           fallbackAudio.play().catch(e => console.error("Fallback play failed:", e));
+//         })
+//         .catch(e => console.error("Fallback fetch+blob error:", e));
+//     });
   
-};
+// };
   
+  const handlePlayAudio = (messageId?: string | null) => {
+    if (messageId) playMessageAudio(messageId);
+  };
+
   const handleAmbientSound = (sound: string) => {
     if (ambientSound === sound) {
       setAmbientSound(null);

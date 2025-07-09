@@ -644,6 +644,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         createOrStartActiveSession,
         triggerTTSForMessage,
         endConversation,
+        playMessageAudio,
         currentTherapist,
         setCurrentTherapist,
         editMessage,
