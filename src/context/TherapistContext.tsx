@@ -346,7 +346,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         if (profileData?.topics_on_mind?.length && Math.random() < 0.33) {
           const topics = profileData.topics_on_mind;
           const oneTopic = topics[Math.floor(Math.random() * topics.length)];
-          greeting = `Hi there, I'm ${personaName}. I know you’ve been thinking a lot about ${oneTopic}. Would you like to start there?`;
+          greeting = `Hi there, I'm ${personaName}. I know you’ve been thinking a lot about ${oneTopic} recently. Would you like to start there?`;
           usedProfileGreeting = true;
         }
       } catch {
