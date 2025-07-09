@@ -52,15 +52,17 @@ export const conversationService = {
       .insert({ id: userId, full_name: fullName });
   },
 
-  async createConversation(userId: string, therapistId: string) {
+  async createConversation(userId: string, therapistId?: string) {
+    const payload: any = {
+      patient_id: userId,
+      title: "Therapy Session",
+      ended: false,
+    };
+    if (therapistId) payload.therapist_id = therapistId;
+
     return await supabase
       .from("conversations")
-      .insert({
-        patient_id: userId,
-        title: "Therapy Session",
-        ended: false,
-        therapist_id: therapistId,
-      })
+      .insert(payload)
       .select()
       .single();
   },

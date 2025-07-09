@@ -90,7 +90,7 @@ const HomePage = () => {
       return;
     }
     if (type === "session") {
-      navigate("/therapist-selection");
+      navigate("/session");
     } else if (type === "mood") {
       // Open mood selection dialog
       setMoodDialogOpen(true);
@@ -157,7 +157,7 @@ const HomePage = () => {
           {!activeConversationId ? (
             <Button
               className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-              onClick={() => navigate("/therapist-selection")}
+              onClick={() => navigate("/session")}
             >
               Start Session
             </Button>

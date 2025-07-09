@@ -17,7 +17,7 @@ const StartSessionCard = () => {
       
       <div className="flex flex-col gap-y-4">
         <Button 
-          onClick={() => navigate('/therapist-selection')} 
+          onClick={() => navigate('/session')} 
           size="lg" 
           className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-400 hover:to-blue-300 text-white py-6 shadow-md hover:shadow-lg transition-all duration-300 font-medium text-base rounded"
         >

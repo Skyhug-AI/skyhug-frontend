@@ -61,7 +61,7 @@ const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => navigate('/therapist-selection')} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate('/session')} className="cursor-pointer">
                 <Play className="mr-2 h-4 w-4 text-skyhug-500" />
                 <span>Start a Session</span>
               </DropdownMenuItem>

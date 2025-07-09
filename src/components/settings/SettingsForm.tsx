@@ -189,9 +189,9 @@ const SettingsForm = () => {
               <p className="text-muted-foreground">{selectedTherapist.specialty}</p>
             </div>
             
-            <Button variant="outline" onClick={handleChooseNewTherapist} className="flex-shrink-0">
+            {/* <Button variant="outline" onClick={handleChooseNewTherapist} className="flex-shrink-0">
               Choose New Therapist
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>

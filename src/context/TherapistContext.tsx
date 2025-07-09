@@ -282,13 +282,20 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     // ENDPOINT - COMBINE
     // 5) Create a brand-new conversation
     console.log("🟡 Creating new conversation...");
+
+    const convoPayload: Record<string, any> = {
+      patient_id: user.id,
+      title: "Therapy Session",
+    };
+
+    // only include therapist_id when someone’s explicitly picked one
+    if (currentTherapist?.id) {
+      convoPayload.therapist_id = currentTherapist.id;
+    }
+
     const { data, error } = await supabase
       .from("conversations")
-      .insert({
-        patient_id: user.id,
-        title: "Therapy Session",
-        therapist_id: currentTherapist.id, // Include the selected therapist
-      })
+      .insert(convoPayload)
       .select()
       .single();
 
