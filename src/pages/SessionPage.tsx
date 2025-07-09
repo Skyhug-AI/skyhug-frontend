@@ -30,8 +30,9 @@ const SessionPage = () => {
   const navigate = useNavigate();
 
   // Memoize this function to prevent unnecessary rerenders
-  const handleStartSession = useCallback(() => {
+  const handleStartSession = useCallback(async () => {
     console.log("🚀 Starting new therapy session");
+    await createOrStartActiveSession(); 
     setIsSessionStarted(true);
   }, []);
 
@@ -39,21 +40,6 @@ const SessionPage = () => {
   useEffect(() => {
     getActiveSessionIdAndTherapist();
   }, []);
-
-  // Then initialize or resume session once we have session info
-  useEffect(() => {
-    if (!isLoadingSession) {
-      const initSession = async () => {
-        await createOrStartActiveSession();
-      };
-      initSession();
-
-      // If we have an active conversation, we should show the session UI
-      if (activeConversationId) {
-        setIsSessionStarted(true);
-      }
-    }
-  }, [isLoadingSession, activeConversationId]);
 
   const handleEndSession = async () => {
     await endConversation();

@@ -406,24 +406,31 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // REMOVE and replace?
-    await supabase
+    const { data: endedConvo, error: endError } = await supabase
       .from("conversations")
       .update({ ended: true })
-      .eq("id", activeConversationId);
+      .eq("id", activeConversationId)
+      .select()
+      .single();    // grab the row back if you need it
 
-    const { error } = await supabase
+    if (endError) {
+      console.error("❌ Failed to mark conversation ended:", endError);
+      return;
+    }
+
+    // now clear out the patient’s active pointer
+    const { error: patientError } = await supabase
       .from("patients")
       .update({ active_conversation_id: null })
       .eq("id", user.id);
 
-    setActiveConversationId(null);
-
-    if (error) {
-      console.error("❌ Supabase error ending conversation:", error);
+    if (patientError) {
+      console.error("❌ Supabase error clearing patient active session:", patientError);
       return;
     }
-    console.log("✅ Conversation ended successfully.");
+
+    setActiveConversationId(null);
+    console.log("✅ Conversation truly ended.");
 
     try {
       await fetch("http://localhost:8001/summarize_conversation", {
