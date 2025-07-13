@@ -97,14 +97,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signup = async (name: string, email: string, password: string) => {
+    console.log('🚀 Starting signup process for:', email);
     setLoading(true);
     try {
+      console.log('📧 Calling Supabase auth.signUp...');
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password.trim(),
       });
-      if (error || !data.user) throw error;
+      
+      console.log('📊 Supabase signup response:', { data, error });
+      
+      if (error || !data.user) {
+        console.error('❌ Supabase signup error:', error);
+        throw error;
+      }
 
+      console.log('✅ User created successfully:', data.user.id);
+      
       const supaUser = data.user;
       const newUser = {
         id: supaUser.id,
@@ -113,11 +123,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
       setUser(newUser);
 
+      console.log('👤 Creating patient record...');
       const { error: patientError } = await supabase
         .from("patients")
         .upsert({ id: newUser.id, full_name: name }, { onConflict: "id" });
 
-      if (!patientError) setPatientReady(true);
+      if (patientError) {
+        console.error('❌ Patient creation error:', patientError);
+      } else {
+        console.log('✅ Patient record created successfully');
+        setPatientReady(true);
+      }
+    } catch (signupError) {
+      console.error('💥 Signup process failed:', signupError);
+      throw signupError;
     } finally {
       setLoading(false);
     }
