@@ -61,10 +61,6 @@ const SignupPage = () => {
     try {
       await signup(data.name, data.email, data.password);
       console.log('🎉 Signup completed successfully, navigating to /home');
-      toast({
-        title: 'Account created',
-        description: 'Welcome to Serenity! Your account has been created.'
-      });
       navigate('/home');
     } catch (error) {
       console.error('🚨 Signup failed in component:', error);
