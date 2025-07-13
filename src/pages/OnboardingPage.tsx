@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const onboardingSchema = z.object({
   age: z.number().min(13, 'Must be at least 13 years old').max(120, 'Please enter a valid age'),
+  gender: z.string().min(1, 'Please select your gender'),
   occupation: z.string().min(1, 'Please enter your occupation'),
   sexual_preference: z.string().min(1, 'Please select your sexual preference'),
   self_diagnosed_issues: z.string().optional(),
@@ -43,6 +44,7 @@ const OnboardingPage = () => {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       age: undefined,
+      gender: '',
       occupation: '',
       sexual_preference: '',
       self_diagnosed_issues: '',
@@ -68,6 +70,7 @@ const OnboardingPage = () => {
         .upsert({
           user_id: user.id,
           age: data.age,
+          gender: data.gender,
           career: data.occupation,
           sexual_preferences: data.sexual_preference,
           self_diagnosed_issues: data.self_diagnosed_issues,
@@ -175,6 +178,26 @@ const OnboardingPage = () => {
                   {...register('age', { valueAsNumber: true })}
                 />
                 {errors.age && <p className="text-sm text-rose-300 mt-1">{errors.age.message}</p>}
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-2">
+                <Label className="text-[15px] text-[#616161] font-normal">
+                  Gender
+                </Label>
+                <Select onValueChange={(value) => setValue('gender', value)}>
+                  <SelectTrigger className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base">
+                    <SelectValue placeholder="Select your gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="non_binary">Non-binary</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.gender && <p className="text-sm text-rose-300 mt-1">{errors.gender.message}</p>}
               </div>
 
               {/* Occupation */}
