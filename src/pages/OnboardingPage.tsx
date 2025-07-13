@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,7 +36,15 @@ const OnboardingPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [therapistStyle, setTherapistStyle] = useState([50]); // 0 = agreeable, 100 = challenging
+
+  // Navigate to home when onboarding is completed
+  useEffect(() => {
+    if (onboardingCompleted) {
+      navigate('/home');
+    }
+  }, [onboardingCompleted, navigate]);
 
   const {
     register,
@@ -104,12 +112,7 @@ const OnboardingPage = () => {
       }
 
       console.log('✅ Onboarding completed successfully');
-      toast({
-        title: 'Welcome to Serenity!',
-        description: 'Your onboarding is complete. Let\'s begin your journey.',
-      });
-      
-      navigate('/home');
+      setOnboardingCompleted(true);
     } catch (error) {
       console.error('🚨 Onboarding failed:', error);
       toast({
