@@ -57,24 +57,42 @@ const OnboardingPage = () => {
     setLoading(true);
     
     try {
-      // Update the patients table with onboarding info
-      const { error } = await supabase
+      // Convert topics_on_mind string to array
+      const topicsArray = data.topics_on_mind 
+        ? data.topics_on_mind.split(',').map(topic => topic.trim()).filter(topic => topic.length > 0)
+        : [];
+
+      // Insert/update user profile data
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          age: data.age,
+          career: data.occupation,
+          sexual_preferences: data.sexual_preference,
+          self_diagnosed_issues: data.self_diagnosed_issues,
+          topics_on_mind: topicsArray,
+          agreeable_slider: therapistStyle[0],
+          agreeable_slider_updated_at: new Date().toISOString()
+        });
+
+      if (profileError) {
+        console.error('❌ Profile update error:', profileError);
+        throw profileError;
+      }
+
+      // Mark onboarding as completed in patients table
+      const { error: patientError } = await supabase
         .from('patients')
         .update({
-          age: data.age,
-          occupation: data.occupation,
-          sexual_preference: data.sexual_preference,
-          self_diagnosed_issues: data.self_diagnosed_issues,
-          topics_on_mind: data.topics_on_mind,
-          therapist_style_preference: therapistStyle[0], // 0-100 scale
           onboarding_completed: true,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
 
-      if (error) {
-        console.error('❌ Onboarding update error:', error);
-        throw error;
+      if (patientError) {
+        console.error('❌ Patient update error:', patientError);
+        throw patientError;
       }
 
       console.log('✅ Onboarding completed successfully');
