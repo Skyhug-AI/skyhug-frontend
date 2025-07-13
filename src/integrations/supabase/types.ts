@@ -242,6 +242,7 @@ export type Database = {
           full_name: string
           id: string
           metadata: Json | null
+          onboarding_completed: boolean | null
           updated_at: string
         }
         Insert: {
@@ -251,6 +252,7 @@ export type Database = {
           full_name: string
           id: string
           metadata?: Json | null
+          onboarding_completed?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -260,6 +262,7 @@ export type Database = {
           full_name?: string
           id?: string
           metadata?: Json | null
+          onboarding_completed?: boolean | null
           updated_at?: string
         }
         Relationships: [
