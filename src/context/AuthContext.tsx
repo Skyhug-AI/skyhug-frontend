@@ -11,6 +11,7 @@ export type AuthContextType = {
   user: User | null;
   loading: boolean;
   patientReady: boolean;
+  onboardingCompleted: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [patientReady, setPatientReady] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(
@@ -43,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           setUser(null);
           setPatientReady(false);
+          setOnboardingCompleted(false);
         }
         setLoading(false);
       }
@@ -57,12 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const checkPatientExists = async (userId: string) => {
     const { data, error } = await supabase
       .from("patients")
-      .select("id")
+      .select("id, onboarding_completed")
       .eq("id", userId)
       .single();
 
     if (!error && data) {
       setPatientReady(true);
+      setOnboardingCompleted(data.onboarding_completed || false);
     }
   };
 
@@ -146,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     await supabase.auth.signOut();
     setUser(null);
     setPatientReady(false);
+    setOnboardingCompleted(false);
   };
 
   const resetPassword = async (email: string) => {
@@ -178,6 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         user,
         loading,
         patientReady,
+        onboardingCompleted,
         login,
         signup,
         logout,
