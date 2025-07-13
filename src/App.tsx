@@ -35,10 +35,10 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <TherapistProvider>
-          <OnboardingRedirect>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <OnboardingRedirect>
               <Routes>
                 <Route path="/" element={<AuthRedirect />} />
                 <Route path="/login" element={<LoginPage />} />
@@ -128,8 +128,8 @@ const App = () => (
                 />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </OnboardingRedirect>
+            </OnboardingRedirect>
+          </BrowserRouter>
         </TherapistProvider>
       </AuthProvider>
     </TooltipProvider>
