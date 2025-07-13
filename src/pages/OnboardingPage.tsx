@@ -24,6 +24,7 @@ const onboardingSchema = z.object({
   sexual_preference: z.string().min(1, 'Please select your sexual preference'),
   self_diagnosed_issues: z.string().optional(),
   topics_on_mind: z.string().optional(),
+  additional_info: z.string().optional(),
 });
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
@@ -49,6 +50,7 @@ const OnboardingPage = () => {
       sexual_preference: '',
       self_diagnosed_issues: '',
       topics_on_mind: '',
+      additional_info: '',
     }
   });
 
@@ -75,6 +77,7 @@ const OnboardingPage = () => {
           sexual_preferences: data.sexual_preference,
           self_diagnosed_issues: data.self_diagnosed_issues,
           topics_on_mind: topicsArray,
+          additional_info: data.additional_info,
           agreeable_slider: therapistStyle[0],
           agreeable_slider_updated_at: new Date().toISOString()
         });
@@ -260,6 +263,19 @@ const OnboardingPage = () => {
                   placeholder="Topics, concerns, or goals you'd like to explore..."
                   className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base min-h-[80px]"
                   {...register('topics_on_mind')}
+                />
+              </div>
+
+              {/* Additional Info */}
+              <div className="space-y-2">
+                <Label htmlFor="additional_info" className="text-[15px] text-[#616161] font-normal">
+                  Tell me more about you <span className="text-[#9b9b9b]">(Optional)</span>
+                </Label>
+                <Textarea 
+                  id="additional_info"
+                  placeholder="Anything else you'd like to share about yourself..."
+                  className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base min-h-[80px]"
+                  {...register('additional_info')}
                 />
               </div>
 
