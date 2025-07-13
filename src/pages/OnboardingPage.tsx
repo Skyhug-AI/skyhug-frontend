@@ -18,7 +18,9 @@ import SunriseGradientBackground from '@/components/SunriseGradientBackground';
 import { supabase } from '@/integrations/supabase/client';
 
 const onboardingSchema = z.object({
-  age: z.number().min(13, 'Must be at least 13 years old').max(120, 'Please enter a valid age'),
+  age: z.coerce.number({
+    invalid_type_error: 'Please enter your age'
+  }).min(13, 'Must be at least 13 years old').max(120, 'Please enter a valid age'),
   gender: z.string().min(1, 'Please select your gender'),
   occupation: z.string().min(1, 'Please enter your occupation'),
   sexual_preference: z.string().min(1, 'Please select your sexual preference'),
