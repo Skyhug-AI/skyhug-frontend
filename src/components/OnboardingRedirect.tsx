@@ -14,13 +14,18 @@ const OnboardingRedirect = ({ children }: { children: React.ReactNode }) => {
     // Don't redirect if not authenticated
     if (!user || !patientReady) return;
 
-    // Don't redirect if already on onboarding page
-    if (location.pathname === '/onboarding') return;
+    // If onboarding is completed and user is on onboarding page, redirect to home
+    if (onboardingCompleted && location.pathname === '/onboarding') {
+      console.log('🔄 Redirecting to home - onboarding completed');
+      navigate('/home');
+      return;
+    }
 
-    // Redirect to onboarding if not completed
-    if (!onboardingCompleted) {
+    // If onboarding is not completed and user is not on onboarding page, redirect to onboarding
+    if (!onboardingCompleted && location.pathname !== '/onboarding') {
       console.log('🔄 Redirecting to onboarding - not completed');
       navigate('/onboarding');
+      return;
     }
   }, [user, loading, patientReady, onboardingCompleted, navigate, location.pathname]);
 
