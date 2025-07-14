@@ -8,12 +8,14 @@ interface CloudBackgroundProps {
 const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => {
   return (
     <div className={`fixed inset-0 overflow-hidden z-0 ${className}`}>
-      {/* Softer gradient background - lavender to light blue (no white at the end) */}
-      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF] via-[#F7F8FD] to-[#EEF4FD]"></div>
+      {/* Enhanced gradient background with more vibrant colors */}
+      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF] via-[#F0F4FE] to-[#E8F2FF]"></div>
       
-      {/* Soft accent gradients */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-[#FDE1D3] to-transparent opacity-30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-[#E5DEFF] to-transparent opacity-30 rounded-full blur-3xl"></div>
+      {/* More colorful accent gradients */}
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-[#FFE4E1] via-[#FFF0E6] to-transparent opacity-40 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-[#E5DEFF] via-[#F0E6FF] to-transparent opacity-40 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/4 w-1/4 h-1/4 bg-gradient-to-br from-[#E6F7FF] via-[#F0FAFF] to-transparent opacity-35 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/3 w-1/4 h-1/4 bg-gradient-to-tr from-[#FFF5E6] via-[#FFFAF0] to-transparent opacity-35 rounded-full blur-3xl"></div>
       
       {/* Subtle noise texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none">
