@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceCallUIProps {
   messages: Array<{
-    id: string;             
+    id: string;
     text: string;
     isUser: boolean;
     tts_path?: string | null;
@@ -55,19 +55,19 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
 
   useEffect(() => {
     scrollToBottom();
-    
+
     // Set up reminder for inactivity
     if (messages.length > 0 && !isProcessing) {
       if (reminderTimeoutRef.current) {
         window.clearTimeout(reminderTimeoutRef.current);
       }
-      
+
       reminderTimeoutRef.current = window.setTimeout(() => {
         setShowReminder(true);
         setTimeout(() => setShowReminder(false), 5000); // Hide after 5 seconds
       }, 10000); // Show after 10 seconds of inactivity
     }
-    
+
     return () => {
       if (reminderTimeoutRef.current) {
         window.clearTimeout(reminderTimeoutRef.current);
@@ -83,7 +83,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
     onEndCall();
     navigate('/schedule');
   };
-  
+
 
 // const handlePlayAudio = (messageId?: string | null) => {
 //   if (!messageId || streamedMap[messageId]) return;
@@ -110,11 +110,11 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
 //   }
 
 //   // 1) Create a streaming <audio>
-//   const streamUrl = `http://localhost:8000/tts-stream/${messageId}`; 
+//   const streamUrl = `http://localhost:8000/tts-stream/${messageId}`;
 //   // ↪️ adjust host/origin for production
 
 //   const audio = new Audio(streamUrl);
-//   audio.crossOrigin = "anonymous"; 
+//   audio.crossOrigin = "anonymous";
 //   audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
 //   audio.preload = 'auto';  // start buffering immediately
 //   audioRef.current = audio;
@@ -160,9 +160,9 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
 //         })
 //         .catch(e => console.error("Fallback fetch+blob error:", e));
 //     });
-  
+
 // };
-  
+
   const handlePlayAudio = (messageId?: string | null) => {
     if (messageId) playMessageAudio(messageId);
   };
@@ -186,11 +186,11 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   return (
     <div className="min-h-screen flex flex-col relative">
       <CloudBackground />
-      
+
       <div className="relative z-10 py-8 px-4 md:px-8 border-b border-serenity-100">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-serenity-600 to-serenity-400 bg-clip-text text-transparent">
-            You're in session with Serenity 🌸
+            You're in session with Sky 🌸
           </h1>
           <p className="text-serenity-700 mt-2 max-w-md mx-auto">
             Take a deep breath, and speak when you're ready.
@@ -348,29 +348,29 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* Ambient sounds menu (just visual, not functional in this implementation) */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-serenity-100 p-2 hidden">
         <div className="flex space-x-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className={`rounded-full ${ambientSound === 'rain' ? 'bg-serenity-100' : ''}`}
             onClick={() => handleAmbientSound('rain')}
           >
             Rain
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className={`rounded-full ${ambientSound === 'ocean' ? 'bg-serenity-100' : ''}`}
             onClick={() => handleAmbientSound('ocean')}
           >
             Ocean
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className={`rounded-full ${ambientSound === 'chimes' ? 'bg-serenity-100' : ''}`}
             onClick={() => handleAmbientSound('chimes')}
           >
