@@ -52,17 +52,21 @@ const SignupPage = () => {
   });
 
   const onSubmit = async (data: SignupFormValues) => {
+    console.log('🎯 Form submitted with data:', { 
+      name: data.name, 
+      email: data.email, 
+      passwordLength: data.password.length 
+    });
+    
     try {
       await signup(data.name, data.email, data.password);
-      toast({
-        title: 'Account created',
-        description: 'Welcome to Serenity! Your account has been created.'
-      });
+      console.log('🎉 Signup completed successfully, navigating to /home');
       navigate('/home');
     } catch (error) {
+      console.error('🚨 Signup failed in component:', error);
       toast({
         title: 'Signup failed',
-        description: 'Unable to create your account. Please try again.',
+        description: `Unable to create your account: ${error?.message || 'Please try again.'}`,
         variant: 'destructive'
       });
     }

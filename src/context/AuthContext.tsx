@@ -11,11 +11,13 @@ export type AuthContextType = {
   user: User | null;
   loading: boolean;
   patientReady: boolean;
+  onboardingCompleted: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  refreshOnboardingStatus: () => Promise<void>;
   isAuthenticated: boolean;
 };
 
@@ -27,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [patientReady, setPatientReady] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(
@@ -43,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           setUser(null);
           setPatientReady(false);
+          setOnboardingCompleted(false);
         }
         setLoading(false);
       }
@@ -57,12 +61,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const checkPatientExists = async (userId: string) => {
     const { data, error } = await supabase
       .from("patients")
-      .select("id")
+      .select("id, onboarding_completed")
       .eq("id", userId)
       .single();
 
     if (!error && data) {
       setPatientReady(true);
+      setOnboardingCompleted(data.onboarding_completed || false);
     }
   };
 
@@ -97,14 +102,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signup = async (name: string, email: string, password: string) => {
+    console.log('🚀 Starting signup process for:', email);
     setLoading(true);
     try {
+      console.log('📧 Calling Supabase auth.signUp...');
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password.trim(),
       });
-      if (error || !data.user) throw error;
+      
+      console.log('📊 Supabase signup response:', { data, error });
+      
+      if (error || !data.user) {
+        console.error('❌ Supabase signup error:', error);
+        throw error;
+      }
 
+      console.log('✅ User created successfully:', data.user.id);
+      
       const supaUser = data.user;
       const newUser = {
         id: supaUser.id,
@@ -113,11 +128,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
       setUser(newUser);
 
+      console.log('👤 Creating patient record...');
       const { error: patientError } = await supabase
         .from("patients")
         .upsert({ id: newUser.id, full_name: name }, { onConflict: "id" });
 
-      if (!patientError) setPatientReady(true);
+      if (patientError) {
+        console.error('❌ Patient creation error:', patientError);
+      } else {
+        console.log('✅ Patient record created successfully');
+        setPatientReady(true);
+      }
+    } catch (signupError) {
+      console.error('💥 Signup process failed:', signupError);
+      throw signupError;
     } finally {
       setLoading(false);
     }
@@ -127,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     await supabase.auth.signOut();
     setUser(null);
     setPatientReady(false);
+    setOnboardingCompleted(false);
   };
 
   const resetPassword = async (email: string) => {
@@ -153,17 +178,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const refreshOnboardingStatus = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("patients")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .single();
+
+    if (!error && data) {
+      setOnboardingCompleted(data.onboarding_completed || false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
         patientReady,
+        onboardingCompleted,
         login,
         signup,
         logout,
         resetPassword,
         updatePassword,
+        refreshOnboardingStatus,
         isAuthenticated: !!user,
       }}
     >

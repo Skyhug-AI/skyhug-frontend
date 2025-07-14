@@ -1,23 +1,36 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Headphones, PlusCircle, Sparkles } from 'lucide-react';
+
 const StartSessionCard = () => {
   const navigate = useNavigate();
-  return <Card className="glass-panel px-6 py-5 space-y-6">
+  
+  return (
+    <Card className="glass-panel px-6 py-5 space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-xl font-semibold text-gray-900">Ready for a Session?</h2>
-        <p className="text-sm text-sky-600">Let's talk it out with Sky.</p>
+        <p className="text-sm text-sky-600">Let's talk it out with a therapist.</p>
       </div>
       
       <div className="flex flex-col gap-y-4">
-        <Button onClick={() => navigate('/session')} size="lg" className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-400 hover:to-blue-300 text-white py-6 shadow-md hover:shadow-lg transition-all duration-300 font-medium text-base rounded">
+        <Button 
+          onClick={() => navigate('/session')} 
+          size="lg" 
+          className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-400 hover:to-blue-300 text-white py-6 shadow-md hover:shadow-lg transition-all duration-300 font-medium text-base rounded"
+        >
           <Headphones className="mr-2 h-4 w-4" />
-          Begin Session with Sky
+          Begin Session
         </Button>
         
-        <Button variant="outline" size="sm" onClick={() => navigate('/schedule')} className="w-full rounded-full border-gray-300 text-gray-800 hover:bg-gray-50">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => navigate('/schedule')} 
+          className="w-full rounded-full border-gray-300 text-gray-800 hover:bg-gray-50"
+        >
           <PlusCircle className="mr-2 h-4 w-4" />
           Schedule Session
         </Button>
@@ -27,6 +40,8 @@ const StartSessionCard = () => {
         <Sparkles className="h-3.5 w-3.5 text-sky-500" />
         <span>+50 Calm Points today</span>
       </div>
-    </Card>;
+    </Card>
+  );
 };
+
 export default StartSessionCard;

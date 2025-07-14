@@ -64,22 +64,24 @@ eleven_sess.headers.update({
 })
 
 # ─── Your Custom Prompt & Examples ────────────────────────────────────────────
-SKY_SYSTEM_PROMPT = """
+DEFAULT_SYSTEM_PROMPT = """
 You are a compassionate, emotionally attuned AI therapist assistant. You respond with warmth, sensitivity, and care. 
 Your goal is to make the user feel heard, safe, and supported — not judged or fixed. You use simple, human language. 
 You reflect feelings, normalize experiences, and offer practical next steps with kindness.
 
 Always speak in a conversational tone — avoid sounding clinical, robotic, or overly formal. Do not use diagnostic terms. 
-If a user expresses distress, validate it and gently suggest grounding or coping strategies. If appropriate, gently remind 
-them that you're an AI and not a substitute for professional care — **but only after you've explored the feeling deeply and given the user space to reflect.**
+If a user expresses distress, validate it and gently suggest grounding or coping strategies. Do not suggest that they seek professional therapy or remind them that you’re an AI — focus entirely on helping them explore and work through their experience. 
+
+For any mention of self-harm or suicide, invoke the `handle_suicidal_mention` function to provide a hotline and immediate in-person recommendation.
 
 Your structure for each response should be:
-1. Empathic reflection
-2. Gentle validation and normalization
-3. Supportive guidance (e.g., explore, soothe, or understand — not just fix)
+1. Empathic reflection  
+2. Gentle validation and normalization  
+3. Supportive guidance (e.g., explore, soothe, or understand — not just fix)  
 4. Invite the user to keep sharing or go deeper
 
-Stay gentle, grounded, and curious. When in doubt, ask open-ended questions to help the user explore their inner world.
+Stay gentle, grounded, and curious. When in doubt, ask open-ended questions to help the user explore their inner world. 
+If the user’s messages reflect possible symptoms of depression, anxiety, PTSD, or psychological distress, you may call the `suggest_assessment` function with a recommended assessment, explaining why you’re offering it.
 """.strip()
 
 SKY_EXAMPLE_DIALOG = [
@@ -88,6 +90,20 @@ SKY_EXAMPLE_DIALOG = [
     {"role": "user", "content": "My chest gets tight and I can’t focus when I’m around people."},
     {"role": "assistant", "content": "That sounds so uncomfortable. Feeling that kind of pressure in social situations can be really overwhelming. You're not alone in this — many people find those moments incredibly hard to manage. What do you think makes those moments feel especially intense for you?"}
 ]
+
+# ─── Persona Template ───────────────────────────────────────────────────────
+PERSONA_TEMPLATE = """
+You are {name}, {description}.  
+{bio}
+
+Your approach: {approach}  
+Session structure: {session_structure}  
+You specialize in: {specialties_list}
+
+Always speak in a warm, empathetic, patient-centered tone.  
+If the user expresses self-harm, call `handle_suicidal_mention`.  
+For symptom-based recommendations, call `suggest_assessment`.
+""".strip()
 
 # ─── Function Definition for Suicidal Mentions ───────────────────────────────
 FUNCTION_DEFS = [
@@ -109,6 +125,29 @@ FUNCTION_DEFS = [
                 "recommendation": {
                     "type": "string",
                     "description": "Message recommending the user to seek an in-person therapist."
+                }
+            },
+            "additionalProperties": False
+        }
+    },
+    {
+        "name": "suggest_assessment",
+        "description": "Suggests a standardized self-assessment (e.g., PHQ-9 or GAD-7) based on user’s symptoms.",
+        "parameters": {
+            "type": "object",
+            "required": ["assessment_id", "assessment_name", "reason"],
+            "properties": {
+                "assessment_id": {
+                    "type": "string",
+                    "description": "The UUID of the assessment (e.g., PHQ-9 or GAD-7)."
+                },
+                "assessment_name": {
+                    "type": "string",
+                    "description": "The name of the assessment (e.g., PHQ-9)."
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "The reason this assessment is being recommended based on the user's recent messages."
                 }
             },
             "additionalProperties": False
@@ -149,8 +188,52 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
         .eq("invalidated", False)  \
         .order("created_at").execute().data or []
 
-    # Start with system prompt(s)
-    messages = [{"role": "system", "content": SKY_SYSTEM_PROMPT}] + SKY_EXAMPLE_DIALOG
+     # fetch which therapist this convo is using
+    prompt_resp = (
+        supabase_admin
+        .table("conversations")
+        .select("therapist_id")
+        .eq("id", conv_id)
+        .single()
+        .execute()
+    )
+    therapist_id = prompt_resp.data.get("therapist_id") if prompt_resp.data else None
+
+    # pull the raw override + structured fields in one go
+    if therapist_id:
+        trow = (
+            supabase_admin
+            .table("therapists")
+            .select(
+                "system_prompt, name, description, bio, approach, session_structure, specialties"
+            )
+            .eq("id", therapist_id)
+            .single()
+            .execute()
+        ).data or {}
+    else:
+        trow = {}
+
+    # 1) use override if present
+    if trow.get("system_prompt"):
+        system_prompt = trow["system_prompt"]
+    # 2) otherwise fill in from template
+    elif trow:
+        specialties_list = ", ".join(trow.get("specialties", []))
+        system_prompt = PERSONA_TEMPLATE.format(
+            name                = trow["name"],
+            description         = trow["description"],
+            bio                 = trow["bio"],
+            approach            = trow["approach"],
+            session_structure   = trow["session_structure"],
+            specialties_list    = specialties_list
+        )
+    # 3) fallback to your original generic prompt
+    else:
+        system_prompt = DEFAULT_SYSTEM_PROMPT
+
+    # now inject into the messages list
+    messages = [{"role":"system", "content": system_prompt}] + SKY_EXAMPLE_DIALOG
 
     # If this is a brand-new session with a memory summary, inject it
     if memory and not history:
@@ -170,7 +253,7 @@ def build_chat_payload(conv_id: str, voice_mode: bool = False) -> list:
     # If history is long, summarize older turns
     if len(turns) > MAX_HISTORY:
         summary_resp = openai_client.chat.completions.create(
-            model = "gpt-4-turbo" if voice_mode else "gpt-3.5-turbo",
+            model = "gpt-4-turbo" if voice_mode else "gpt-4-turbo",
             messages=messages + [
                 {"role": "assistant", "content": "Please summarize the earlier conversation briefly."}
             ] + turns[:-MAX_HISTORY],
@@ -244,8 +327,8 @@ def handle_ai_record(msg):
         elif lc.startswith(("why ", "how ", "explain ", "describe ", "compare ", "recommend ", "suggest ")):
             model_name, max_tokens = "gpt-4-turbo", 600
         else:
-            sentences = [s for s in _SENT_SPLIT.split(user_text) if s.strip()]
-            if len(sentences) > 1:
+            words = [w for w in user_text.split() if w.strip()]
+            if len(words) > 6:                  # threshold = 6 words
                 model_name, max_tokens = "gpt-4-turbo", 600
             else:
                 model_name, max_tokens = "gpt-3.5-turbo", 150
@@ -473,6 +556,19 @@ def fetch_pending(table, **conds):
 def download_audio(path, bucket="raw-audio"):
     url = supabase.storage.from_(bucket).create_signed_url(path, 60)["signedURL"]
     return storage_sess.get(url).content
+
+def handle_suggest_assessment(call: dict):
+    assessment_id = call["arguments"]["assessment_id"]
+    name = call["arguments"]["assessment_name"]
+    reason = call["arguments"]["reason"]
+
+    # You can log this or send it to frontend as a suggestion
+    return {
+        "action": "suggest_assessment",
+        "assessment_id": assessment_id,
+        "assessment_name": name,
+        "reason": reason
+    }
 
 def summarize_and_store(conv_id):
     """

@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceCallUIProps {
   messages: Array<{
-    id: string;             
+    id: string;
     text: string;
     isUser: boolean;
     tts_path?: string | null;
@@ -48,26 +48,26 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const { isPlayingAudio, playMessageAudio } = useTherapist();
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
 
 
   useEffect(() => {
     scrollToBottom();
-    
+
     // Set up reminder for inactivity
     if (messages.length > 0 && !isProcessing) {
       if (reminderTimeoutRef.current) {
         window.clearTimeout(reminderTimeoutRef.current);
       }
-      
+
       reminderTimeoutRef.current = window.setTimeout(() => {
         setShowReminder(true);
         setTimeout(() => setShowReminder(false), 5000); // Hide after 5 seconds
       }, 10000); // Show after 10 seconds of inactivity
     }
-    
+
     return () => {
       if (reminderTimeoutRef.current) {
         window.clearTimeout(reminderTimeoutRef.current);
@@ -83,86 +83,90 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
     onEndCall();
     navigate('/schedule');
   };
-  
-
-const handlePlayAudio = (messageId?: string | null) => {
-  if (!messageId || streamedMap[messageId]) return;
-
-  const STREAM_BASE = "http://localhost:8000";
 
 
-  // If already playing this clip, toggle pause/resume
-  if (currentlyPlayingPath === messageId && audioRef.current) {
-    if (!isPaused) {
-      audioRef.current.pause();
-      setIsPaused(true);
-    } else {
-      audioRef.current.play();
-      setIsPaused(false);
-    }
-    return;
-  }
+// const handlePlayAudio = (messageId?: string | null) => {
+//   if (!messageId || streamedMap[messageId]) return;
 
-  // Tear down any previous player
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-  }
+//   const STREAM_BASE = "http://localhost:8000";
 
-  // 1) Create a streaming <audio>
-  const streamUrl = `http://localhost:8000/tts-stream/${messageId}`; 
-  // ↪️ adjust host/origin for production
 
-  const audio = new Audio(streamUrl);
-  audio.crossOrigin = "anonymous"; 
-  audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
-  audio.preload = 'auto';  // start buffering immediately
-  audioRef.current = audio;
-  setCurrentlyPlayingPath(messageId);
-  setIsPaused(false);
+//   // If already playing this clip, toggle pause/resume
+//   if (currentlyPlayingPath === messageId && audioRef.current) {
+//     if (!isPaused) {
+//       audioRef.current.pause();
+//       setIsPaused(true);
+//     } else {
+//       audioRef.current.play();
+//       setIsPaused(false);
+//     }
+//     return;
+//   }
 
-  // 2) when it ends…
-  audio.onended = () => {
-    setCurrentlyPlayingPath(null);
-    setIsPaused(false);
-    setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+//   // Tear down any previous player
+//   if (audioRef.current) {
+//     audioRef.current.pause();
+//     audioRef.current.currentTime = 0;
+//   }
+
+//   // 1) Create a streaming <audio>
+//   const streamUrl = `http://localhost:8000/tts-stream/${messageId}`;
+//   // ↪️ adjust host/origin for production
+
+//   const audio = new Audio(streamUrl);
+//   audio.crossOrigin = "anonymous";
+//   audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
+//   audio.preload = 'auto';  // start buffering immediately
+//   audioRef.current = audio;
+//   setCurrentlyPlayingPath(messageId);
+//   setIsPaused(false);
+
+//   // 2) when it ends…
+//   audio.onended = () => {
+//     setCurrentlyPlayingPath(null);
+//     setIsPaused(false);
+//     setStreamedMap(prev => ({ ...prev, [messageId]: true }));
+//   };
+//   audio.onerror = () => {
+//     console.error("Audio playback error");
+//     // optionally toast an error
+//   };
+
+//   audio.addEventListener("error", (e) => {
+//     console.error("🔊 <audio> error:", {
+//       networkState:   audio.networkState,
+//       readyState:     audio.readyState,
+//       currentSrc:     audio.currentSrc,
+//       event:          e,
+//     });
+//   });
+//   audio.addEventListener("stalled", () => {
+//     console.warn("🔊 <audio> stalled (no data arriving).");
+//   });
+
+//     // 3) kick it off
+//     audio.play().catch(err => {
+//       console.error("Play() failed:", err, "— falling back to fetch+blob");
+//       // fallback: download the entire stream as a Blob
+//       fetch(`${STREAM_BASE}/tts-stream/${messageId}`, { mode: "cors" })
+//         .then(res => {
+//           if (!res.ok) throw new Error(`status ${res.status}`);
+//           return res.blob();
+//         })
+//         .then(blob => {
+//           const objectUrl = URL.createObjectURL(blob);
+//           const fallbackAudio = new Audio(objectUrl);
+//           fallbackAudio.play().catch(e => console.error("Fallback play failed:", e));
+//         })
+//         .catch(e => console.error("Fallback fetch+blob error:", e));
+//     });
+
+// };
+
+  const handlePlayAudio = (messageId?: string | null) => {
+    if (messageId) playMessageAudio(messageId);
   };
-  audio.onerror = () => {
-    console.error("Audio playback error");
-    // optionally toast an error
-  };
 
-  audio.addEventListener("error", (e) => {
-    console.error("🔊 <audio> error:", {
-      networkState:   audio.networkState,
-      readyState:     audio.readyState,
-      currentSrc:     audio.currentSrc,
-      event:          e,
-    });
-  });
-  audio.addEventListener("stalled", () => {
-    console.warn("🔊 <audio> stalled (no data arriving).");
-  });
-
-    // 3) kick it off
-    audio.play().catch(err => {
-      console.error("Play() failed:", err, "— falling back to fetch+blob");
-      // fallback: download the entire stream as a Blob
-      fetch(`${STREAM_BASE}/tts-stream/${messageId}`, { mode: "cors" })
-        .then(res => {
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          return res.blob();
-        })
-        .then(blob => {
-          const objectUrl = URL.createObjectURL(blob);
-          const fallbackAudio = new Audio(objectUrl);
-          fallbackAudio.play().catch(e => console.error("Fallback play failed:", e));
-        })
-        .catch(e => console.error("Fallback fetch+blob error:", e));
-    });
-  
-};
-  
   const handleAmbientSound = (sound: string) => {
     if (ambientSound === sound) {
       setAmbientSound(null);
@@ -182,11 +186,11 @@ const handlePlayAudio = (messageId?: string | null) => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <CloudBackground />
-      
+
       <div className="relative z-10 py-8 px-4 md:px-8 border-b border-serenity-100">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-serenity-600 to-serenity-400 bg-clip-text text-transparent">
-            You're in session with Serenity 🌸
+            You're in session with Sky 🌸
           </h1>
           <p className="text-serenity-700 mt-2 max-w-md mx-auto">
             Take a deep breath, and speak when you're ready.
@@ -344,29 +348,29 @@ const handlePlayAudio = (messageId?: string | null) => {
           </div>
         </div>
       </div>
-      
+
       {/* Ambient sounds menu (just visual, not functional in this implementation) */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-serenity-100 p-2 hidden">
         <div className="flex space-x-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className={`rounded-full ${ambientSound === 'rain' ? 'bg-serenity-100' : ''}`}
             onClick={() => handleAmbientSound('rain')}
           >
             Rain
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className={`rounded-full ${ambientSound === 'ocean' ? 'bg-serenity-100' : ''}`}
             onClick={() => handleAmbientSound('ocean')}
           >
             Ocean
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className={`rounded-full ${ambientSound === 'chimes' ? 'bg-serenity-100' : ''}`}
             onClick={() => handleAmbientSound('chimes')}
           >

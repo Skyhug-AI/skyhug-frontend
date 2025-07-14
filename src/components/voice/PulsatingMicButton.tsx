@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { useVoiceDetection } from '@/hooks/useVoiceDetection';
+import React, { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { useVoiceDetection } from "@/hooks/useVoiceDetection";
 
 interface PulsatingMicButtonProps {
   isRecording: boolean;
@@ -9,28 +8,36 @@ interface PulsatingMicButtonProps {
   disabled?: boolean;
 }
 
-const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButtonProps) => {
+const PulsatingMicButton = ({
+  isRecording,
+  onClick,
+  disabled,
+}: PulsatingMicButtonProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [volumeLevel, setVolumeLevel] = useState(0);
-  const [cleanupFunction, setCleanupFunction] = useState<(() => void) | null>(null);
+  const [cleanupFunction, setCleanupFunction] = useState<(() => void) | null>(
+    null
+  );
 
   useEffect(() => {
     let isMounted = true;
-    
+
     if (isRecording) {
-      const { initVoiceDetection } = useVoiceDetection((speaking, volume = 0) => {
-        setIsSpeaking(speaking);
-        setVolumeLevel(volume);
-      });
-      
+      const { initVoiceDetection } = useVoiceDetection(
+        (speaking, volume = 0) => {
+          setIsSpeaking(speaking);
+          setVolumeLevel(volume);
+        }
+      );
+
       initVoiceDetection()
-        .then(cleanup => {
+        .then((cleanup) => {
           if (isMounted && cleanup) {
             setCleanupFunction(() => cleanup);
           }
         })
-        .catch(error => {
-          console.error('Error initializing voice detection:', error);
+        .catch((error) => {
+          console.error("Error initializing voice detection:", error);
         });
     } else {
       setIsSpeaking(false);
@@ -46,8 +53,8 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
   }, [isRecording]);
 
   const getScaleStyle = (baseScale: number) => {
-    const volumeBoost = volumeLevel * 0.2;
-    const maxScale = baseScale + 0.1;
+    const volumeBoost = volumeLevel * 0.3;
+    const maxScale = baseScale + 0.2;
     const calculatedScale = baseScale + volumeBoost;
     return `${Math.min(calculatedScale, maxScale)}`;
   };
@@ -58,33 +65,74 @@ const PulsatingMicButton = ({ isRecording, onClick, disabled }: PulsatingMicButt
       disabled={disabled}
       className={cn(
         "relative w-16 h-16 rounded-full overflow-visible transition-all duration-500",
-        "bg-orb-gradient shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
-        [
-          "after:content-[''] after:absolute after:inset-[-4px]",
-          "after:bg-orb-gradient after:opacity-30 after:rounded-full",
-          `after:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.4s_ease-out_infinite] after:scale-[${isRecording && isSpeaking ? getScaleStyle(1.05) : '1.05'}]`,
-          "before:content-[''] before:absolute before:inset-[-7px]",
-          isRecording && isSpeaking ? "before:bg-sky-gradient" : "before:bg-orb-gradient",
-          "before:opacity-20 before:rounded-full",
-          `before:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_2.8s_ease-out_infinite] before:scale-[${isRecording && isSpeaking ? getScaleStyle(1.09) : '1.09'}]`,
-          "[&>div:nth-child(1)]:content-[''] [&>div:nth-child(1)]:absolute [&>div:nth-child(1)]:inset-[-10px]",
-          isRecording && isSpeaking ? "[&>div:nth-child(1)]:bg-sky-gradient" : "[&>div:nth-child(1)]:bg-orb-gradient",
-          "[&>div:nth-child(1)]:opacity-15 [&>div:nth-child(1)]:rounded-full",
-          `[&>div:nth-child(1)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_3.2s_ease-out_infinite] [&>div:nth-child(1)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.13) : '1.13'}]`,
-          "[&>div:nth-child(2)]:content-[''] [&>div:nth-child(2)]:absolute [&>div:nth-child(2)]:inset-[-13px]",
-          isRecording && isSpeaking ? "[&>div:nth-child(2)]:bg-sky-gradient" : "[&>div:nth-child(2)]:bg-orb-gradient",
-          "[&>div:nth-child(2)]:opacity-10 [&>div:nth-child(2)]:rounded-full",
-          `[&>div:nth-child(2)]:animate-[${isRecording && isSpeaking ? 'morphing-pulse' : 'pulse-ring'}_3.6s_ease-out_infinite] [&>div:nth-child(2)]:scale-[${isRecording && isSpeaking ? getScaleStyle(1.17) : '1.17'}]`,
-          "shadow-lg shadow-orb-periwinkle/50",
-          isRecording && isSpeaking ? "scale-105" : "scale-100",
-          "transition-transform duration-300"
-        ],
+        isRecording && isSpeaking ? "scale-110" : "scale-100",
+        "shadow-[0_0_20px_rgba(255,220,100,0.7)]",
+        "transition-transform duration-300",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       aria-label={isRecording ? "Stop recording" : "Start recording"}
     >
-      <div />
-      <div />
+      {/* Core orb with gradient */}
+      <div
+        className={cn(
+          "absolute inset-0 rounded-full overflow-hidden",
+          "bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-200",
+          isRecording ? "animate-gradient-flow bg-gradient-size" : ""
+        )}
+        style={{
+          transform:
+            isRecording && isSpeaking
+              ? `scale(${1 + volumeLevel * 0.15})`
+              : "scale(1)",
+        }}
+      />
+      <div
+        className={cn(
+          "absolute inset-[-8px] rounded-full",
+          isRecording && isSpeaking
+            ? "bg-gradient-to-r from-yellow-400/20 to-orange-300/20"
+            : "bg-yellow-300/20"
+        )}
+        style={{
+          transform:
+            isRecording && isSpeaking
+              ? `scale(${1.1 + volumeLevel * 0.2})`
+              : "scale(1.05)",
+        }}
+      />
+
+      <div
+        className={cn(
+          "absolute inset-[-16px] rounded-full",
+          isRecording && isSpeaking
+            ? "bg-gradient-to-r from-yellow-400/10 to-orange-300/10"
+            : "bg-yellow-300/10"
+        )}
+        style={{
+          transform:
+            isRecording && isSpeaking
+              ? `scale(${1.15 + volumeLevel * 0.25})`
+              : "scale(1.1)",
+        }}
+      />
+
+      <div
+        className={cn(
+          "absolute inset-[-24px] rounded-full",
+          isRecording && isSpeaking
+            ? "bg-gradient-to-r from-yellow-400/5 to-orange-300/5"
+            : "bg-yellow-300/5",
+          isRecording && isSpeaking
+            ? "animate-[pulse-slow_4s_ease-in-out_infinite_1s]"
+            : ""
+        )}
+        style={{
+          transform:
+            isRecording && isSpeaking
+              ? `scale(${1.2 + volumeLevel * 0.3})`
+              : "scale(1.15)",
+        }}
+      />
     </button>
   );
 };

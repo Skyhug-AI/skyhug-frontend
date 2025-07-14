@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import {
   Card,
   CardContent,
@@ -25,19 +25,64 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Switch } from '@/components/ui/switch';
-import { User, Trash2, Save, Lock } from 'lucide-react';
+import { User, Trash2, Save, Lock, UserCheck } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { useNavigate } from 'react-router-dom';
+import { useTherapist } from '@/context/TherapistContext';
 
 const SettingsForm = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { currentTherapist } = useTherapist();
   
   // Form state
   const [name, setName] = useState(user?.name || '');
-  const [preferredTherapistName, setPreferredTherapistName] = useState('Dr. Sky');
-  const [genderPreference, setGenderPreference] = useState('neutral');
-  const [voicePreference, setVoicePreference] = useState('soft-female');
+  const [userDescription, setUserDescription] = useState('');
   const [localStorageOnly, setLocalStorageOnly] = useState(true);
+  
+  // Current therapist info
+  const therapists = {
+    'olivia': {
+      name: 'Olivia',
+      specialty: 'Anxiety, Depression',
+      avatar: '/therapists/olivia.svg',
+      bgColor: 'bg-purple-100'
+    },
+    'logan': {
+      name: 'Logan',
+      specialty: 'Productivity, Stress',
+      avatar: '/therapists/logan.svg',
+      bgColor: 'bg-blue-100'
+    },
+    'sarah': {
+      name: 'Sarah',
+      specialty: 'Grief, Relationships',
+      avatar: '/therapists/sarah.svg',
+      bgColor: 'bg-green-100'
+    },
+    'james': {
+      name: 'James',
+      specialty: 'Career, Self-esteem',
+      avatar: '/therapists/james.svg',
+      bgColor: 'bg-orange-100'
+    },
+    'maya': {
+      name: 'Maya',
+      specialty: 'Trauma, Mindfulness',
+      avatar: '/therapists/maya.svg',
+      bgColor: 'bg-yellow-100'
+    },
+    'dr-sky': {
+      name: 'Dr. Sky',
+      specialty: 'General Wellness',
+      avatar: '/sky-avatar.png',
+      bgColor: 'bg-blue-50'
+    },
+  };
+  
+  const selectedTherapist = currentTherapist ? therapists[currentTherapist] || therapists['olivia'] : therapists['olivia'];
   
   const handleSaveSettings = () => {
     // In a real app, this would save to a backend
@@ -60,6 +105,10 @@ const SettingsForm = () => {
     setTimeout(() => {
       logout();
     }, 1500);
+  };
+  
+  const handleChooseNewTherapist = () => {
+    navigate('/therapist-selection');
   };
   
   return (
@@ -99,62 +148,50 @@ const SettingsForm = () => {
               Your email cannot be changed.
             </p>
           </div>
+
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="user-description">About You</Label>
+            <Textarea
+              id="user-description"
+              value={userDescription}
+              onChange={(e) => setUserDescription(e.target.value)}
+              placeholder="Tell us about yourself, your career, interests, and what brings you here..."
+              className="min-h-[120px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              This information helps our AI provide more personalized therapy sessions.
+            </p>
+          </div>
         </CardContent>
       </Card>
       
-      {/* Therapist Preferences */}
+      {/* Current Therapist - Simplified */}
       <Card>
         <CardHeader>
-          <CardTitle>Therapist Preferences</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5" />
+            Your Therapist
+          </CardTitle>
           <CardDescription>
-            Customize your therapy experience
+            View or change your current therapist
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="therapist-name">Preferred name for AI therapist</Label>
-            <Input 
-              id="therapist-name" 
-              value={preferredTherapistName} 
-              onChange={(e) => setPreferredTherapistName(e.target.value)} 
-              placeholder="Dr. Sky"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Gender preferences (optional)</Label>
-            <RadioGroup value={genderPreference} onValueChange={setGenderPreference} className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="female" id="female" />
-                <Label htmlFor="female" className="cursor-pointer">Female</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="male" id="male" />
-                <Label htmlFor="male" className="cursor-pointer">Male</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="neutral" id="neutral" />
-                <Label htmlFor="neutral" className="cursor-pointer">Gender Neutral</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-2 pt-2">
-            <Label>Voice Options (for future)</Label>
-            <RadioGroup value={voicePreference} onValueChange={setVoicePreference} className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="soft-female" id="soft-female" />
-                <Label htmlFor="soft-female" className="cursor-pointer">Soft Female</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="calm-male" id="calm-male" />
-                <Label htmlFor="calm-male" className="cursor-pointer">Calm Male</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="neutral-voice" id="neutral-voice" />
-                <Label htmlFor="neutral-voice" className="cursor-pointer">Gender Neutral Voice</Label>
-              </div>
-            </RadioGroup>
+          <div className="flex items-center gap-4 p-4 bg-card rounded-lg border">
+            <div className={`${selectedTherapist.bgColor} w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0`}>
+              <Avatar className="w-14 h-14 border-2 border-white">
+                <AvatarFallback>{selectedTherapist.name[0]}</AvatarFallback>
+              </Avatar>
+            </div>
+            
+            <div className="flex-grow">
+              <h3 className="font-medium text-lg">{selectedTherapist.name}</h3>
+              <p className="text-muted-foreground">{selectedTherapist.specialty}</p>
+            </div>
+            
+            {/* <Button variant="outline" onClick={handleChooseNewTherapist} className="flex-shrink-0">
+              Choose New Therapist
+            </Button> */}
           </div>
         </CardContent>
       </Card>

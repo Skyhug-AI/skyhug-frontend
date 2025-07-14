@@ -87,26 +87,58 @@ async def tts_stream(message_id: str, snippet: int = 0):
     piece = sentences[snippet].strip()
 
     # 2) confirm voice mode
+    # pull voice_enabled + therapist_id
     convo = (
         supabase
         .table("conversations")
-        .select("voice_enabled")
+        .select("voice_enabled, therapist_id")
         .eq("id", msg["conversation_id"])
         .single()
         .execute()
         .data
     ) or {}
+
     if not convo.get("voice_enabled"):
         raise HTTPException(403, "TTS only in Voice Mode")
 
+    # 2) confirm voice mode & pull therapist_id
+    convo_resp = (
+        supabase
+        .table("conversations")
+        .select("voice_enabled, therapist_id")
+        .eq("id", msg["conversation_id"])
+        .single()
+        .execute()
+    )
+    convo = convo_resp.data or {}
+    if not convo.get("voice_enabled"):
+        raise HTTPException(403, "TTS only in Voice Mode")
+    
+    # 3) look up the therapist’s voice_id (or fallback to ENV)
+    therapist_id = convo.get("therapist_id")
+    if therapist_id:
+        therapist_resp = (
+            supabase
+            .table("therapists")
+            .select("elevenlabs_voice_id")
+            .eq("id", therapist_id)
+            .single()
+            .execute()
+        )
+        therapist_row = therapist_resp.data or {}
+        voice_id = therapist_row.get("elevenlabs_voice_id") or ELEVENLABS_VOICE_ID
+    else:
+        voice_id = ELEVENLABS_VOICE_ID
+
+
     # 3) proxy the streaming POST
     upstream = eleven_sess.post(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
+        f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
         json={
             "text": piece,
             "voice_settings": {
-                "stability": 0.4,
-                "similarity_boost": 0.4,
+                "stability": 0.45,
+                "similarity_boost": 0.45,
                 "latency_boost": True,
             },
             "stream": True,
