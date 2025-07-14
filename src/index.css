@@ -153,6 +153,24 @@
   }
 }
 
+@keyframes float-cloud-subtle {
+  0% {
+    transform: translateX(0px) translateY(0px);
+  }
+  25% {
+    transform: translateX(15px) translateY(-8px);
+  }
+  50% {
+    transform: translateX(10px) translateY(12px);
+  }
+  75% {
+    transform: translateX(-5px) translateY(-6px);
+  }
+  100% {
+    transform: translateX(0px) translateY(0px);
+  }
+}
+
 @keyframes pulse-slow {
   0%, 100% {
     opacity: 0.6;
@@ -266,6 +284,10 @@
 
 .animate-float-cloud {
   animation: float-cloud 15s ease-in-out infinite;
+}
+
+.animate-float-cloud-subtle {
+  animation: float-cloud-subtle 18s ease-in-out infinite;
 }
 
 .animate-pulse-slow {

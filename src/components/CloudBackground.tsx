@@ -3,9 +3,11 @@ import React from 'react';
 
 interface CloudBackgroundProps {
   className?: string;
+  variant?: 'dynamic' | 'subtle';
 }
 
-const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => {
+const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '', variant = 'dynamic' }) => {
+  const cloudAnimation = variant === 'subtle' ? 'animate-float-cloud-subtle' : 'animate-float-cloud';
   return (
     <div className={`fixed inset-0 overflow-hidden z-0 ${className}`}>
       {/* Enhanced gradient background with more vibrant colors */}
@@ -65,33 +67,33 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
       
       {/* Decorative clouds with enhanced floating animation */}
       <div
-        className="cloud w-32 h-20 top-[10%] left-[5%] animate-float-cloud"
-        style={{ animationDuration: '12s', animationDelay: '0s' }}
+        className={`cloud w-32 h-20 top-[10%] left-[5%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '18s' : '12s', animationDelay: '0s' }}
       ></div>
       <div
-        className="cloud w-40 h-24 top-[15%] right-[10%] animate-float-cloud"
-        style={{ animationDuration: '15s', animationDelay: '1.5s' }}
+        className={`cloud w-40 h-24 top-[15%] right-[10%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '22s' : '15s', animationDelay: '1.5s' }}
       ></div>
       <div
-        className="cloud w-28 h-16 bottom-[30%] left-[15%] animate-float-cloud"
-        style={{ animationDuration: '14s', animationDelay: '3s' }}
+        className={`cloud w-28 h-16 bottom-[30%] left-[15%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '20s' : '14s', animationDelay: '3s' }}
       ></div>
       <div
-        className="cloud w-36 h-20 bottom-[20%] right-[20%] animate-float-cloud"
-        style={{ animationDuration: '16s', animationDelay: '4.5s' }}
+        className={`cloud w-36 h-20 bottom-[20%] right-[20%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '24s' : '16s', animationDelay: '4.5s' }}
       ></div>
       <div
-        className="cloud w-24 h-14 top-[50%] left-[50%] animate-float-cloud"
-        style={{ animationDuration: '13s', animationDelay: '2s' }}
+        className={`cloud w-24 h-14 top-[50%] left-[50%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '19s' : '13s', animationDelay: '2s' }}
       ></div>
       {/* Additional floating clouds for more movement */}
       <div
-        className="cloud w-30 h-18 top-[35%] right-[5%] animate-float-cloud"
-        style={{ animationDuration: '17s', animationDelay: '6s' }}
+        className={`cloud w-30 h-18 top-[35%] right-[5%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '25s' : '17s', animationDelay: '6s' }}
       ></div>
       <div
-        className="cloud w-26 h-15 bottom-[45%] left-[8%] animate-float-cloud"
-        style={{ animationDuration: '14s', animationDelay: '7.5s' }}
+        className={`cloud w-26 h-15 bottom-[45%] left-[8%] ${cloudAnimation}`}
+        style={{ animationDuration: variant === 'subtle' ? '21s' : '14s', animationDelay: '7.5s' }}
       ></div>
     </div>
   );

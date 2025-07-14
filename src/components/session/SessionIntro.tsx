@@ -15,7 +15,7 @@ const SessionIntro: React.FC<SessionIntroProps> = ({ onStartSession }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
-      <CloudBackground />
+      <CloudBackground variant="subtle" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
