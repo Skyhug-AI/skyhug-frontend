@@ -12,7 +12,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [showVoiceInterface, setShowVoiceInterface] = useState(false);
   const [isSessionStarted, setIsSessionStarted] = useState(false);
-  
+
   // Rotating text for "for everyone"
   const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness", "for sleep", "for LGBTQ"];
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
@@ -26,7 +26,7 @@ const Index = () => {
         navigate("/home");
       }
     };
-    
+
     checkAuth();
 
     // Listen for auth state changes
@@ -116,7 +116,7 @@ const Index = () => {
         <Header />
       </div>
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
-        <div className="mb-6">
+        <div className="mb-0">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
@@ -130,7 +130,7 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             AI therapy companion
             <br />
-            <span 
+            <span
               className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
               style={{ opacity: textOpacity }}
             >
@@ -153,21 +153,21 @@ const Index = () => {
               <div className="absolute bottom-0 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '1s', animationDuration: '2.2s' }}></div>
               <div className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1.5s', animationDuration: '1.5s' }}></div>
             </div>
-            
+
             {/* Continuous glow effect */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/30 via-purple-400/30 to-pink-400/30 blur-xl animate-pulse"></div>
-            
+
             <button
               onClick={handleTalkToSky}
               className="relative glass-panel text-gray-900 px-8 py-4 mt-6 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group animate-bounce"
-              style={{ 
+              style={{
                 animationDuration: '3s',
                 animationIterationCount: 'infinite',
                 animationTimingFunction: 'ease-in-out'
               }}
             >
               <span className="text-lg group-hover:animate-bounce">TALK TO SKY 🌤️</span>
-              
+
               {/* Ripple effect on hover */}
               <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"></div>
             </button>
