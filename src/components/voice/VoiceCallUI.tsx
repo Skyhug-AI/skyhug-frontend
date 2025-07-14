@@ -185,7 +185,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <CloudBackground />
+      <CloudBackground variant="subtle" />
 
       <div className="relative z-10 py-8 px-4 md:px-8 border-b border-serenity-100">
         <div className="max-w-5xl mx-auto text-center">
