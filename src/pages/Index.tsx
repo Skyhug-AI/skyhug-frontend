@@ -107,7 +107,7 @@ const Index = () => {
               </div>
             </button>
           ) : (
-            <div className="glass-panel px-8 py-6 rounded-2xl shadow-xl max-w-md w-full text-center">
+            <div className="max-w-md w-full text-center">
               {!isSessionStarted ? (
                 <AnimatedSunLoader
                   onComplete={handleSessionStart}
@@ -116,19 +116,6 @@ const Index = () => {
                 />
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <Mic className="w-6 h-6 text-gray-700" />
-                    <span className="text-xl font-medium text-gray-900">TALK TO SKY</span>
-                    <div className="flex gap-1">
-                      <div className="w-1 h-6 bg-blue-500/60 rounded-full animate-wave" />
-                      <div className="w-1 h-6 bg-purple-500/60 rounded-full animate-wave" style={{
-                      animationDelay: '0.1s'
-                    }} />
-                      <div className="w-1 h-6 bg-pink-500/60 rounded-full animate-wave" style={{
-                      animationDelay: '0.2s'
-                    }} />
-                    </div>
-                  </div>
                   <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
                 </div>
               )}
