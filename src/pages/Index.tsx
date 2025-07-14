@@ -152,12 +152,11 @@ const Index = () => {
         {bars.map((bar, index) => (
           <div
             key={bar.id}
-            className={`${bar.color} rounded-full transition-all duration-200 hover:opacity-80`}
+            className={`${bar.color} rounded-full transition-all duration-1000 hover:opacity-80 animate-wave`}
             style={{
               height: `${bar.height}px`,
               width: "8px",
-              animationDelay: `${index * 100}ms`,
-              animationDuration: `${Math.random() * 0.8 + 0.8}s`,
+              animationDelay: `${index * 0.3}s`,
             }}
           />
         ))}
