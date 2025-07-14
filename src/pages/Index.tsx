@@ -13,7 +13,7 @@ const Index = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   
   // Rotating text for "for everyone"
-  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness", "for sleep"];
+  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness", "for sleep", "for LGBTQ"];
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [textOpacity, setTextOpacity] = useState(1);
 
