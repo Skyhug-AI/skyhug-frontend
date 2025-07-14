@@ -188,8 +188,7 @@ const Index = () => {
         {/* Main Heading */}
         <div className="text-center max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-800">
-            AI Therapy Companion
-            <br />
+            <span className="block mb-8">AI Therapy Companion</span>
             <span
               className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
               style={{ opacity: textOpacity }}
