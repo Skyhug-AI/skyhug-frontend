@@ -41,7 +41,7 @@ const onboardingSchema = z.object({
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
 const OnboardingPage = () => {
-  const { user } = useAuth();
+  const { user, refreshOnboardingStatus } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -125,6 +125,12 @@ const OnboardingPage = () => {
 
       console.log("✅ Onboarding completed successfully");
       setOnboardingCompleted(true);
+      
+      // Refresh the auth context to update onboarding status
+      await refreshOnboardingStatus();
+      
+      // Navigate to home after updating the context
+      navigate('/home');
     } catch (error) {
       console.error("🚨 Onboarding failed:", error);
       toast({

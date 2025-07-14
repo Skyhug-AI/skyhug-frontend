@@ -17,6 +17,7 @@ export type AuthContextType = {
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  refreshOnboardingStatus: () => Promise<void>;
   isAuthenticated: boolean;
 };
 
@@ -177,6 +178,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const refreshOnboardingStatus = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("patients")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .single();
+
+    if (!error && data) {
+      setOnboardingCompleted(data.onboarding_completed || false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -189,6 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         resetPassword,
         updatePassword,
+        refreshOnboardingStatus,
         isAuthenticated: !!user,
       }}
     >
