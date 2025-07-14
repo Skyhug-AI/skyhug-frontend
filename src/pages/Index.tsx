@@ -9,6 +9,13 @@ import { Mic, Heart, X } from "lucide-react";
 import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 const Index = () => {
   const navigate = useNavigate();
   const [showVoiceInterface, setShowVoiceInterface] = useState(false);
@@ -349,6 +356,173 @@ const Index = () => {
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Carousel Section */}
+      <div className="relative z-10 py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <Carousel className="w-full max-w-4xl mx-auto">
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {/* Convenient Online Therapy */}
+              <CarouselItem className="pl-2 md:pl-4">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                  {/* Decorative clouds */}
+                  <div className="absolute top-6 right-6 w-16 h-10 bg-white/20 rounded-full"></div>
+                  <div className="absolute top-10 right-12 w-12 h-8 bg-white/15 rounded-full"></div>
+                  <div className="absolute top-4 right-20 w-8 h-6 bg-white/10 rounded-full"></div>
+                  
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <span className="text-white/80 font-medium">Online therapy</span>
+                      </div>
+                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                        Convenient
+                        <br />
+                        online
+                        <br />
+                        therapy
+                      </h3>
+                      <p className="text-lg text-white/90 mb-8 max-w-md">
+                        Check your coverage, find a therapist, and start feeling your best with Headspace therapy.
+                      </p>
+                      <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                        Get started
+                      </button>
+                    </div>
+                    
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        {/* Video call mockup */}
+                        <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm border border-white/20">
+                          <div className="bg-gray-800 rounded-xl p-3 mb-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            </div>
+                            <div className="bg-blue-100 rounded-lg p-4 relative">
+                              <div className="w-12 h-12 bg-green-400 rounded-full mb-2"></div>
+                              <div className="text-xs text-gray-700 font-medium">Neca, LMFT</div>
+                            </div>
+                          </div>
+                          <div className="bg-yellow-100 rounded-xl p-4">
+                            <div className="w-16 h-20 bg-yellow-300 rounded-lg mb-2"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              {/* Guided Meditations */}
+              <CarouselItem className="pl-2 md:pl-4">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <span className="text-white/80 font-medium">Guided meditations</span>
+                      </div>
+                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                        Find your
+                        <br />
+                        inner peace
+                      </h3>
+                      <p className="text-lg text-white/90 mb-8 max-w-md">
+                        Discover mindfulness and meditation practices designed to reduce stress and improve focus.
+                      </p>
+                      <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                        Start meditating
+                      </button>
+                    </div>
+                    
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                          <div className="text-6xl">🧘</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              {/* AI Guidance */}
+              <CarouselItem className="pl-2 md:pl-4">
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <span className="text-white/80 font-medium">AI guidance</span>
+                      </div>
+                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                        Personalized
+                        <br />
+                        support
+                      </h3>
+                      <p className="text-lg text-white/90 mb-8 max-w-md">
+                        Get instant, personalized guidance from our AI companion whenever you need it.
+                      </p>
+                      <button className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                        Chat now
+                      </button>
+                    </div>
+                    
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                          <div className="text-6xl">🤖</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              {/* Sleep Resources */}
+              <CarouselItem className="pl-2 md:pl-4">
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <span className="text-white/80 font-medium">Sleep resources</span>
+                      </div>
+                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                        Better
+                        <br />
+                        sleep
+                        <br />
+                        tonight
+                      </h3>
+                      <p className="text-lg text-white/90 mb-8 max-w-md">
+                        Discover sleep stories, sounds, and techniques to help you fall asleep faster and sleep deeper.
+                      </p>
+                      <button className="bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                        Sleep better
+                      </button>
+                    </div>
+                    
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                          <div className="text-6xl">🌙</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            </CarouselContent>
+            
+            <CarouselPrevious className="left-4" />
+            <CarouselNext className="right-4" />
+          </Carousel>
         </div>
       </div>
 
