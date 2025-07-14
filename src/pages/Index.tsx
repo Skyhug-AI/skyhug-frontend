@@ -28,19 +28,20 @@ const Index = () => {
 
   // Animated placeholder text for input
   const placeholderTexts = [
-    "managing daily stress...",
-    "better sleep habits...", 
-    "processing emotions...",
-    "building confidence...",
-    "mindfulness practice...",
-    "relationship guidance...",
-    "work-life balance...",
-    "anxiety management...",
-    "depression support...",
-    "self-care routines..."
+    "managing daily stress",
+    "better sleep habits", 
+    "processing emotions",
+    "building confidence",
+    "mindfulness practice",
+    "relationship guidance",
+    "work-life balance",
+    "anxiety management",
+    "depression support",
+    "self-care routines"
   ];
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
-  const [placeholderOpacity, setPlaceholderOpacity] = useState(1);
+  const [typedText, setTypedText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
 
   // Check for authenticated user and redirect to /home if logged in
   useEffect(() => {
@@ -75,18 +76,40 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Animated placeholder effect
+  // Typing effect for placeholder
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderOpacity(0); // Fade out
-      setTimeout(() => {
-        setCurrentPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
-        setPlaceholderOpacity(1); // Fade in
-      }, 200);
-    }, 2000);
+    let typingInterval: NodeJS.Timeout;
+    let nextWordTimeout: NodeJS.Timeout;
 
-    return () => clearInterval(interval);
-  }, []);
+    const typeText = () => {
+      const currentText = placeholderTexts[currentPlaceholderIndex];
+      let charIndex = 0;
+      setTypedText("");
+      setIsTyping(true);
+
+      typingInterval = setInterval(() => {
+        if (charIndex < currentText.length) {
+          setTypedText(currentText.slice(0, charIndex + 1));
+          charIndex++;
+        } else {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+          
+          // Wait before starting next word
+          nextWordTimeout = setTimeout(() => {
+            setCurrentPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
+          }, 2000);
+        }
+      }, 100);
+    };
+
+    typeText();
+
+    return () => {
+      clearInterval(typingInterval);
+      clearTimeout(nextWordTimeout);
+    };
+  }, [currentPlaceholderIndex]);
 
   const handleTalkToSky = () => {
     navigate("/signup");
@@ -366,8 +389,8 @@ const Index = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder={`I want an AI therapy companion to help me with ${placeholderTexts[currentPlaceholderIndex]}`}
-                className="w-full h-16 px-6 border-2 border-gray-200 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-lg transition-all duration-300 placeholder-gray-500"
+                placeholder={`I want an AI therapy companion to help me with ${typedText}${isTyping ? '|' : ''}`}
+                className="w-full h-16 px-6 border-2 border-gray-200 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-lg transition-all duration-300 placeholder-gray-400"
                 style={{
                   transition: 'opacity 0.2s ease-in-out'
                 }}
