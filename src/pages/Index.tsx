@@ -332,6 +332,23 @@ const Index = () => {
             </div>
           </div>
 
+          {/* Custom text input */}
+          <div className="max-w-2xl mx-auto mt-12">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <label htmlFor="custom-reason" className="block text-lg font-semibold text-gray-900 mb-3">
+                Or tell us something else:
+              </label>
+              <textarea
+                id="custom-reason"
+                placeholder="I want an AI therapy companion to help me with..."
+                className="w-full h-24 p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+              />
+              <button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300">
+                Share with us
+              </button>
+            </div>
+          </div>
+
           {/* Subtitle */}
           <div className="text-center mt-16">
             <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
