@@ -88,14 +88,13 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
   const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
-    // Start animations immediately - sun should be visible right away
+    // Start animations
     controls.start({
-      y: [0, -10, 0], // Small float animation instead of rising from below
-      opacity: 1, // Always visible
+      y: [120, 0], // Sun rises from lower (120px offset) to final position
+      opacity: [0, 1],
       transition: { 
-        duration: 2,
-        ease: "easeInOut",
-        repeat: Infinity
+        duration: duration / 750,
+        ease: "easeOut"
       },
     });
     
@@ -107,7 +106,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
     textControls.start({
       opacity: [0, 1],
       y: [10, 0],
-      transition: { delay: 0.2, duration: 0.6 }
+      transition: { delay: 0.5, duration: 0.8 }
     });
     
     // Set a timeout only once
@@ -168,7 +167,7 @@ const AnimatedSunLoader: React.FC<AnimatedSunLoaderProps> = ({
       <motion.div
         className="absolute left-1/2 bottom-24"
         animate={controls}
-        initial={{ y: 0, opacity: 1 }}
+        initial={{ y: 120, opacity: 0 }}
         style={{ transform: "translateX(-50%)" }}
       >
         {/* Outer glow ring (pulsing) */}
