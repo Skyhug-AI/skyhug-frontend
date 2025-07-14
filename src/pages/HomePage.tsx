@@ -21,6 +21,7 @@ import { useTherapist } from "@/context/TherapistContext";
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
 };
+
 const HomePage = () => {
   const { user } = useAuth();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
@@ -31,7 +32,6 @@ const HomePage = () => {
     activeConversationId,
     getActiveSessionIdAndTherapist,
     currentTherapist,
-    isLoadingSession,
   } = useTherapist();
 
   useEffect(() => {
@@ -117,13 +117,6 @@ const HomePage = () => {
   const totalGoals = 2; // session and mood
   const completedCount = completedGoals.length;
   const progressPercentage = (completedCount / totalGoals) * 100;
-  if (isLoadingSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-pulse text-gray-500">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
