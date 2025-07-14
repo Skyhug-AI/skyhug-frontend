@@ -7,9 +7,9 @@ interface CloudBackgroundProps {
 
 const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => {
   return (
-    <div className={`fixed inset-0 overflow-hidden z-0 ${className}`}>
-      {/* Enhanced gradient background with more vibrant colors */}
-      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF] via-[#F0F4FE] to-[#E8F2FF]"></div>
+    <div className={`fixed inset-0 overflow-hidden z-10 ${className}`}>
+      {/* Enhanced gradient background with more vibrant colors - made more transparent */}
+      <div className="absolute inset-0 w-screen h-screen bg-gradient-to-br from-[#EEF2FF]/30 via-[#F0F4FE]/30 to-[#E8F2FF]/30"></div>
       
       {/* More colorful accent gradients */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-[#FFE4E1] via-[#FFF0E6] to-transparent opacity-40 rounded-full blur-3xl"></div>
