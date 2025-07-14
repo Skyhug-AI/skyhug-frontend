@@ -3,9 +3,8 @@ import React from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CloudBackground from "@/components/CloudBackground";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Mic, Sparkles, Heart, MessageSquare } from "lucide-react";
+import { Mic, Heart } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -72,7 +71,7 @@ const Index = () => {
         </div>
 
         {/* Main Heading */}
-        <div className="text-center mb-16 max-w-4xl">
+        <div className="text-center mb-20 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             Voice AI therapist
             <br />
@@ -86,25 +85,6 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-20">
-          <Button
-            onClick={() => navigate('/voice')}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl border-0"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            TALK TO SKY
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/chat')}
-            variant="outline"
-            className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-8 py-4 rounded-full text-lg font-medium transition-all duration-300"
-          >
-            <MessageSquare className="w-5 h-5 mr-2" />
-            TEXT CHAT
-          </Button>
-        </div>
 
         {/* Audio Visualization */}
         <div className="w-full">
@@ -112,9 +92,9 @@ const Index = () => {
         </div>
 
         {/* Talk to Sky Interactive Button */}
-        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
+        <div className="flex justify-center">
           <button
-            onClick={() => navigate('/voice')}
+            onClick={() => navigate('/session')}
             className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3"
           >
             <Mic className="w-5 h-5" />
