@@ -76,7 +76,7 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             Voice AI therapist
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float">
               for everyone
             </span>
           </h1>
