@@ -8,11 +8,11 @@ import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 const Index = () => {
   const navigate = useNavigate();
-  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showVoiceInterface, setShowVoiceInterface] = useState(false);
   const [isSessionStarted, setIsSessionStarted] = useState(false);
 
   const handleTalkToSky = () => {
-    setShowVoiceModal(true);
+    setShowVoiceInterface(true);
   };
 
   const handleSessionStart = () => {
@@ -22,11 +22,6 @@ const Index = () => {
   const handleVoiceRecorded = (transcript: string) => {
     console.log('Voice recorded:', transcript);
     // Handle the voice input here
-  };
-
-  const handleCloseModal = () => {
-    setShowVoiceModal(false);
-    setIsSessionStarted(false);
   };
 
   // Audio visualization bars for the bottom
@@ -95,43 +90,24 @@ const Index = () => {
           <AudioBars />
         </div>
 
-        {/* Talk to Sky Interactive Button */}
-        <div className="flex justify-center">
-          <button onClick={handleTalkToSky} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
-            <Mic className="w-5 h-5" />
-            <span className="text-lg">TALK TO SKY</span>
-            <div className="flex gap-1">
-              <div className="w-1 h-4 bg-blue-500/60 rounded-full animate-wave" />
-              <div className="w-1 h-4 bg-purple-500/60 rounded-full animate-wave" style={{
-              animationDelay: '0.1s'
-            }} />
-              <div className="w-1 h-4 bg-pink-500/60 rounded-full animate-wave" style={{
-              animationDelay: '0.2s'
-            }} />
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="relative z-10">
-        <Footer />
-      </div>
-
-      {/* Voice Modal */}
-      {showVoiceModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl max-w-md w-full">
-            {/* Close button */}
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors z-10"
-            >
-              <X className="w-6 h-6" />
+        {/* Talk to Sky Interface */}
+        <div className="flex flex-col items-center space-y-6">
+          {!showVoiceInterface ? (
+            <button onClick={handleTalkToSky} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
+              <Mic className="w-5 h-5" />
+              <span className="text-lg">TALK TO SKY</span>
+              <div className="flex gap-1">
+                <div className="w-1 h-4 bg-blue-500/60 rounded-full animate-wave" />
+                <div className="w-1 h-4 bg-purple-500/60 rounded-full animate-wave" style={{
+                animationDelay: '0.1s'
+              }} />
+                <div className="w-1 h-4 bg-pink-500/60 rounded-full animate-wave" style={{
+                animationDelay: '0.2s'
+              }} />
+              </div>
             </button>
-
-            {/* Content */}
-            <div className="p-8 text-center">
+          ) : (
+            <div className="glass-panel px-8 py-6 rounded-2xl shadow-xl max-w-md w-full text-center">
               {!isSessionStarted ? (
                 <AnimatedSunLoader
                   onComplete={handleSessionStart}
@@ -139,17 +115,32 @@ const Index = () => {
                   subtext="Your mind deserves this pause."
                 />
               ) : (
-                <div className="space-y-6">
-                  <div className="text-lg font-medium text-gray-800">
-                    Talk to Sky
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-3">
+                    <Mic className="w-6 h-6 text-gray-700" />
+                    <span className="text-xl font-medium text-gray-900">TALK TO SKY</span>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-6 bg-blue-500/60 rounded-full animate-wave" />
+                      <div className="w-1 h-6 bg-purple-500/60 rounded-full animate-wave" style={{
+                      animationDelay: '0.1s'
+                    }} />
+                      <div className="w-1 h-6 bg-pink-500/60 rounded-full animate-wave" style={{
+                      animationDelay: '0.2s'
+                    }} />
+                    </div>
                   </div>
                   <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
                 </div>
               )}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>;
 };
 export default Index;
