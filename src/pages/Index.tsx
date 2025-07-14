@@ -26,6 +26,22 @@ const Index = () => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [textOpacity, setTextOpacity] = useState(1);
 
+  // Animated placeholder text for input
+  const placeholderTexts = [
+    "managing daily stress...",
+    "better sleep habits...", 
+    "processing emotions...",
+    "building confidence...",
+    "mindfulness practice...",
+    "relationship guidance...",
+    "work-life balance...",
+    "anxiety management...",
+    "depression support...",
+    "self-care routines..."
+  ];
+  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
+  const [placeholderOpacity, setPlaceholderOpacity] = useState(1);
+
   // Check for authenticated user and redirect to /home if logged in
   useEffect(() => {
     const checkAuth = async () => {
@@ -55,6 +71,19 @@ const Index = () => {
         setTextOpacity(1); // Fade in
       }, 200); // Wait for fade out to complete
     }, 1500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Animated placeholder effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderOpacity(0); // Fade out
+      setTimeout(() => {
+        setCurrentPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
+        setPlaceholderOpacity(1); // Fade in
+      }, 200);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
@@ -333,18 +362,18 @@ const Index = () => {
           </div>
 
           {/* Custom text input */}
-          <div className="max-w-2xl mx-auto mt-12">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <label htmlFor="custom-reason" className="block text-lg font-semibold text-gray-900 mb-3">
-                Or tell us something else:
-              </label>
-              <textarea
-                id="custom-reason"
-                placeholder="I want an AI therapy companion to help me with..."
-                className="w-full h-24 p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+          <div className="max-w-4xl mx-auto mt-12">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={`I want an AI therapy companion to help me with ${placeholderTexts[currentPlaceholderIndex]}`}
+                className="w-full h-16 px-6 border-2 border-gray-200 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-lg transition-all duration-300 placeholder-gray-500"
+                style={{
+                  transition: 'opacity 0.2s ease-in-out'
+                }}
               />
-              <button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300">
-                Share with us
+              <button className="absolute right-2 top-2 h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 rounded-full font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300 flex items-center justify-center">
+                Share
               </button>
             </div>
           </div>
