@@ -93,6 +93,45 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
         className="cloud w-26 h-15 bottom-[45%] left-[8%] animate-float-cloud"
         style={{ animationDuration: '21s', animationDelay: '7.5s' }}
       ></div>
+      
+      {/* Rainbow that appears every 10 seconds */}
+      <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 w-96 h-48 opacity-0 animate-rainbow-cycle pointer-events-none">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 400 200"
+          xmlns="http://www.w3.org/2000/svg"
+          className="drop-shadow-lg"
+        >
+          <defs>
+            <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ff0000" />
+              <stop offset="16.66%" stopColor="#ff8c00" />
+              <stop offset="33.33%" stopColor="#ffd700" />
+              <stop offset="50%" stopColor="#00ff00" />
+              <stop offset="66.66%" stopColor="#0080ff" />
+              <stop offset="83.33%" stopColor="#4b0082" />
+              <stop offset="100%" stopColor="#8a2be2" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M 50 150 Q 200 50 350 150"
+            stroke="url(#rainbow-gradient)"
+            strokeWidth="12"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.8"
+          />
+          <path
+            d="M 60 160 Q 200 70 340 160"
+            stroke="url(#rainbow-gradient)"
+            strokeWidth="8"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.6"
+          />
+        </svg>
+      </div>
     </div>
   );
 };
