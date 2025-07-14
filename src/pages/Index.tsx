@@ -74,10 +74,8 @@ const Index = () => {
         {/* Main Heading */}
         <div className="text-center mb-2 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
-            AI Therapy Companion
-            <br />
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float">
-              for Everyone
+              Ai therapy companion for everyone
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
