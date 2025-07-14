@@ -1,24 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CloudBackground from "@/components/CloudBackground";
-import { Mic, Heart, X } from "lucide-react";
-import { useTherapist } from "@/context/TherapistContext";
-import VoiceRecorder from "@/components/voice/VoiceRecorder";
-import ChatBubble from "@/components/chat/ChatBubble";
+import { useNavigate } from "react-router-dom";
+import { Mic, Heart } from "lucide-react";
 const Index = () => {
-  const [isVoiceActive, setIsVoiceActive] = useState(false);
-  const { messages, sendMessage } = useTherapist();
-
-  const handleStartVoice = async () => {
-    setIsVoiceActive(true);
-  };
-
-  const handleVoiceRecorded = (transcript: string) => {
-    if (transcript.trim()) {
-      sendMessage(transcript);
-    }
-  };
+  const navigate = useNavigate();
 
   // Audio visualization bars for the bottom
   const AudioBars = () => {
@@ -70,9 +57,11 @@ const Index = () => {
 
         {/* Main Heading */}
         <div className="text-center mb-2 max-w-4xl">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
+            AI Therapy Companion
+            <br />
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float">
-              ai therapy companion for everyone
+              for Everyone
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">Feel like your best self with stress-relieving exercises, journaling, meditaitons, sleep resources, and beyond.</p>
@@ -86,7 +75,7 @@ const Index = () => {
 
         {/* Talk to Sky Interactive Button */}
         <div className="flex justify-center">
-          <button onClick={handleStartVoice} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
+          <button onClick={() => navigate('/session')} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
             <Mic className="w-5 h-5" />
             <span className="text-lg">TALK TO SKY</span>
             <div className="flex gap-1">
@@ -100,41 +89,6 @@ const Index = () => {
             </div>
           </button>
         </div>
-
-        {/* Voice Chat Interface */}
-        {isVoiceActive && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Chat with Sky</h3>
-                <button 
-                  onClick={() => setIsVoiceActive(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              {/* Messages */}
-              <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
-                {messages.map((message) => (
-                  <ChatBubble 
-                    key={message.id}
-                    message={message.content}
-                    isUser={message.isUser}
-                    timestamp={message.timestamp}
-                  />
-                ))}
-              </div>
-
-              {/* Voice Recorder */}
-              <VoiceRecorder
-                onVoiceRecorded={handleVoiceRecorded}
-                isDisabled={false}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer */}
