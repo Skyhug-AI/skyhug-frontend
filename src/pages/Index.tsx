@@ -101,51 +101,51 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Audio Visualization */}
-        <div className="w-full mb-12">
-          <AudioBars />
-        </div>
-
         {/* Talk to Sky Interface */}
-        <div className="flex flex-col items-center space-y-6">
+        <div className="flex flex-col items-center space-y-6 mb-12">
           <button
             onClick={handleTalkToSky}
             className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3"
           >
             <span className="text-lg">TALK TO SKY 🌤️</span>
           </button>
-
-          {/* Commented out voice interface for now */}
-          {/* {!showVoiceInterface ? (
-            <button onClick={handleTalkToSky} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
-              <Mic className="w-5 h-5" />
-              <span className="text-lg">TALK TO SKY</span>
-              <div className="flex gap-1">
-                <div className="w-1 h-4 bg-blue-500/60 rounded-full animate-wave" />
-                <div className="w-1 h-4 bg-purple-500/60 rounded-full animate-wave" style={{
-                animationDelay: '0.1s'
-              }} />
-                <div className="w-1 h-4 bg-pink-500/60 rounded-full animate-wave" style={{
-                animationDelay: '0.2s'
-              }} />
-              </div>
-            </button>
-          ) : (
-            <div className="max-w-md w-full text-center">
-              {!isSessionStarted ? (
-                <AnimatedSunLoader
-                  onComplete={handleSessionStart}
-                  duration={3000}
-                  subtext="Your mind deserves this pause."
-                />
-              ) : (
-                <div className="space-y-4">
-                  <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
-                </div>
-              )}
-            </div>
-          )} */}
         </div>
+
+        {/* Audio Visualization */}
+        <div className="w-full">
+          <AudioBars />
+        </div>
+
+        {/* Commented out voice interface for now */}
+        {/* {!showVoiceInterface ? (
+          <button onClick={handleTalkToSky} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
+            <Mic className="w-5 h-5" />
+            <span className="text-lg">TALK TO SKY</span>
+            <div className="flex gap-1">
+              <div className="w-1 h-4 bg-blue-500/60 rounded-full animate-wave" />
+              <div className="w-1 h-4 bg-purple-500/60 rounded-full animate-wave" style={{
+              animationDelay: '0.1s'
+            }} />
+              <div className="w-1 h-4 bg-pink-500/60 rounded-full animate-wave" style={{
+              animationDelay: '0.2s'
+            }} />
+            </div>
+          </button>
+        ) : (
+          <div className="max-w-md w-full text-center">
+            {!isSessionStarted ? (
+              <AnimatedSunLoader
+                onComplete={handleSessionStart}
+                duration={3000}
+                subtext="Your mind deserves this pause."
+              />
+            ) : (
+              <div className="space-y-4">
+                <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
+              </div>
+            )}
+          </div>
+        )} */}
       </div>
 
       {/* Footer */}
