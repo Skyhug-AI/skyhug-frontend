@@ -132,12 +132,17 @@ const Index = () => {
               <div className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1.5s', animationDuration: '1.5s' }}></div>
             </div>
             
-            {/* Glow effect */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-pink-400/20 blur-xl animate-pulse"></div>
+            {/* Continuous glow effect */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/30 via-purple-400/30 to-pink-400/30 blur-xl animate-pulse"></div>
             
             <button
               onClick={handleTalkToSky}
-              className="relative glass-panel text-gray-900 px-8 py-4 mt-6 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group"
+              className="relative glass-panel text-gray-900 px-8 py-4 mt-6 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group animate-bounce"
+              style={{ 
+                animationDuration: '3s',
+                animationIterationCount: 'infinite',
+                animationTimingFunction: 'ease-in-out'
+              }}
             >
               <span className="text-lg group-hover:animate-bounce">TALK TO SKY 🌤️</span>
               
