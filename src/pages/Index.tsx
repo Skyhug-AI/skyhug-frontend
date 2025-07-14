@@ -72,7 +72,7 @@ const Index = () => {
         </div>
 
         {/* Main Heading */}
-        <div className="text-center mb-12 max-w-4xl">
+        <div className="text-center mb-6 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             Voice AI therapist
             <br />
