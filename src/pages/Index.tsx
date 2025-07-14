@@ -29,56 +29,23 @@ const Index = () => {
     // Handle the voice input here
   };
 
-  // Peaceful breathing animation for therapy theme
-  const BreathingVisualization = () => {
-    const particles = Array.from({ length: 12 }, (_, i) => ({
+  // Audio visualization bars for the bottom
+  const AudioBars = () => {
+    const bars = Array.from({
+      length: 50
+    }, (_, i) => ({
       id: i,
-      delay: i * 0.5,
-      size: Math.random() * 8 + 4,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
+      height: Math.random() * 40 + 10,
+      color: ['bg-blue-400', 'bg-purple-400', 'bg-pink-400', 'bg-green-400', 'bg-yellow-400', 'bg-indigo-400', 'bg-cyan-400', 'bg-orange-400'][Math.floor(Math.random() * 8)]
     }));
-
-    return (
-      <div className="relative h-32 w-full max-w-4xl mx-auto overflow-hidden">
-        {/* Gentle breathing waves */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            {/* Central breathing circle */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-sky-200/40 to-blue-200/40 animate-pulse" 
-                 style={{ animationDuration: '4s' }} />
-            
-            {/* Expanding rings */}
-            <div className="absolute inset-0 w-16 h-16 rounded-full border border-sky-300/30 animate-ping" 
-                 style={{ animationDuration: '4s', animationDelay: '0s' }} />
-            <div className="absolute -inset-2 w-20 h-20 rounded-full border border-blue-300/20 animate-ping" 
-                 style={{ animationDuration: '4s', animationDelay: '1s' }} />
-            <div className="absolute -inset-4 w-24 h-24 rounded-full border border-indigo-300/10 animate-ping" 
-                 style={{ animationDuration: '4s', animationDelay: '2s' }} />
-          </div>
-        </div>
-
-        {/* Floating peaceful particles */}
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
-            className="absolute rounded-full bg-gradient-to-br from-sky-300/20 to-blue-300/30 animate-float"
-            style={{
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              left: `${particle.x}%`,
-              top: `${particle.y}%`,
-              animationDelay: `${particle.delay}s`,
-              animationDuration: `${6 + Math.random() * 4}s`,
-            }}
-          />
-        ))}
-
-        {/* Soft light rays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-sky-100/10 to-transparent animate-pulse" 
-             style={{ animationDuration: '8s' }} />
-      </div>
-    );
+    return <div className="flex items-end justify-center gap-1 h-32 w-full max-w-4xl mx-auto">
+        {bars.map((bar, index) => <div key={bar.id} className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`} style={{
+        height: `${bar.height}px`,
+        width: '8px',
+        animationDelay: `${index * 100}ms`,
+        animationDuration: `${Math.random() * 0.8 + 0.8}s`
+      }} />)}
+      </div>;
   };
   return <div className="min-h-screen bg-gradient-to-b from-white to-serenity-50 text-gray-900 relative overflow-hidden">
       {/* Cloud background */}
@@ -123,9 +90,9 @@ const Index = () => {
         </div>
 
 
-        {/* Peaceful Breathing Visualization */}
+        {/* Audio Visualization */}
         <div className="w-full mb-12">
-          <BreathingVisualization />
+          <AudioBars />
         </div>
 
         {/* Talk to Sky Interface */}
