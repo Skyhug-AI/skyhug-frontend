@@ -158,7 +158,7 @@ const HomePage = () => {
             </Button>
           ) : (
             <Button
-              className="mt-6 md:mt-0 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="mt-6 md:mt-0 px-8 py-4 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-xl text-base font-normal text-white"
               onClick={() => navigate("/session")}
             >
               Resume Session
