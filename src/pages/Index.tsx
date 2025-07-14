@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Mic, Heart, X } from "lucide-react";
 import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
+import { supabase } from "@/integrations/supabase/client";
 const Index = () => {
   const navigate = useNavigate();
   const [showVoiceInterface, setShowVoiceInterface] = useState(false);
@@ -16,6 +17,27 @@ const Index = () => {
   const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness", "for sleep", "for LGBTQ"];
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [textOpacity, setTextOpacity] = useState(1);
+
+  // Check for authenticated user and redirect to /home if logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        navigate("/home");
+      }
+    };
+    
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        navigate("/home");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
     const interval = setInterval(() => {
