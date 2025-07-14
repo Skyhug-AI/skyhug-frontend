@@ -13,7 +13,7 @@ const Index = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   
   // Rotating text for "for everyone"
-  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness"];
+  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness", "for sleep"];
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [textOpacity, setTextOpacity] = useState(1);
 
@@ -24,7 +24,7 @@ const Index = () => {
         setCurrentTextIndex((prev) => (prev + 1) % rotatingTexts.length);
         setTextOpacity(1); // Fade in
       }, 200); // Wait for fade out to complete
-    }, 1000);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, []);
