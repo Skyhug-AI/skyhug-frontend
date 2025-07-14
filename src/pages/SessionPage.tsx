@@ -82,8 +82,8 @@ const SessionPage = () => {
             {isSessionStarted && (
               <div className="flex items-center gap-2 text-gray-600 text-sm">
                 <span>
-                  You're in a therapy session with{" "}
-                  {currentTherapist?.name ?? "Sky"} — your AI companion 💙
+                  You're in a session with{" "}
+                  {currentTherapist?.name ?? "Sky"} -- your AI therapy companion 💙
                 </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
