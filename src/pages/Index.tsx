@@ -13,12 +13,17 @@ const Index = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   
   // Rotating text for "for everyone"
-  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for Couples", "for Happiness"];
+  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness"];
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [textOpacity, setTextOpacity] = useState(1);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTextIndex((prev) => (prev + 1) % rotatingTexts.length);
+      setTextOpacity(0); // Fade out
+      setTimeout(() => {
+        setCurrentTextIndex((prev) => (prev + 1) % rotatingTexts.length);
+        setTextOpacity(1); // Fade in
+      }, 200); // Wait for fade out to complete
     }, 1000);
 
     return () => clearInterval(interval);
@@ -103,7 +108,10 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             AI therapy companion
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-all duration-300">
+            <span 
+              className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
+              style={{ opacity: textOpacity }}
+            >
               {rotatingTexts[currentTextIndex]}
             </span>
           </h1>
