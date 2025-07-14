@@ -611,6 +611,61 @@ const Index = () => {
         </div>
       </div> */}
 
+      {/* Delivered with Care Section */}
+      <div className="relative z-10 bg-white py-20 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+            Designed by experts,<br />delivered with care
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
+            From guided meditations to one-on-one coaching, our team of clinical experts and 
+            trained coaches work together to bring you science-backed care.
+          </p>
+          
+          <button className="bg-gray-900 text-white px-8 py-4 rounded-full font-medium hover:bg-gray-800 transition-all duration-300 mb-16">
+            Learn more
+          </button>
+
+          {/* Therapist Cards Row */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl mx-auto">
+            {/* Card 1 - Blue */}
+            <div className="bg-blue-400 rounded-2xl aspect-square p-6 flex items-end">
+              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+              </div>
+            </div>
+            
+            {/* Card 2 - Pink */}
+            <div className="bg-pink-400 rounded-2xl aspect-square p-6 flex items-end">
+              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+              </div>
+            </div>
+            
+            {/* Card 3 - Green */}
+            <div className="bg-green-500 rounded-2xl aspect-square p-6 flex items-end">
+              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+              </div>
+            </div>
+            
+            {/* Card 4 - Orange */}
+            <div className="bg-orange-500 rounded-2xl aspect-square p-6 flex items-end">
+              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+              </div>
+            </div>
+            
+            {/* Card 5 - Olive/Yellow */}
+            <div className="bg-yellow-600 rounded-2xl aspect-square p-6 flex items-end md:col-span-1 col-span-2">
+              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
       <div className="relative z-10">
         <Footer />
