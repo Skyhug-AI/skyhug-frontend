@@ -31,11 +31,12 @@ const Index = () => {
         {bars.map((bar, index) => (
           <div
             key={bar.id}
-            className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80`}
+            className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`}
             style={{
               height: `${bar.height}px`,
               width: '8px',
-              animationDelay: `${index * 50}ms`
+              animationDelay: `${index * 100}ms`,
+              animationDuration: `${Math.random() * 0.8 + 0.8}s`
             }}
           />
         ))}
@@ -87,7 +88,7 @@ const Index = () => {
 
 
         {/* Audio Visualization */}
-        <div className="w-full">
+        <div className="w-full mb-16">
           <AudioBars />
         </div>
 
