@@ -123,12 +123,28 @@ const Index = () => {
 
         {/* Talk to Sky Interface */}
         <div className="flex flex-col items-center space-y-6">
-          <button
-            onClick={handleTalkToSky}
-            className="glass-panel text-gray-900 px-8 py-4 mt-6 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3"
-          >
-            <span className="text-lg">TALK TO SKY 🌤️</span>
-          </button>
+          <div className="relative">
+            {/* Floating sparkles animation */}
+            <div className="absolute -inset-6 opacity-70">
+              <div className="absolute top-0 left-0 w-2 h-2 bg-yellow-400 rounded-full animate-ping" style={{ animationDelay: '0s', animationDuration: '2s' }}></div>
+              <div className="absolute top-2 right-0 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '0.5s', animationDuration: '1.8s' }}></div>
+              <div className="absolute bottom-0 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '1s', animationDuration: '2.2s' }}></div>
+              <div className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1.5s', animationDuration: '1.5s' }}></div>
+            </div>
+            
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-pink-400/20 blur-xl animate-pulse"></div>
+            
+            <button
+              onClick={handleTalkToSky}
+              className="relative glass-panel text-gray-900 px-8 py-4 mt-6 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group"
+            >
+              <span className="text-lg group-hover:animate-bounce">TALK TO SKY 🌤️</span>
+              
+              {/* Ripple effect on hover */}
+              <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"></div>
+            </button>
+          </div>
         </div>
 
         {/* Audio Visualization */}
