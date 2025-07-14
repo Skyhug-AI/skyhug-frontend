@@ -98,14 +98,20 @@ const Header = () => {
           </DropdownMenu>
         ) : (
           <div className="flex items-center gap-3">
-            <Button variant="ghost" className="text-foreground hover:text-skyhug-500 hover:bg-skyhug-50" onClick={() => navigate('/login')}>
-              <LogIn className="mr-2 h-4 w-4" />
+            <button 
+              onClick={() => navigate('/login')}
+              className="glass-panel text-gray-900 px-4 py-2 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-lg flex items-center gap-2 hover:scale-105"
+            >
+              <LogIn className="h-4 w-4" />
               Login
-            </Button>
-            <Button variant="default" className="bg-skyhug-500 hover:bg-skyhug-600 text-white rounded-md" onClick={() => navigate('/signup')}>
-              <UserPlus className="mr-2 h-4 w-4" />
+            </button>
+            <button 
+              onClick={() => navigate('/signup')}
+              className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-white px-4 py-2 rounded-full font-medium hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 transition-all duration-300 shadow-lg flex items-center gap-2 hover:scale-105"
+            >
+              <UserPlus className="h-4 w-4" />
               Sign Up
-            </Button>
+            </button>
           </div>
         )}
       </div>
