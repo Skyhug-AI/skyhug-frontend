@@ -212,6 +212,146 @@ const Index = () => {
         </div>
       </div>
 
+      {/* What do you want section */}
+      <div className="relative z-10 bg-gradient-to-br from-slate-50 to-blue-50 py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              What do you want an AI therapy companion for?
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Stress less */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Stress less</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-3xl">💪</div>
+                  <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sleep soundly */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Sleep soundly</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-3xl">🌙✨</div>
+                  <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Manage anxiety */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Manage anxiety</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-3xl">🌀</div>
+                  <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Process thoughts */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Process thoughts</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-3xl">🗨️</div>
+                  <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Practice meditation */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Practice meditation</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-3xl">🧘</div>
+                  <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Start therapy */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Start therapy</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-3xl">💬</div>
+                  <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <div className="text-center mt-16">
+            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              The mental health app for every moment
+            </h3>
+            <div className="flex flex-wrap justify-center gap-8 text-gray-600">
+              <span className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                AI guidance
+              </span>
+              <span className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                Guided meditations
+              </span>
+              <span className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                Sleep resources
+              </span>
+              <span className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Expert-led programs
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Demo Chat Section */}
       {/* <div className="relative z-10 py-20 px-6">
         <div className="max-w-4xl mx-auto">
