@@ -130,12 +130,12 @@ const HomePage = () => {
 
       <main className="flex-grow p-6 md:p-8 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
         {/* Top Header Bar */}
-        <div className="flex flex-col space-y-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+        <div className="flex flex-col space-y-1 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Welcome back, {firstName} <span className="wave">👋</span>
           </h1>
-          <p className="text-lg text-gray-700 font-medium">
-            You've earned <span className="text-purple-600 font-bold">720 Calm Points</span> <span className="text-2xl">🌟</span>
+          <p className="text-base text-gray-500">
+            You've earned 720 Calm Points ⭐
           </p>
         </div>
 
