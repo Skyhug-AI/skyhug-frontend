@@ -52,7 +52,7 @@ const Index = () => {
       })
     );
     return (
-      <div className="flex items-end justify-center gap-1 h-32 w-full max-w-4xl mx-auto">
+      <div className="flex items-end justify-center gap-1 h-24 w-full max-w-4xl mx-auto">
         {bars.map((bar, index) => (
           <div
             key={bar.id}
@@ -102,10 +102,10 @@ const Index = () => {
         </div>
 
         {/* Talk to Sky Interface */}
-        <div className="flex flex-col items-center space-y-6 mb-12">
+        <div className="flex flex-col items-center space-y-6">
           <button
             onClick={handleTalkToSky}
-            className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3"
+            className="glass-panel text-gray-900 px-8 py-4 mt-6 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3"
           >
             <span className="text-lg">TALK TO SKY 🌤️</span>
           </button>
