@@ -29,7 +29,7 @@ const Index = () => {
   // Animated placeholder text for input
   const placeholderTexts = [
     "managing daily stress",
-    "better sleep habits", 
+    "better sleep habits",
     "processing emotions",
     "building confidence",
     "mindfulness practice",
@@ -94,7 +94,7 @@ const Index = () => {
         } else {
           clearInterval(typingInterval);
           setIsTyping(false);
-          
+
           // Wait before starting next word
           nextWordTimeout = setTimeout(() => {
             setCurrentPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
@@ -168,7 +168,7 @@ const Index = () => {
     );
   };
   return (
-    <div className="min-h-screen text-gray-900 relative overflow-hidden">
+    <div className="min-h-[95vh] text-gray-900 relative overflow-hidden">
       <SunriseGradientBackground />
       <CloudBackground />
 
@@ -279,7 +279,7 @@ const Index = () => {
               What do you want an AI therapy companion for?
             </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* Stress less */}
             <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group">
@@ -440,7 +440,7 @@ const Index = () => {
                   <div className="absolute top-6 right-6 w-16 h-10 bg-white/20 rounded-full"></div>
                   <div className="absolute top-10 right-12 w-12 h-8 bg-white/15 rounded-full"></div>
                   <div className="absolute top-4 right-20 w-8 h-6 bg-white/10 rounded-full"></div>
-                  
+
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-6">
@@ -461,7 +461,7 @@ const Index = () => {
                         Get started
                       </button>
                     </div>
-                    
+
                     <div className="flex-shrink-0">
                       <div className="relative">
                         {/* Video call mockup */}
@@ -508,7 +508,7 @@ const Index = () => {
                         Start meditating
                       </button>
                     </div>
-                    
+
                     <div className="flex-shrink-0">
                       <div className="relative">
                         <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
@@ -541,7 +541,7 @@ const Index = () => {
                         Chat now
                       </button>
                     </div>
-                    
+
                     <div className="flex-shrink-0">
                       <div className="relative">
                         <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
@@ -576,7 +576,7 @@ const Index = () => {
                         Sleep better
                       </button>
                     </div>
-                    
+
                     <div className="flex-shrink-0">
                       <div className="relative">
                         <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
@@ -588,7 +588,7 @@ const Index = () => {
                 </div>
               </CarouselItem>
             </CarouselContent>
-            
+
             <CarouselPrevious className="left-4" />
             <CarouselNext className="right-4" />
           </Carousel>
@@ -606,7 +606,7 @@ const Index = () => {
               Experience our AI companion in action. Send a message and see how it responds.
             </p>
           </div>
-          
+
           <DemoChatInterface />
         </div>
       </div> */}
