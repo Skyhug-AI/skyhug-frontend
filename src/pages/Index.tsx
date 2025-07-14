@@ -1,11 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CloudBackground from "@/components/CloudBackground";
 import { useNavigate } from "react-router-dom";
-import { Mic, Heart } from "lucide-react";
+import { Mic, Heart, X } from "lucide-react";
+import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
+import VoiceRecorder from "@/components/voice/VoiceRecorder";
 const Index = () => {
   const navigate = useNavigate();
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [isSessionStarted, setIsSessionStarted] = useState(false);
+
+  const handleTalkToSky = () => {
+    setShowVoiceModal(true);
+  };
+
+  const handleSessionStart = () => {
+    setIsSessionStarted(true);
+  };
+
+  const handleVoiceRecorded = (transcript: string) => {
+    console.log('Voice recorded:', transcript);
+    // Handle the voice input here
+  };
+
+  const handleCloseModal = () => {
+    setShowVoiceModal(false);
+    setIsSessionStarted(false);
+  };
 
   // Audio visualization bars for the bottom
   const AudioBars = () => {
@@ -75,7 +97,7 @@ const Index = () => {
 
         {/* Talk to Sky Interactive Button */}
         <div className="flex justify-center">
-          <button onClick={() => navigate('/session')} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
+          <button onClick={handleTalkToSky} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
             <Mic className="w-5 h-5" />
             <span className="text-lg">TALK TO SKY</span>
             <div className="flex gap-1">
@@ -95,6 +117,39 @@ const Index = () => {
       <div className="relative z-10">
         <Footer />
       </div>
+
+      {/* Voice Modal */}
+      {showVoiceModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl max-w-md w-full">
+            {/* Close button */}
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Content */}
+            <div className="p-8 text-center">
+              {!isSessionStarted ? (
+                <AnimatedSunLoader
+                  onComplete={handleSessionStart}
+                  duration={3000}
+                  subtext="Your mind deserves this pause."
+                />
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-lg font-medium text-gray-800">
+                    Talk to Sky
+                  </div>
+                  <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>;
 };
 export default Index;
