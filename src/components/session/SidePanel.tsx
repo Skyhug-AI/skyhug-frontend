@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import MainDashboard from "@/components/dashboard/MainDashboard";
 
 const SidePanel = () => {
   const { toast } = useToast();
@@ -38,14 +39,19 @@ const SidePanel = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Tabs defaultValue="treatment" className="w-full">
+      <Tabs defaultValue="dashboard" className="w-full">
         <div className="p-4 border-b">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="treatment">Treatment Plan</TabsTrigger>
             <TabsTrigger value="form">Contact Form</TabsTrigger>
             <TabsTrigger value="info">Information</TabsTrigger>
           </TabsList>
         </div>
+
+        <TabsContent value="dashboard" className="p-6">
+          <MainDashboard />
+        </TabsContent>
 
         <TabsContent value="treatment" className="p-6">
           <div className="mb-6">
