@@ -272,33 +272,6 @@
   animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes rainbow-cycle {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px) scale(0.8);
-  }
-  10% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0px) scale(1);
-  }
-  20% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0px) scale(1);
-  }
-  30% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px) scale(0.8);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px) scale(0.8);
-  }
-}
-
-.animate-rainbow-cycle {
-  animation: rainbow-cycle 10s infinite;
-}
-
 .bg-sky-gradient {
   background: linear-gradient(135deg, #D3E4FD 0%, #33C3F0 50%, #1EAEDB 100%);
 }
