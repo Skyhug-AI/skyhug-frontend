@@ -66,32 +66,32 @@ const CloudBackground: React.FC<CloudBackgroundProps> = ({ className = '' }) => 
       {/* Decorative clouds with enhanced floating animation */}
       <div
         className="cloud w-32 h-20 top-[10%] left-[5%] animate-float-cloud"
-        style={{ animationDuration: '18s', animationDelay: '0s' }}
+        style={{ animationDuration: '12s', animationDelay: '0s' }}
       ></div>
       <div
         className="cloud w-40 h-24 top-[15%] right-[10%] animate-float-cloud"
-        style={{ animationDuration: '22s', animationDelay: '1.5s' }}
+        style={{ animationDuration: '15s', animationDelay: '1.5s' }}
       ></div>
       <div
         className="cloud w-28 h-16 bottom-[30%] left-[15%] animate-float-cloud"
-        style={{ animationDuration: '20s', animationDelay: '3s' }}
+        style={{ animationDuration: '14s', animationDelay: '3s' }}
       ></div>
       <div
         className="cloud w-36 h-20 bottom-[20%] right-[20%] animate-float-cloud"
-        style={{ animationDuration: '24s', animationDelay: '4.5s' }}
+        style={{ animationDuration: '16s', animationDelay: '4.5s' }}
       ></div>
       <div
         className="cloud w-24 h-14 top-[50%] left-[50%] animate-float-cloud"
-        style={{ animationDuration: '19s', animationDelay: '2s' }}
+        style={{ animationDuration: '13s', animationDelay: '2s' }}
       ></div>
       {/* Additional floating clouds for more movement */}
       <div
         className="cloud w-30 h-18 top-[35%] right-[5%] animate-float-cloud"
-        style={{ animationDuration: '25s', animationDelay: '6s' }}
+        style={{ animationDuration: '17s', animationDelay: '6s' }}
       ></div>
       <div
         className="cloud w-26 h-15 bottom-[45%] left-[8%] animate-float-cloud"
-        style={{ animationDuration: '21s', animationDelay: '7.5s' }}
+        style={{ animationDuration: '14s', animationDelay: '7.5s' }}
       ></div>
     </div>
   );
