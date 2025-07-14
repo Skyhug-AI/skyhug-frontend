@@ -48,9 +48,11 @@ const Header = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="rounded-full p-0 px-4 border-gray-100 gap-2">
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="bg-skyhug-100 text-skyhug-500 text-sm">
-                    {user?.name?.[0] || 'U'}
+                <Avatar className="h-7 w-7 ring-2 ring-skyhug-200 hover:ring-skyhug-400 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-skyhug-200/50">
+                  <AvatarFallback className="bg-gradient-to-br from-skyhug-400 to-skyhug-600 text-white text-sm font-bold relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-sparkle bg-opacity-20 group-hover:animate-pulse"></div>
+                    <span className="relative z-10 group-hover:animate-bounce">{user?.name?.[0] || 'U'}</span>
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full animate-pulse opacity-75"></div>
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium flex items-center gap-2">
