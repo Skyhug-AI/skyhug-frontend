@@ -130,7 +130,7 @@ const HomePage = () => {
 
       <main className="flex-grow p-6 md:p-8 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
         {/* Top Header Bar */}
-        <div className="flex flex-col space-y-1 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+        <div className="flex flex-col space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Welcome back, {firstName} <span className="wave">👋</span>
           </h1>
