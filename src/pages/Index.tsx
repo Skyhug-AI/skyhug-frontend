@@ -175,7 +175,7 @@ const Index = () => {
       <div className="relative z-50">
         <Header />
       </div>
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[70vh] px-6">
         <div className="mb-0">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg flex items-center justify-center">
