@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CloudBackground from "@/components/CloudBackground";
-import SunriseGradientBackground from "@/components/SunriseGradientBackground";
 import { useNavigate } from "react-router-dom";
 import { Mic, Heart, X } from "lucide-react";
 import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
@@ -48,9 +47,7 @@ const Index = () => {
       }} />)}
       </div>;
   };
-  return <div className="min-h-screen text-gray-900 relative overflow-hidden">
-      {/* Sunrise gradient background */}
-      <SunriseGradientBackground />
+  return <div className="min-h-screen bg-gradient-to-b from-white to-serenity-50 text-gray-900 relative overflow-hidden">
       {/* Cloud background */}
       <CloudBackground />
       
