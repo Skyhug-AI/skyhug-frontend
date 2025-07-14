@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CloudBackground from "@/components/CloudBackground";
@@ -11,6 +11,18 @@ const Index = () => {
   const navigate = useNavigate();
   const [showVoiceInterface, setShowVoiceInterface] = useState(false);
   const [isSessionStarted, setIsSessionStarted] = useState(false);
+  
+  // Rotating text for "for everyone"
+  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for Couples", "for Happiness"];
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTextIndex((prev) => (prev + 1) % rotatingTexts.length);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleTalkToSky = () => {
     navigate("/signup");
@@ -91,8 +103,8 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             AI therapy companion
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float">
-              for everyone
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-all duration-300">
+              {rotatingTexts[currentTextIndex]}
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
