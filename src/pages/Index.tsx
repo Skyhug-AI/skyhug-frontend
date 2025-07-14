@@ -116,9 +116,9 @@ const Index = () => {
   };
 
   // Commented out voice interface functionality for now
-  // const handleTalkToSkyOld = () => {
-  //   setShowVoiceInterface(true);
-  // };
+  const handleTalkToSkyOld = () => {
+    setShowVoiceInterface(true);
+  };
 
   const handleSessionStart = () => {
     setIsSessionStarted(true);
@@ -133,7 +133,7 @@ const Index = () => {
   const AudioBars = () => {
     const bars = Array.from(
       {
-        length: 10,
+        length: 15,
       },
       (_, i) => ({
         id: i,
@@ -142,12 +142,9 @@ const Index = () => {
           "bg-blue-400",
           "bg-purple-400",
           "bg-pink-400",
-          "bg-green-400",
-          "bg-yellow-400",
           "bg-indigo-400",
           "bg-cyan-400",
-          "bg-orange-400",
-        ][Math.floor(Math.random() * 8)],
+        ][Math.floor(Math.random() * 5)],
       })
     );
     return (
@@ -155,7 +152,7 @@ const Index = () => {
         {bars.map((bar, index) => (
           <div
             key={bar.id}
-            className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`}
+            className={`${bar.color} rounded-full transition-all duration-200 hover:opacity-80`}
             style={{
               height: `${bar.height}px`,
               width: "8px",
@@ -188,7 +185,7 @@ const Index = () => {
         {/* Main Heading */}
         <div className="text-center max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-800">
-            <span className="block mb-8">AI Therapy Companion</span>
+            <span className="block mb-1">AI Therapy Companion</span>
             <span
               className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
               style={{ opacity: textOpacity }}
