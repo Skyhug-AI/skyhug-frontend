@@ -13,7 +13,7 @@ const Index = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   
   // Rotating text for "for everyone"
-  const rotatingTexts = ["for everyone", "for anxiety", "for ADHD", "for couples", "for happiness", "for sleep"];
+  const rotatingTexts = ["everyone", "anxiety", "ADHD", "couples", "happiness", "sleep"];
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [textOpacity, setTextOpacity] = useState(1);
 
@@ -108,11 +108,14 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900">
             AI therapy companion
             <br />
-            <span 
-              className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
-              style={{ opacity: textOpacity }}
-            >
-              {rotatingTexts[currentTextIndex]}
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float">
+              for{" "}
+              <span 
+                className="transition-opacity duration-200"
+                style={{ opacity: textOpacity }}
+              >
+                {rotatingTexts[currentTextIndex]}
+              </span>
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
