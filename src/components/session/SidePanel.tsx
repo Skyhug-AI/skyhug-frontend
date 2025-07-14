@@ -38,30 +38,30 @@ const SidePanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-background">
       <Tabs defaultValue="dashboard" className="w-full">
-        <div className="p-4 border-b border-amber-200/50 bg-white/60 backdrop-blur-sm shadow-sm">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 shadow-md border border-amber-200/30">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:shadow-sm">Dashboard</TabsTrigger>
-            <TabsTrigger value="treatment" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:shadow-sm">Treatment Plan</TabsTrigger>
-            <TabsTrigger value="form" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:shadow-sm">Contact Form</TabsTrigger>
-            <TabsTrigger value="info" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:shadow-sm">Information</TabsTrigger>
+        <div className="p-4 border-b border-border bg-background/95 backdrop-blur-sm shadow-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-card shadow-md border border-border">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm">Dashboard</TabsTrigger>
+            <TabsTrigger value="treatment" className="data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm">Treatment Plan</TabsTrigger>
+            <TabsTrigger value="form" className="data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm">Contact Form</TabsTrigger>
+            <TabsTrigger value="info" className="data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm">Information</TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="dashboard" className="p-6 bg-gradient-to-br from-amber-50 to-orange-100">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-200/30">
+        <TabsContent value="dashboard" className="p-6 bg-background">
+          <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-border">
             <MainDashboard />
           </div>
         </TabsContent>
 
-        <TabsContent value="treatment" className="p-6 bg-gradient-to-br from-amber-50 to-orange-100">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-200/30">
+        <TabsContent value="treatment" className="p-6 bg-background">
+          <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-border">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
+              <h2 className="text-2xl font-semibold text-foreground">
                 Your Treatment Plan
               </h2>
-              <p className="text-gray-600 mt-2">
+              <p className="text-muted-foreground mt-2">
                 Personalized therapy journey based on your needs and goals.
               </p>
             </div>
@@ -174,11 +174,11 @@ const SidePanel = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="form" className="p-6 bg-gradient-to-br from-amber-50 to-orange-100">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-200/30">
+        <TabsContent value="form" className="p-6 bg-background">
+          <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-border">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">Contact Us</h2>
-              <p className="text-gray-600 mt-2">
+              <h2 className="text-2xl font-semibold text-foreground">Contact Us</h2>
+              <p className="text-muted-foreground mt-2">
                 Fill out this form and we'll get back to you as soon as possible.
               </p>
             </div>
@@ -187,7 +187,7 @@ const SidePanel = () => {
               <div className="space-y-2">
                 <label
                   htmlFor="name"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-foreground"
                 >
                   Name
                 </label>
@@ -203,7 +203,7 @@ const SidePanel = () => {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-foreground"
                 >
                   Email
                 </label>
@@ -220,7 +220,7 @@ const SidePanel = () => {
               <div className="space-y-2">
                 <label
                   htmlFor="message"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-foreground"
                 >
                   Message
                 </label>
@@ -255,13 +255,13 @@ const SidePanel = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="info" className="p-6 bg-gradient-to-br from-amber-50 to-orange-100">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-200/30">
+        <TabsContent value="info" className="p-6 bg-background">
+          <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-border">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
+              <h2 className="text-2xl font-semibold text-foreground">
                 Information
               </h2>
-              <p className="text-gray-600 mt-2">
+              <p className="text-muted-foreground mt-2">
                 Important details about our services and support.
               </p>
             </div>
