@@ -2,138 +2,262 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CloudBackground from "@/components/CloudBackground";
+import EmotionalCheckInReminder from "@/components/reminders/EmotionalCheckInReminder";
+import DailyGoalsCard from "@/components/goals/DailyGoalsCard";
+import MoodChart from "@/components/progress/MoodChart";
+import StreakTracker from "@/components/achievements/StreakTracker";
+import FloatingJournalButton from "@/components/journal/FloatingJournalButton";
+import AffirmationCard from "@/components/affirmations/AffirmationCard";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { Mic, Sparkles, Heart, MessageSquare } from "lucide-react";
-import AudioWaveAnimation from "@/components/voice/AudioWaveAnimation";
+import { ChevronRight } from "lucide-react";
+import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
+import { toast } from "@/hooks/use-toast";
 import { useTherapist } from "@/context/TherapistContext";
+
+const getFirstName = (fullName: string | undefined) => {
+  return fullName?.split(" ")[0] || "Friend";
+};
 
 const HomePage = () => {
   const { user } = useAuth();
+  const [selectedMood, setSelectedMood] = useState<number | null>(null);
+  const [moodDialogOpen, setMoodDialogOpen] = useState(false);
+  const firstName = getFirstName(user?.name);
   const navigate = useNavigate();
+  const {
+    activeConversationId,
+    getActiveSessionIdAndTherapist,
+    currentTherapist,
+  } = useTherapist();
 
-  // Audio visualization bars for the bottom
-  const AudioBars = () => {
-    const bars = Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      height: Math.random() * 40 + 10,
-      color: [
-        'bg-blue-400',
-        'bg-purple-400', 
-        'bg-pink-400',
-        'bg-green-400',
-        'bg-yellow-400',
-        'bg-indigo-400',
-        'bg-cyan-400',
-        'bg-orange-400'
-      ][Math.floor(Math.random() * 8)]
-    }));
+  useEffect(() => {
+    getActiveSessionIdAndTherapist();
+  }, []);
 
-    return (
-      <div className="flex items-end justify-center gap-1 h-32 w-full max-w-4xl mx-auto">
-        {bars.map((bar, index) => (
-          <div
-            key={bar.id}
-            className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80`}
-            style={{
-              height: `${bar.height}px`,
-              width: '8px',
-              animationDelay: `${index * 50}ms`
-            }}
-          />
-        ))}
-      </div>
-    );
+  // Track completed goals
+  const [completedGoals, setCompletedGoals] = useState<string[]>([]);
+  const moodData = [
+    {
+      day: "Mon",
+      value: 2,
+      mood: "😐",
+      note: "Feeling neutral",
+    },
+    {
+      day: "Tue",
+      value: 3,
+      mood: "🙂",
+      note: "Slightly better today",
+    },
+    {
+      day: "Wed",
+      value: 1,
+      mood: "😔",
+      note: "Difficult day",
+    },
+    {
+      day: "Thu",
+      value: 4,
+      mood: "😄",
+      note: "Great progress",
+    },
+    {
+      day: "Fri",
+      value: 3,
+      mood: "🙂",
+      note: "Steady improvement",
+    },
+    {
+      day: "Sat",
+      value: 4,
+      mood: "😄",
+      note: "Feeling good",
+    },
+    {
+      day: "Sun",
+      value: 5,
+      mood: "🌟",
+      note: "Excellent day",
+    },
+  ];
+  const handleGoalClick = (type: string) => {
+    // If already completed, don't do anything
+    if (completedGoals.includes(type)) {
+      return;
+    }
+    if (type === "session") {
+      navigate("/session");
+    } else if (type === "mood") {
+      // Open mood selection dialog
+      setMoodDialogOpen(true);
+    }
+  };
+  const handleMoodSelect = () => {
+    // Update the goals list to show completion
+    setSelectedMood(3);
+
+    // Mark the mood goal as completed
+    setCompletedGoals((prev) => [...prev, "mood"]);
+
+    // Close the dialog
+    setMoodDialogOpen(false);
+
+    // Add points notification could go here
+    toast({
+      title: "Mood logged successfully!",
+      description: "You earned +10 Calm Points",
+    });
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Dark background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
-      
-      {/* Subtle animated orbs */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse-slow" />
-      <div className="absolute top-40 right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-40 left-1/4 w-24 h-24 bg-pink-500/10 rounded-full blur-xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+  // Calculate progress based on completed goals
+  const totalGoals = 2; // session and mood
+  const completedCount = completedGoals.length;
+  const progressPercentage = (completedCount / totalGoals) * 100;
 
-      {/* Header */}
-      <div className="relative z-50">
+  return (
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
+      <CloudBackground />
+      <div className="sticky top-0 z-50">
         <Header />
       </div>
+      {/* <FloatingJournalButton /> */}
 
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
-        {/* Logo/Brand */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-semibold">SKYHUG</span>
-          </div>
-        </div>
-
-        {/* Main Heading */}
-        <div className="text-center mb-16 max-w-4xl">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Voice AI therapist
-            <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              for everyone
-            </span>
+      <main className="flex-grow p-6 md:p-8 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
+        {/* Top Header Bar */}
+        <div className="flex flex-col space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+            Welcome back, {firstName} <span className="wave">👋</span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Start your healing journey with Sky, your personal AI therapist. 
-            Available 24/7 for voice conversations that feel natural and supportive.
+          <p className="text-sm text-gray-500">
+            You've earned 720 Calm Points 🌟
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-20">
-          <Button
-            onClick={() => navigate('/voice')}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl border-0"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            TALK TO SKY
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/chat')}
-            variant="outline"
-            className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-8 py-4 rounded-full text-lg font-medium transition-all duration-300"
-          >
-            <MessageSquare className="w-5 h-5 mr-2" />
-            TEXT CHAT
-          </Button>
+        {/* Action: Start Session CTA */}
+        <div className="rounded-xl bg-gradient-to-r from-indigo-100 to-purple-100 p-6 flex flex-col md:flex-row justify-between items-center shadow-sm">
+          <div>
+            <h2 className="text-lg font-medium text-gray-800">
+              Need a quick check-in?
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Tap below to begin a voice or reflection session.
+            </p>
+          </div>
+          {!activeConversationId ? (
+            <Button
+              className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+              onClick={() => navigate("/session")}
+            >
+              Start Session
+            </Button>
+          ) : (
+            <Button
+              className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+              onClick={() => navigate("/session")}
+            >
+              Resume Session
+            </Button>
+          )}
         </div>
 
-        {/* Audio Visualization */}
-        <div className="w-full">
-          <AudioBars />
+        {/* Goals + Calm Points */}
+        <div className="rounded-lg border p-6 space-y-4 bg-white shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-gray-800">Today's Goals</h3>
+            <span className="text-sm text-gray-500">
+              {completedCount * 10 + 10}/100 Calm Points
+            </span>
+          </div>
+
+          <div className="relative">
+            <Progress
+              value={progressPercentage}
+              className="h-3 rounded-full"
+              indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
+            />
+            <span className="absolute left-0 top-4 text-xs text-gray-500">
+              {progressPercentage}% complete
+            </span>
+          </div>
+
+          <ul className="space-y-3 text-sm text-gray-700 mt-14">
+            <li
+              className={`flex items-center justify-between p-3 rounded-md transition-all border mt-4 ${
+                completedGoals.includes("session")
+                  ? "bg-gray-50 border-green-100 opacity-80"
+                  : "hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm"
+              }`}
+              onClick={() => handleGoalClick("session")}
+            >
+              <div className="flex items-center">
+                <span
+                  className={
+                    completedGoals.includes("session")
+                      ? "line-through text-gray-500"
+                      : ""
+                  }
+                >
+                  Completing a session
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-indigo-600 font-semibold">+50</span>
+                {!completedGoals.includes("session") && (
+                  <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
+                )}
+              </div>
+            </li>
+            <li
+              className={`flex items-center justify-between p-3 rounded-md transition-all border ${
+                completedGoals.includes("mood")
+                  ? "bg-gray-50 border-green-100 opacity-80"
+                  : "hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm"
+              }`}
+              onClick={() => handleGoalClick("mood")}
+            >
+              <div className="flex items-center">
+                <span
+                  className={
+                    completedGoals.includes("mood")
+                      ? "line-through text-gray-500"
+                      : ""
+                  }
+                >
+                  Mood check-in
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-indigo-600 font-semibold">+10</span>
+                {!completedGoals.includes("mood") && (
+                  <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
+                )}
+              </div>
+            </li>
+          </ul>
         </div>
 
-        {/* Talk to Sky Interactive Button */}
-        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
-          <button
-            onClick={() => navigate('/voice')}
-            className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-medium hover:bg-white/20 transition-all duration-300 shadow-xl flex items-center gap-3"
-          >
-            <Mic className="w-5 h-5" />
-            <span className="text-lg">TALK TO SKY</span>
-            <div className="flex gap-1">
-              <div className="w-1 h-4 bg-white/60 rounded-full animate-wave" />
-              <div className="w-1 h-4 bg-white/60 rounded-full animate-wave" style={{ animationDelay: '0.1s' }} />
-              <div className="w-1 h-4 bg-white/60 rounded-full animate-wave" style={{ animationDelay: '0.2s' }} />
-            </div>
-          </button>
-        </div>
-      </div>
+        {/* Mood Selection Dialog */}
+        <MoodSelectionDialog
+          open={moodDialogOpen}
+          onOpenChange={setMoodDialogOpen}
+          onMoodSelect={handleMoodSelect}
+        />
 
-      {/* Footer */}
-      <div className="relative z-10">
-        <Footer />
-      </div>
+        {/* <section className="space-y-4"> */}
+        {/* <MoodChart moodData={moodData} /> */}
+        {/* <StreakTracker currentStreak={3} longestStreak={7} /> */}
+        {/* </section> */}
+
+        <section>
+          <AffirmationCard />
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 };

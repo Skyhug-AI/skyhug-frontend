@@ -40,7 +40,7 @@ const App = () => (
           <BrowserRouter>
             <OnboardingRedirect>
               <Routes>
-                <Route path="/" element={<AuthRedirect />} />
+                <Route path="/" element={<Index />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
