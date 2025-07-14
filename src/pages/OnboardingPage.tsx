@@ -48,13 +48,6 @@ const OnboardingPage = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [therapistStyle, setTherapistStyle] = useState([50]); // 0 = agreeable, 100 = challenging
 
-  // Navigate to home when onboarding is completed
-  useEffect(() => {
-    if (onboardingCompleted) {
-      navigate("/home");
-    }
-  }, [onboardingCompleted, navigate]);
-
   const {
     register,
     handleSubmit,
@@ -122,15 +115,8 @@ const OnboardingPage = () => {
         console.error("❌ Patient update error:", patientError);
         throw patientError;
       }
-
-      console.log("✅ Onboarding completed successfully");
-      setOnboardingCompleted(true);
-      
-      // Refresh the auth context to update onboarding status
       await refreshOnboardingStatus();
-      
-      // Navigate to home after updating the context
-      navigate('/home');
+      console.log("✅ Onboarding completed successfully");
     } catch (error) {
       console.error("🚨 Onboarding failed:", error);
       toast({
