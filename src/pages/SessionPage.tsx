@@ -32,13 +32,14 @@ const SessionPage = () => {
   // Memoize this function to prevent unnecessary rerenders
   const handleStartSession = useCallback(async () => {
     console.log("🚀 Starting new therapy session");
-    await createOrStartActiveSession(); 
+    await createOrStartActiveSession();
     setIsSessionStarted(true);
   }, []);
 
   // First fetch active session info if it exists
   useEffect(() => {
     getActiveSessionIdAndTherapist();
+    handleStartSession();
   }, []);
 
   const handleEndSession = async () => {
@@ -54,7 +55,7 @@ const SessionPage = () => {
     setIsBreathingExerciseOpen(!isBreathingExerciseOpen);
   };
 
-  if (isLoadingSession) {
+  if (isLoadingSession || !isSessionStarted) {
     return (
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="animate-pulse text-gray-500">Loading...</div>
@@ -82,8 +83,8 @@ const SessionPage = () => {
             {isSessionStarted && (
               <div className="flex items-center gap-2 text-gray-600 text-sm">
                 <span>
-                  You're in a session with{" "}
-                  {currentTherapist?.name ?? "Sky"} -- your AI therapy companion 💙
+                  You're in a session with {currentTherapist?.name ?? "Sky"} --
+                  your AI therapy companion 💙
                 </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
@@ -148,11 +149,12 @@ const SessionPage = () => {
       </header>
 
       <div className="flex-grow w-full">
-        {!isSessionStarted ? (
+        {/* {!isSessionStarted ? (
           <div className="max-w-3xl mx-auto px-4 w-full">
             <SessionIntro onStartSession={handleStartSession} />
           </div>
-        ) : (
+        ) : ( */}
+        {isSessionStarted && (
           <div className="w-full h-full flex relative z-10">
             <ResizablePanelGroup direction="horizontal" className="w-full">
               <ResizablePanel
@@ -179,6 +181,7 @@ const SessionPage = () => {
             </ResizablePanelGroup>
           </div>
         )}
+        {/* )} */}
       </div>
 
       <BreathingExercise
