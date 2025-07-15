@@ -72,7 +72,7 @@ const SessionPage = () => {
       <div className="sticky top-0 z-50 bg-white">
         <Header />
 
-        {isSessionStarted && (
+        {/* {isSessionStarted && (
           <div className="border-b border-gray-100 bg-white/90 shadow-sm">
             <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
               <div className="flex items-center gap-4">
@@ -145,7 +145,7 @@ const SessionPage = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Main content area */}
