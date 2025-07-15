@@ -144,7 +144,7 @@ const SessionPage = () => {
         </div>
       )}
 
-      <div className="flex-grow w-full">
+      <div className="flex-grow w-full pt-4">
         {/* {!isSessionStarted ? (
           <div className="max-w-3xl mx-auto px-4 w-full">
             <SessionIntro onStartSession={handleStartSession} />
