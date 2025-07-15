@@ -3,6 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CloudBackground from "@/components/CloudBackground";
+import SunriseGradientBackground from "@/components/SunriseGradientBackground";
 import EmotionalCheckInReminder from "@/components/reminders/EmotionalCheckInReminder";
 import DailyGoalsCard from "@/components/goals/DailyGoalsCard";
 import MoodChart from "@/components/progress/MoodChart";
@@ -119,7 +120,8 @@ const HomePage = () => {
   const progressPercentage = (completedCount / totalGoals) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-white">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <SunriseGradientBackground />
       <CloudBackground />
       <div className="sticky top-0 z-50">
         <Header />
@@ -129,34 +131,34 @@ const HomePage = () => {
       <main className="flex-grow p-6 md:p-8 space-y-6 relative z-10 max-w-5xl mx-auto w-full">
         {/* Top Header Bar */}
         <div className="flex flex-col space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Welcome back, {firstName} <span className="wave">👋</span>
           </h1>
-          <p className="text-sm text-gray-500">
-            You've earned 720 Calm Points 🌟
+          <p className="text-base text-gray-500">
+            You've earned 720 Calm Points ⭐
           </p>
         </div>
 
         {/* Action: Start Session CTA */}
-        <div className="rounded-xl bg-gradient-to-r from-indigo-100 to-purple-100 p-6 flex flex-col md:flex-row justify-between items-center shadow-sm">
+        <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8 flex flex-col md:flex-row justify-between items-center shadow-xl border border-white/30 backdrop-blur-sm">
           <div>
-            <h2 className="text-lg font-medium text-gray-800">
+            <h2 className="text-xl font-bold text-gray-800">
               Need a quick check-in?
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-base text-gray-600 mt-2">
               Tap below to begin a voice or reflection session.
             </p>
           </div>
           {!activeConversationId ? (
             <Button
-              className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+              className="mt-6 md:mt-0 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               onClick={() => navigate("/session")}
             >
               Start Session
             </Button>
           ) : (
             <Button
-              className="mt-4 md:mt-0 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+              className="mt-6 md:mt-0 px-8 py-4 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-xl text-base font-normal text-white"
               onClick={() => navigate("/session")}
             >
               Resume Session
@@ -165,10 +167,10 @@ const HomePage = () => {
         </div>
 
         {/* Goals + Calm Points */}
-        <div className="rounded-lg border p-6 space-y-4 bg-white shadow-sm">
+        <div className="rounded-2xl border border-white/30 p-8 space-y-6 bg-white/90 backdrop-blur-sm shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-800">Today's Goals</h3>
-            <span className="text-sm text-gray-500">
+            <h3 className="text-xl font-bold text-gray-800">Today's Goals</h3>
+            <span className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               {completedCount * 10 + 10}/100 Calm Points
             </span>
           </div>
@@ -176,20 +178,20 @@ const HomePage = () => {
           <div className="relative">
             <Progress
               value={progressPercentage}
-              className="h-3 rounded-full"
-              indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
+              className="h-4 rounded-full bg-gradient-to-r from-gray-100 to-gray-200"
+              indicatorClassName="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full shadow-lg"
             />
-            <span className="absolute left-0 top-4 text-xs text-gray-500">
+            <span className="absolute left-0 top-6 text-sm font-medium text-gray-600">
               {progressPercentage}% complete
             </span>
           </div>
 
-          <ul className="space-y-3 text-sm text-gray-700 mt-14">
+          <ul className="space-y-4 text-base text-gray-700 mt-8">
             <li
-              className={`flex items-center justify-between p-3 rounded-md transition-all border mt-4 ${
+              className={`flex items-center justify-between p-4 rounded-xl transition-all border-2 ${
                 completedGoals.includes("session")
-                  ? "bg-gray-50 border-green-100 opacity-80"
-                  : "hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm"
+                  ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-md"
+                  : "bg-gradient-to-r from-white to-blue-50 hover:from-blue-50 hover:to-purple-50 cursor-pointer border-blue-200 hover:border-purple-300 hover:shadow-lg transform hover:scale-102"
               }`}
               onClick={() => handleGoalClick("session")}
             >
@@ -205,17 +207,17 @@ const HomePage = () => {
                 </span>
               </div>
               <div className="flex items-center">
-                <span className="text-indigo-600 font-semibold">+50</span>
+                <span className="text-purple-600 font-bold text-lg">+50</span>
                 {!completedGoals.includes("session") && (
                   <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
                 )}
               </div>
             </li>
             <li
-              className={`flex items-center justify-between p-3 rounded-md transition-all border ${
+              className={`flex items-center justify-between p-4 rounded-xl transition-all border-2 ${
                 completedGoals.includes("mood")
-                  ? "bg-gray-50 border-green-100 opacity-80"
-                  : "hover:bg-gray-50 cursor-pointer border-transparent hover:border-gray-100 hover:shadow-sm"
+                  ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-md"
+                  : "bg-gradient-to-r from-white to-pink-50 hover:from-pink-50 hover:to-purple-50 cursor-pointer border-pink-200 hover:border-purple-300 hover:shadow-lg transform hover:scale-102"
               }`}
               onClick={() => handleGoalClick("mood")}
             >
@@ -231,7 +233,7 @@ const HomePage = () => {
                 </span>
               </div>
               <div className="flex items-center">
-                <span className="text-indigo-600 font-semibold">+10</span>
+                <span className="text-pink-600 font-bold text-lg">+10</span>
                 {!completedGoals.includes("mood") && (
                   <ChevronRight className="h-4 w-4 ml-2 text-gray-400" />
                 )}

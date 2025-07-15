@@ -140,6 +140,24 @@
     transform: translateX(0px) translateY(0px);
   }
   25% {
+    transform: translateX(30px) translateY(-20px);
+  }
+  50% {
+    transform: translateX(25px) translateY(25px);
+  }
+  75% {
+    transform: translateX(-15px) translateY(-15px);
+  }
+  100% {
+    transform: translateX(0px) translateY(0px);
+  }
+}
+
+@keyframes float-cloud-subtle {
+  0% {
+    transform: translateX(0px) translateY(0px);
+  }
+  25% {
     transform: translateX(15px) translateY(-8px);
   }
   50% {
@@ -266,6 +284,10 @@
 
 .animate-float-cloud {
   animation: float-cloud 15s ease-in-out infinite;
+}
+
+.animate-float-cloud-subtle {
+  animation: float-cloud-subtle 18s ease-in-out infinite;
 }
 
 .animate-pulse-slow {

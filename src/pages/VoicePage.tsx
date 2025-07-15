@@ -106,7 +106,7 @@ const VoicePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <CloudBackground />
+      <CloudBackground variant="subtle" />
       <Header />
 
       <main className="flex-grow flex flex-col relative z-10">

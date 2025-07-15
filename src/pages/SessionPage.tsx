@@ -64,7 +64,7 @@ const SessionPage = () => {
 
   return (
     <div className="h-screen flex flex-col relative bg-white overflow-hidden">
-      <CloudBackground />
+      <CloudBackground variant="subtle" />
 
       <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
@@ -82,8 +82,8 @@ const SessionPage = () => {
             {isSessionStarted && (
               <div className="flex items-center gap-2 text-gray-600 text-sm">
                 <span>
-                  You're in a therapy session with{" "}
-                  {currentTherapist?.name ?? "Sky"} — your AI companion 💙
+                  You're in a session with{" "}
+                  {currentTherapist?.name ?? "Sky"} -- your AI therapy companion 💙
                 </span>
                 <div className="flex items-center gap-1 text-skyhug-500">
                   <motion.div
