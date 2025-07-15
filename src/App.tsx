@@ -40,7 +40,15 @@ const App = () => (
           <BrowserRouter>
             <OnboardingRedirect>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route 
+                  path="/" 
+                  element={
+                    <ProtectedRoute>
+                      <SessionPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/landing" element={<Index />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
@@ -54,14 +62,14 @@ const App = () => (
                     </ProtectedRoute>
                   } 
                 />
-                <Route 
+                {/* <Route 
                   path="/home" 
                   element={
                     <ProtectedRoute>
                       <HomePage />
                     </ProtectedRoute>
                   } 
-                />
+                /> */}
                 <Route 
                   path="/profile" 
                   element={
@@ -110,14 +118,14 @@ const App = () => (
                     </ProtectedRoute>
                   } 
                 />
-                <Route 
+                {/* <Route 
                   path="/session" 
                   element={
                     <ProtectedRoute>
                       <SessionPage />
                     </ProtectedRoute>
                   } 
-                />
+                /> */}
                 <Route 
                   path="/session-summary" 
                   element={
