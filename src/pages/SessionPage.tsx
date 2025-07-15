@@ -26,7 +26,7 @@ const SessionPage = () => {
     activeConversationId,
     isLoadingSession,
   } = useTherapist();
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
 
