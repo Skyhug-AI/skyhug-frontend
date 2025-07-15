@@ -7,6 +7,7 @@ import { ArrowLeft, PanelRight, X, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import CloudBackground from "@/components/CloudBackground";
+import Header from "@/components/Header";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -66,15 +67,16 @@ const SessionPage = () => {
   return (
     <div className="h-screen flex flex-col relative bg-white overflow-hidden">
       <CloudBackground variant="subtle" />
+      <Header />
 
-      <header className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
+      <div className="border-b border-gray-100 bg-white/90 sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               className="text-gray-600"
-              onClick={() => navigate("/home")}
+              onClick={() => navigate("/")}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -146,7 +148,7 @@ const SessionPage = () => {
             )}
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="flex-grow w-full">
         {/* {!isSessionStarted ? (
