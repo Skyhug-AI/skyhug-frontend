@@ -54,19 +54,11 @@ const App = () => (
                     </ProtectedRoute>
                   } 
                 />
-                {/* <Route 
+                <Route 
                   path="/home" 
                   element={
                     <ProtectedRoute>
                       <HomePage />
-                    </ProtectedRoute>
-                  } 
-                /> */}
-                <Route 
-                  path="/session" 
-                  element={
-                    <ProtectedRoute>
-                      <SessionPage />
                     </ProtectedRoute>
                   } 
                 />
@@ -115,6 +107,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <TherapistSelectionPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/session" 
+                  element={
+                    <ProtectedRoute>
+                      <SessionPage />
                     </ProtectedRoute>
                   } 
                 />

@@ -18,10 +18,10 @@ const OnboardingRedirect = ({ children }: { children: React.ReactNode }) => {
     if (!user || !patientReady) return;
 
     console.log(onboardingCompleted, "ONBOARDING COMPLETED");
-    // If onboarding is completed and user is on onboarding page, redirect to session
+    // If onboarding is completed and user is on onboarding page, redirect to home
     if (onboardingCompleted && location.pathname === "/onboarding") {
-      console.log("🔄 Redirecting to session - onboarding completed");
-      navigate("/session");
+      console.log("🔄 Redirecting to home - onboarding completed");
+      navigate("/home");
       return;
     }
 
