@@ -33,7 +33,7 @@ const ProfilePage = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="h-20 w-20 bg-skyhug-100 rounded-full flex items-center justify-center text-2xl text-skyhug-500 font-medium">
+                  <div className="h-20 w-20 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-2xl text-white font-medium">
                     {user?.name?.[0]?.toLowerCase() || 'u'}
                   </div>
                   <div className="flex-grow">
