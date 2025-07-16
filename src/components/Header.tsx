@@ -61,10 +61,6 @@ const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => navigate('/session')} className="cursor-pointer">
-                <Play className="mr-2 h-4 w-4 text-skyhug-500" />
-                <span>Start a Session</span>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/home')} className="cursor-pointer">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
@@ -72,10 +68,6 @@ const Header = () => {
               <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>View Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
-                <Search className="mr-2 h-4 w-4" />
-                <span>Choose Therapist</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Sparkles className="mr-2 h-4 w-4" />
