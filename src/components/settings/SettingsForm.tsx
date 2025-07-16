@@ -82,7 +82,7 @@ const SettingsForm = () => {
     },
   };
   
-  const selectedTherapist = currentTherapist ? therapists[currentTherapist] || therapists['olivia'] : therapists['olivia'];
+  const selectedTherapist = therapists['dr-sky']; // Default to Sky for now
   
   const handleSaveSettings = () => {
     // In a real app, this would save to a backend
