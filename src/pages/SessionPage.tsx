@@ -17,7 +17,6 @@ import SidePanel from "@/components/session/SidePanel";
 import BreathingExercise from "@/components/session/BreathingExercise";
 import { useConfetti } from "@/hooks/useConfetti";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -27,47 +26,20 @@ const SessionPage = () => {
     endConversation,
     currentTherapist,
     activeConversationId,
+    isLoadingSession,
   } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
   const { triggerConfetti } = useConfetti();
 
-  // Check and award first-time session calm points
-  const checkAndAwardFirstTimePoints = useCallback(async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get current user profile
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("calm_points")
-        .eq("user_id", user.id)
-        .single();
-
-      // If user has 0 calm points, award them 50 for first session
-      if (profile && profile.calm_points === 0) {
-        const { error } = await supabase
-          .from("user_profiles")
-          .update({ calm_points: 50 })
-          .eq("user_id", user.id);
-
-        if (!error) {
-          triggerConfetti();
-          toast({
-            title: "🎉 Welcome Bonus!",
-            description:
-              "You got 50 calm points for starting your first session!",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error checking/awarding calm points:", error);
-    }
-  }, [triggerConfetti]);
+  const handleTestConfetti = () => {
+    triggerConfetti();
+    toast({
+      title: "🎉 Calm Points Earned!",
+      description: "You've earned calm points for completing an activity!",
+    });
+  };
 
   // Memoize this function to prevent unnecessary rerenders
   const handleStartSession = useCallback(async () => {
@@ -82,16 +54,6 @@ const SessionPage = () => {
     handleStartSession();
   }, []);
 
-  useEffect(() => {
-    if (!isSessionStarted) return;
-
-    const timer = setTimeout(() => {
-      checkAndAwardFirstTimePoints();
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [isSessionStarted]);
-
   const handleEndSession = async () => {
     await endConversation();
     navigate("/session-summary");
@@ -105,7 +67,7 @@ const SessionPage = () => {
     setIsBreathingExerciseOpen(!isBreathingExerciseOpen);
   };
 
-  if (!isSessionStarted) {
+  if (isLoadingSession || !isSessionStarted) {
     return (
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="animate-pulse text-gray-500">Loading...</div>
@@ -116,7 +78,7 @@ const SessionPage = () => {
   return (
     <div className="h-screen flex flex-col relative bg-white overflow-hidden">
       <CloudBackground variant="subtle" />
-
+      
       {/* Fixed header section */}
       <div className="sticky top-0 z-50 bg-white">
         <Header />

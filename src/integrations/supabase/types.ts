@@ -338,7 +338,6 @@ export type Database = {
           age: number | null
           agreeable_slider: number
           agreeable_slider_updated_at: string | null
-          calm_points: number
           career: string | null
           gender: string | null
           self_diagnosed_issues: string | null
@@ -351,7 +350,6 @@ export type Database = {
           age?: number | null
           agreeable_slider?: number
           agreeable_slider_updated_at?: string | null
-          calm_points?: number
           career?: string | null
           gender?: string | null
           self_diagnosed_issues?: string | null
@@ -364,7 +362,6 @@ export type Database = {
           age?: number | null
           agreeable_slider?: number
           agreeable_slider_updated_at?: string | null
-          calm_points?: number
           career?: string | null
           gender?: string | null
           self_diagnosed_issues?: string | null
