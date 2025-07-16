@@ -24,6 +24,7 @@ const SessionPage = () => {
     endConversation,
     currentTherapist,
     activeConversationId,
+    isLoadingSession,
   } = useTherapist();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
@@ -55,7 +56,7 @@ const SessionPage = () => {
     setIsBreathingExerciseOpen(!isBreathingExerciseOpen);
   };
 
-  if (!isSessionStarted) {
+  if (isLoadingSession || !isSessionStarted) {
     return (
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="animate-pulse text-gray-500">Loading...</div>
@@ -147,15 +148,19 @@ const SessionPage = () => {
         )} */}
       </div>
 
-      {/* Main content area - starts below header */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main content area */}
+      <div className="flex-1 overflow-hidden">
+        {/* {!isSessionStarted ? (
+          <div className="max-w-3xl mx-auto px-4 w-full">
+            <SessionIntro onStartSession={handleStartSession} />
+          </div>
+        ) : ( */}
         {isSessionStarted && (
-          <div className="flex-1 flex relative z-10">
-            <ResizablePanelGroup direction="horizontal" className="flex-1">
+          <div className="w-full h-full flex relative z-10">
+            <ResizablePanelGroup direction="horizontal" className="w-full">
               <ResizablePanel
                 defaultSize={isSidePanelOpen ? 60 : 100}
                 minSize={30}
-                className="flex flex-col"
               >
                 <SessionRoom />
               </ResizablePanel>
@@ -166,9 +171,9 @@ const SessionPage = () => {
                   <ResizablePanel
                     defaultSize={40}
                     minSize={20}
-                    className="border-l border-gray-200 flex flex-col overflow-hidden bg-white"
+                    className="border-l border-gray-200 h-screen overflow-hidden bg-white"
                   >
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="h-screen overflow-y-auto">
                       <SidePanel />
                     </div>
                   </ResizablePanel>
@@ -177,6 +182,7 @@ const SessionPage = () => {
             </ResizablePanelGroup>
           </div>
         )}
+        {/* )} */}
       </div>
 
       <BreathingExercise
