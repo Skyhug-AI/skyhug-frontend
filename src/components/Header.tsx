@@ -69,10 +69,6 @@ const Header = () => {
                 <User className="mr-2 h-4 w-4" />
                 <span>View Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Award className="mr-2 h-4 w-4" />
-                <span>Achievements</span>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
