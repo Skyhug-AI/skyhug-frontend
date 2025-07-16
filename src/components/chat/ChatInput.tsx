@@ -64,7 +64,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 border-t border-border p-4 pb-0 mb-1 bg-white/50 backdrop-blur-sm"
+      className="flex items-center gap-2 border-t border-border p-4 pb-0 mb-4 bg-white/50 backdrop-blur-sm"
     >
       <input
         type="text"
