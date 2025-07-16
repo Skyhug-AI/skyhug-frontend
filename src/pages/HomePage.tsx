@@ -7,7 +7,7 @@ import SunriseGradientBackground from "@/components/SunriseGradientBackground";
 import EmotionalCheckInReminder from "@/components/reminders/EmotionalCheckInReminder";
 import DailyGoalsCard from "@/components/goals/DailyGoalsCard";
 import MoodChart from "@/components/progress/MoodChart";
-import StreakTracker from "@/components/achievements/StreakTracker";
+// import StreakTracker from "@/components/achievements/StreakTracker";
 import FloatingJournalButton from "@/components/journal/FloatingJournalButton";
 import AffirmationCard from "@/components/affirmations/AffirmationCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
