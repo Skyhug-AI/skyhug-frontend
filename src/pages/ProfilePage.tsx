@@ -34,7 +34,7 @@ const ProfilePage = () => {
               <CardContent className="p-6">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="h-20 w-20 bg-skyhug-100 rounded-full flex items-center justify-center text-2xl text-skyhug-500 font-medium">
-                    {user?.name?.[0] || 'U'}
+                    {user?.name?.[0]?.toLowerCase() || 'u'}
                   </div>
                   <div className="flex-grow">
                     <h2 className="text-xl font-semibold">{user?.name}</h2>
@@ -51,7 +51,12 @@ const ProfilePage = () => {
                     <Sparkles className="h-5 w-5 text-skyhug-500" />
                     <span className="font-medium">Calm Points</span>
                   </div>
-                  <p className="text-2xl font-semibold">{calmPoints}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="bg-skyhug-500 text-white px-3 py-1 rounded-full text-lg font-semibold shadow-sm flex items-center gap-1">
+                      <Sparkles className="h-4 w-4" />
+                      {calmPoints}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
