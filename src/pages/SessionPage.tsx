@@ -28,7 +28,7 @@ const SessionPage = () => {
     activeConversationId,
     isLoadingSession,
   } = useTherapist();
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
   const { triggerConfetti } = useConfetti();
