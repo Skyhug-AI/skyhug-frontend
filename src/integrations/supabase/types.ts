@@ -341,6 +341,7 @@ export type Database = {
           calm_points: number
           career: string | null
           gender: string | null
+          last_login_date: string | null
           self_diagnosed_issues: string | null
           sexual_preferences: string | null
           topics_on_mind: string[] | null
@@ -354,6 +355,7 @@ export type Database = {
           calm_points?: number
           career?: string | null
           gender?: string | null
+          last_login_date?: string | null
           self_diagnosed_issues?: string | null
           sexual_preferences?: string | null
           topics_on_mind?: string[] | null
@@ -367,6 +369,7 @@ export type Database = {
           calm_points?: number
           career?: string | null
           gender?: string | null
+          last_login_date?: string | null
           self_diagnosed_issues?: string | null
           sexual_preferences?: string | null
           topics_on_mind?: string[] | null
