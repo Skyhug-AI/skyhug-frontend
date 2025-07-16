@@ -49,10 +49,10 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="rounded-full p-2 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 shadow-sm hover:shadow-md gap-3"
+                className="rounded-full p-2 px-4 bg-skyhug-50/80 border border-skyhug-200/50 hover:bg-skyhug-100/80 transition-all duration-300 shadow-sm hover:shadow-md gap-3"
               >
-                <Avatar className="h-8 w-8 ring-2 ring-blue-200/50">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-sm font-semibold">
+                <Avatar className="h-8 w-8 ring-2 ring-skyhug-300/30">
+                  <AvatarFallback className="bg-skyhug-500 text-white text-sm font-semibold">
                     {user?.name?.[0] || 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -60,7 +60,7 @@ const Header = () => {
                   <span className="text-sm font-medium text-gray-700">
                     {user?.name || 'User'}
                   </span>
-                  <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  <div className="flex items-center gap-1 bg-skyhug-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
                     <Sparkles className="h-3 w-3" />
                     {calmPoints}
                   </div>
