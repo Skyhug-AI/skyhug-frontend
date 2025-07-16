@@ -68,6 +68,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!error && data) {
       setPatientReady(true);
       setOnboardingCompleted(data.onboarding_completed || false);
+      
+      // Check for daily bonus
+      await checkDailyBonus();
+    }
+  };
+
+  const checkDailyBonus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+
+      const response = await supabase.functions.invoke('daily-bonus', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        }
+      });
+
+      if (response.data?.pointsAwarded > 0) {
+        console.log(`Daily bonus awarded: +${response.data.pointsAwarded} calm points!`);
+      }
+    } catch (error) {
+      console.error('Error checking daily bonus:', error);
     }
   };
 
