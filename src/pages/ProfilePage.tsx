@@ -40,6 +40,7 @@ const ProfilePage = () => {
   const [newTopic, setNewTopic] = useState('');
 
   const calmPoints = profileData.calm_points;
+  console.log('Current calm points in component:', calmPoints, 'Raw profileData:', profileData);
 
   // Load user profile data
   useEffect(() => {
