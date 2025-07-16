@@ -483,8 +483,7 @@ const SessionRoom = () => {
         style={{ maxHeight: "calc(100vh - 12rem)" }}
       >
         {/* Inner container to keep messages centered */}
-        <div className="max-w-3xl mx-auto px-4 space-y-6 flex flex-col min-h-full">
-          <div className="flex-grow" />
+        <div className="max-w-3xl mx-auto px-4 space-y-6 flex flex-col min-h-full justify-end">
           {displayedMessages.map((message) => (
             <div key={message.id} className="relative group">
               {editingId === message.id ? (
