@@ -48,7 +48,7 @@ const ProfilePage = () => {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-skyhug-500" />
+                    <Sparkles className="h-5 w-5 text-purple-500" />
                     <span className="font-medium">Calm Points</span>
                   </div>
                   <div className="flex items-center gap-2">
