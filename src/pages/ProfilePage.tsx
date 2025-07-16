@@ -52,7 +52,7 @@ const ProfilePage = () => {
                     <span className="font-medium">Calm Points</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="bg-skyhug-500 text-white px-3 py-1 rounded-full text-lg font-semibold shadow-sm flex items-center gap-1">
+                    <div className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-3 py-1 rounded-full text-lg font-semibold shadow-sm flex items-center gap-1">
                       <Sparkles className="h-4 w-4" />
                       {calmPoints}
                     </div>
