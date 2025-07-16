@@ -467,14 +467,15 @@ const SessionRoom = () => {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <span className={recognitionPaused ? "text-red-500" : "text-gray-600"}>
+          <span
+            className={recognitionPaused ? "text-red-500" : "text-gray-600"}
+          >
             {recognitionPaused
               ? `${persona} is not listening…`
               : `${persona} is listening…`}
-                    </span>
+          </span>
         </div>
       )}
-
 
       {/* Updated: Full-width scroll container with increased top spacing */}
       <div
@@ -532,28 +533,6 @@ const SessionRoom = () => {
                       <span>{message.timestamp}</span>
                     </div>
                   )}
-
-                  {/* ─────────── AI PLAY/PAUSE BUTTON ─────────── */}
-                  {/* {!message.isUser &&
-                    isVoiceMode &&
-                    message.id === lastAssistantId &&
-                    !streamedMap[message.id] && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handlePlayAudio(message.id)}
-                        disabled={
-                          isMicLocked && currentlyPlayingPath !== message.id
-                        }
-                      >
-                        {currentlyPlayingPath === message.id && !isPaused ? (
-                          <Pause className="h-4 w-4" />
-                        ) : (
-                          <Play className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )} */}
                 </>
               )}
             </div>
@@ -640,35 +619,32 @@ const SessionRoom = () => {
           </div>
 
           <div className="w-full max-w-3xl mx-auto px-4">
-      <div className="flex gap-2">
-        {isVoiceMode && voiceActive ? (
-          <VoiceRecorder
-            onVoiceRecorded={handleVoiceRecorded}
-            isDisabled={isProcessing}
-            shouldPauseRecognition={
-              Boolean(editingId) ||
-              isMicLocked ||
-              waitingForResponse ||
-              Boolean(currentlyPlayingPath)
-            }
-            onRecognitionPaused={handleRecognitionPaused}
-            onRecognitionResumed={handleRecognitionResumed}
-            onInterruptPlayback={interruptPlayback}
-          />
-        ) : (
-          <div className="flex-grow">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              placeholder="Write your answer"
-              isDisabled={isProcessing}
-            />
+            <div className="flex gap-2">
+              {isVoiceMode && voiceActive ? (
+                <VoiceRecorder
+                  onVoiceRecorded={handleVoiceRecorded}
+                  isDisabled={isProcessing}
+                  shouldPauseRecognition={
+                    Boolean(editingId) ||
+                    isMicLocked ||
+                    waitingForResponse ||
+                    Boolean(currentlyPlayingPath)
+                  }
+                  onRecognitionPaused={handleRecognitionPaused}
+                  onRecognitionResumed={handleRecognitionResumed}
+                  onInterruptPlayback={interruptPlayback}
+                />
+              ) : (
+                <div className="flex-grow">
+                  <ChatInput
+                    onSendMessage={handleSendMessage}
+                    placeholder="Write your answer"
+                    isDisabled={isProcessing}
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
-
-
-
         </motion.div>
       </AnimatePresence>
     </div>
