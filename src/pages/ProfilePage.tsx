@@ -39,7 +39,7 @@ const ProfilePage = () => {
 
   const [newTopic, setNewTopic] = useState('');
 
-  const calmPoints = profileData.calm_points || 720;
+  const calmPoints = profileData.calm_points;
 
   // Load user profile data
   useEffect(() => {
