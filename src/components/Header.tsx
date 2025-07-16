@@ -45,26 +45,21 @@ const Header = () => {
         {/* Removed the "Start a Session" button from here */}
         
         {isAuthenticated ? (
-          <div className="flex items-center gap-4">
-            {/* Calm Points Display */}
-            <div className="flex items-center gap-2 text-gray-700">
-              <span className="font-medium text-lg">{calmPoints} Calm</span>
-              <div className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-              </div>
-            </div>
-            
-            {/* User Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="rounded-full p-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-skyhug-100 text-skyhug-500 text-sm">
-                      {user?.name?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-full p-0 px-4 border-gray-100 gap-2">
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-skyhug-100 text-skyhug-500 text-sm">
+                    {user?.name?.[0] || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium flex items-center gap-2">
+                  {user?.name || 'User'}
+                  <Sparkles className="h-4 w-4 text-skyhug-500" />
+                  <span className="text-skyhug-500 font-medium">{calmPoints}</span>
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => navigate('/session')} className="cursor-pointer">
                 <Play className="mr-2 h-4 w-4 text-skyhug-500" />
@@ -100,8 +95,7 @@ const Header = () => {
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          </DropdownMenu>
         ) : (
           <div className="flex items-center gap-3">
             <button 
