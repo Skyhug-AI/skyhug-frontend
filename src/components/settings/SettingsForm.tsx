@@ -75,8 +75,8 @@ const SettingsForm = () => {
       bgColor: 'bg-yellow-100'
     },
     'dr-sky': {
-      name: 'Dr. Sky',
-      specialty: 'General Wellness',
+      name: 'Sky',
+      specialty: '',
       avatar: '/sky-avatar.png',
       bgColor: 'bg-blue-50'
     },
@@ -186,7 +186,9 @@ const SettingsForm = () => {
             
             <div className="flex-grow">
               <h3 className="font-medium text-lg">{selectedTherapist.name}</h3>
-              <p className="text-muted-foreground">{selectedTherapist.specialty}</p>
+              {selectedTherapist.specialty && (
+                <p className="text-muted-foreground">{selectedTherapist.specialty}</p>
+              )}
             </div>
             
             {/* <Button variant="outline" onClick={handleChooseNewTherapist} className="flex-shrink-0">
