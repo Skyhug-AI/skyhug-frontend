@@ -3,7 +3,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sun } from 'lucide-react';
-import MoodSlider from './MoodSlider';
 
 type ChatBubbleProps = {
   message: string;
@@ -11,8 +10,6 @@ type ChatBubbleProps = {
   timestamp?: string;
   editedAt?: string;
   hasInitialSunIcon?: boolean;
-  showMoodSlider?: boolean;
-  onMoodChange?: (mood: number) => void;
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ 
@@ -20,9 +17,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   isUser, 
   editedAt, 
   timestamp,
-  hasInitialSunIcon = false,
-  showMoodSlider = false,
-  onMoodChange
+  hasInitialSunIcon = false 
 }) => {
   return (
     <div className={cn(
@@ -55,11 +50,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           )}>
             {message}
           </p>
-          {showMoodSlider && !isUser && (
-            <div className="mt-3">
-              <MoodSlider onMoodChange={onMoodChange} />
-            </div>
-          )}
           {editedAt && (
             <span className="text-xs italic opacity-60 ml-2">(edited)</span>
           )}
