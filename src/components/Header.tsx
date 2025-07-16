@@ -51,16 +51,16 @@ const Header = () => {
                 variant="ghost" 
                 className="rounded-full p-2 px-4 hover:bg-gray-50 transition-all duration-300 gap-3"
               >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-blue-200 text-blue-700 text-sm font-semibold">
-                    {user?.name?.[0]?.toLowerCase() || 'u'}
+                <Avatar className="h-8 w-8 ring-2 ring-purple-200/50">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-400 to-indigo-500 text-white text-sm font-semibold">
+                    {user?.name?.[0] || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">
                     {user?.name || 'User'}
                   </span>
-                  <div className="flex items-center gap-1 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
                     <Sparkles className="h-3 w-3" />
                     {calmPoints}
                   </div>
