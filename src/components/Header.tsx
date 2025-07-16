@@ -70,10 +70,6 @@ const Header = () => {
                 <span>View Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
-                <Sparkles className="mr-2 h-4 w-4" />
-                <span>{calmPoints} Calm Points</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
                 <Award className="mr-2 h-4 w-4" />
                 <span>Achievements</span>
               </DropdownMenuItem>
