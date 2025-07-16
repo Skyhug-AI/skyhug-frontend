@@ -18,6 +18,8 @@ import { ChevronRight } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
 import { useTherapist } from "@/context/TherapistContext";
+import MoodSlider from "@/components/chat/MoodSlider";
+import ChatBubble from "@/components/chat/ChatBubble";
 
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
@@ -249,10 +251,41 @@ const HomePage = () => {
           onMoodSelect={handleMoodSelect}
         />
 
-        {/* <section className="space-y-4"> */}
-        {/* <MoodChart moodData={moodData} /> */}
-        {/* <StreakTracker currentStreak={3} longestStreak={7} /> */}
-        {/* </section> */}
+        {/* Demo: Interactive Slider Component */}
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-white/30 p-8 bg-white/90 backdrop-blur-sm shadow-xl">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">Interactive Chat Components Demo</h3>
+            
+            {/* Standalone Mood Slider */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold mb-4">Standalone Mood Slider:</h4>
+              <MoodSlider 
+                onMoodChange={(mood) => {
+                  toast({
+                    title: "Mood Updated",
+                    description: `Your mood is now ${mood}/100`,
+                  });
+                }}
+              />
+            </div>
+
+            {/* Chat Bubble with Mood Slider */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold mb-4">In-Chat Interactive Component:</h4>
+              <ChatBubble
+                message="Hi there! How are you feeling today?"
+                isUser={false}
+                showMoodSlider={true}
+                onMoodChange={(mood) => {
+                  toast({
+                    title: "Mood Shared",
+                    description: `You shared your mood: ${mood}/100`,
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </section>
 
         <section>
           <AffirmationCard />
