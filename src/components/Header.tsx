@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
 import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboard, Search, Play } from 'lucide-react';
@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from '@/integrations/supabase/client';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -18,6 +19,35 @@ const Header = () => {
     isAuthenticated
   } = useAuth();
   const { toast } = useToast();
+  const [calmPoints, setCalmPoints] = useState(0);
+
+  // Load calm points from database
+  useEffect(() => {
+    if (user?.id && isAuthenticated) {
+      loadCalmPoints();
+    }
+  }, [user?.id, isAuthenticated]);
+
+  const loadCalmPoints = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('calm_points')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        setCalmPoints(data.calm_points || 0);
+      }
+    } catch (error) {
+      console.error('Error loading calm points:', error);
+      setCalmPoints(0);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -27,8 +57,6 @@ const Header = () => {
     });
     navigate('/');
   };
-
-  const calmPoints = 720;
 
   return (
     <header className="w-full py-4 px-4 md:px-8 flex items-center justify-between bg-white sticky top-0 z-50 border-b border-border shadow-sm">
