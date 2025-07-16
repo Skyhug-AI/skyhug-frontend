@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import skyAvatar from '@/assets/sky-avatar.png';
 // import { StreakVault } from '@/components/achievements/StreakVault';
 
 const ProfilePage = () => {
@@ -33,8 +34,12 @@ const ProfilePage = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="h-20 w-20 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-2xl text-white font-medium">
-                    {user?.name?.[0]?.toLowerCase() || 'u'}
+                  <div className="h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-indigo-500 p-1">
+                    <img 
+                      src={skyAvatar} 
+                      alt="Sky character avatar" 
+                      className="w-full h-full object-cover rounded-full"
+                    />
                   </div>
                   <div className="flex-grow">
                     <h2 className="text-xl font-semibold">{user?.name}</h2>
