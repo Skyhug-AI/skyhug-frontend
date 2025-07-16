@@ -476,9 +476,9 @@ const SessionRoom = () => {
       )}
 
 
-      {/* Updated: Full-width scroll container with proper top spacing */}
+      {/* Updated: Full-width scroll container with increased top spacing */}
       <div
-        className="flex-grow overflow-y-auto pt-8 pb-6 scroll-smooth w-full"
+        className="flex-grow overflow-y-auto pt-16 pb-6 scroll-smooth w-full"
         ref={chatContainerRef}
         style={{ maxHeight: "calc(100vh - 12rem)" }}
       >
