@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/resizable";
 import SidePanel from "@/components/session/SidePanel";
 import BreathingExercise from "@/components/session/BreathingExercise";
+import { useConfetti } from "@/hooks/useConfetti";
+import { toast } from "@/hooks/use-toast";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -29,6 +31,15 @@ const SessionPage = () => {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
   const [isBreathingExerciseOpen, setIsBreathingExerciseOpen] = useState(false);
   const navigate = useNavigate();
+  const { triggerConfetti } = useConfetti();
+
+  const handleTestConfetti = () => {
+    triggerConfetti();
+    toast({
+      title: "🎉 Calm Points Earned!",
+      description: "You've earned calm points for completing an activity!",
+    });
+  };
 
   // Memoize this function to prevent unnecessary rerenders
   const handleStartSession = useCallback(async () => {
@@ -72,6 +83,19 @@ const SessionPage = () => {
       <div className="sticky top-0 z-50 bg-white">
         <Header />
 
+        <div className="border-b border-gray-100 bg-white/90 shadow-sm">
+          <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-primary hover:text-primary-foreground hover:bg-primary"
+              onClick={handleTestConfetti}
+            >
+              🎉 Test Confetti
+            </Button>
+          </div>
+        </div>
+        
         {/* {isSessionStarted && (
           <div className="border-b border-gray-100 bg-white/90 shadow-sm">
             <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
