@@ -62,6 +62,7 @@ const ProfilePage = () => {
       }
 
       if (data) {
+        console.log('Loaded profile data:', data); // Debug log
         setProfileData({
           age: data.age?.toString() || '',
           gender: data.gender || '',
@@ -73,6 +74,8 @@ const ProfilePage = () => {
           agreeable_slider: data.agreeable_slider || 50,
           calm_points: data.calm_points || 0
         });
+      } else {
+        console.log('No profile data found, using defaults'); // Debug log
       }
     } catch (error) {
       console.error('Error loading profile:', error);
