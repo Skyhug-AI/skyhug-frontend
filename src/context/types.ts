@@ -12,7 +12,6 @@ export interface Message {
 export type TherapistContextType = {
   messages: Message[];
   isProcessing: boolean;
-  isLoadingSession: boolean;
   sendMessage: (content: string) => Promise<void>;
   sendAudioMessage: (blob: Blob) => Promise<void>;
   createOrStartActiveSession: () => Promise<void>;
@@ -46,6 +45,4 @@ export type TherapistContextType = {
     styleFilter: string
   ) => Promise<void>;
   getActiveSessionIdAndTherapist: () => Promise<void>;
-  isPlayingAudio: boolean;
-  playMessageAudio: (messageId?: string | null, snippetIndex?: number) => Promise<void>;
 };

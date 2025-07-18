@@ -29,7 +29,6 @@ const TherapistContext = createContext<TherapistContextType>({
   activeConversationId: null,
   setVoiceEnabled: async () => {},
   therapists: [],
-  setTherapists: () => {},
   fetchTherapists: async (
     _setLoading: (l: boolean) => void,
     _identityFilter: string,
@@ -37,8 +36,6 @@ const TherapistContext = createContext<TherapistContextType>({
     _styleFilter: string
   ) => {},
   getActiveSessionIdAndTherapist: async () => {},
-  isPlayingAudio: false,
-  playMessageAudio: async () => {},
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -525,15 +522,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = async (messageId?: string | null, snippetIndex: number = 0): Promise<void> => {
-    if (!messageId) return;
-    
+  const playMessageAudio = (messageId: string) => {
     // 1) tear down any old audio
     currentAudio?.pause();
     if (currentAudio) currentAudio.currentTime = 0;
 
     // 2) create a new <audio> streaming from your TTS endpoint
-    const streamUrl = `http://localhost:8000/tts-stream/${messageId}?snippet=${snippetIndex}`;
+    const streamUrl = `http://localhost:8000/tts-stream/${messageId}`;
     const audio = new Audio(streamUrl);
     audio.preload = "auto";
     audio.onerror = (e) => {
@@ -661,7 +656,6 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         setTherapists,
         fetchTherapists,
         getActiveSessionIdAndTherapist,
-        isPlayingAudio,
       }}
     >
       {children}
