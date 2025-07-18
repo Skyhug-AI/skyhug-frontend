@@ -3,6 +3,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Index from '@/pages/Index';
+import SunLoader from '@/components/ui/SunLoader';
 
 const AuthRedirect: React.FC = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -10,7 +11,7 @@ const AuthRedirect: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-serenity-500 text-xl">Loading...</div>
+        <SunLoader />
       </div>
     );
   }
