@@ -17,7 +17,7 @@ import SidePanel from "@/components/session/SidePanel";
 import BreathingExercise from "@/components/session/BreathingExercise";
 import { useConfetti } from "@/hooks/useConfetti";
 import { toast } from "@/hooks/use-toast";
-import SunLoader from "@/components/ui/SunLoader";
+import ModernLoader from "@/components/ui/ModernLoader";
 
 const SessionPage = () => {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -71,7 +71,7 @@ const SessionPage = () => {
   if (isLoadingSession || !isSessionStarted) {
     return (
       <div className="h-screen flex items-center justify-center bg-white">
-        <SunLoader />
+        <ModernLoader text="Starting session..." size="lg" />
       </div>
     );
   }
