@@ -33,7 +33,7 @@ const SessionRoom = () => {
     currentTherapist,
     regenerateAfter,
   } = useTherapist();
-  const [isVoiceMode, setIsVoiceMode] = useState(true);
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [hasStartedChat, setHasStartedChat] = useState(false);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<
     string | null
