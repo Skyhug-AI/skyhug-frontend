@@ -602,28 +602,10 @@ const SessionRoom = () => {
           }}
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
-          <div className="flex justify-center items-center gap-4 mb-4 w-full max-w-lg mx-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900 flex-1"
-            >
-              I don't like your answer
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900 flex-1"
-            >
-              Be more caring
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-900 flex-1"
-            >
-              Be more challenging
-            </Button>
+          <div className="flex justify-center items-center mb-4 w-full max-w-lg mx-auto">
+            <p className="text-sm text-gray-600 text-center">
+              Skyhug is not a replacement for professional mental health services.
+            </p>
             <div className="ml-auto">
               <Button
                 variant="ghost"
