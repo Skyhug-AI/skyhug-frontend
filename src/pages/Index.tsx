@@ -599,7 +599,7 @@ const Index = () => {
             {/* DBT Card */}
             <div className="bg-green-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">DBT Skills <span className="text-2xl">⚖️</span></h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">DBT Skills <span className="text-2xl">🎯</span></h3>
                 <p className="text-green-100 text-sm leading-relaxed">
                   Dialectical Behavior Therapy skills for emotional regulation and distress tolerance.
                 </p>
