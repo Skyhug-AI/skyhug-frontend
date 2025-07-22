@@ -23,6 +23,7 @@ import TherapistSelectionPage from "./pages/TherapistSelectionPage";
 import SessionPage from "./pages/SessionPage";
 import SessionSummaryPage from "./pages/SessionSummaryPage";
 import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRedirect from "./components/AuthRedirect";
@@ -54,6 +55,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
                 {/* <Route
                   path="/therapists"
                   element={
