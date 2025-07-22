@@ -24,6 +24,7 @@ import SessionPage from "./pages/SessionPage";
 import SessionSummaryPage from "./pages/SessionSummaryPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import DisclaimerPage from "./pages/DisclaimerPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRedirect from "./components/AuthRedirect";
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/disclaimer" element={<DisclaimerPage />} />
                 {/* <Route
                   path="/therapists"
                   element={
