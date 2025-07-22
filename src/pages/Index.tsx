@@ -242,9 +242,7 @@ const Index = () => {
       <div className="relative z-10 bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              What do you want an AI therapy companion for?
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">How can an AI therapy companion help you? </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -363,9 +361,7 @@ const Index = () => {
 
           {/* Subtitle */}
           <div className="text-center mt-16">
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              The mental health app for every moment
-            </h3>
+            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The mental health app for every moment </h3>
             <div className="flex flex-wrap justify-center gap-8 text-gray-600">
               <span className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
