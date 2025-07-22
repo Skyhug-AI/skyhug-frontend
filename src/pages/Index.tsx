@@ -349,12 +349,7 @@ const Index = () => {
 
           {/* Custom text input */}
           <div className="max-w-4xl mx-auto mt-12">
-            <div className="relative">
-              
-              <button className="absolute right-2 top-2 h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 rounded-full font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300 flex items-center justify-center">
-                Share
-              </button>
-            </div>
+            
           </div>
 
           {/* Subtitle */}
