@@ -397,7 +397,7 @@ const Index = () => {
                         Your AI companion remembers your conversations and learns what's on your mind to provide truly personalized support.
                       </p>
                       <button 
-                        onClick={() => navigate("/profile")}
+                        onClick={() => navigate("/session")}
                         className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
                       >
                         View profile
