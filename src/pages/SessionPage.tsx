@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import CloudBackground from "@/components/CloudBackground";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -201,8 +200,6 @@ const SessionPage = () => {
         isOpen={isBreathingExerciseOpen}
         onClose={() => setIsBreathingExerciseOpen(false)}
       />
-      
-      <Footer />
     </div>
   );
 };
