@@ -134,9 +134,6 @@ const HomePage = () => {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Welcome back, {firstName} <span className="wave">👋</span>
           </h1>
-          <p className="text-base text-gray-500">
-            You've earned 720 Calm Points ⭐
-          </p>
         </div>
 
         {/* Action: Start Session CTA */}
