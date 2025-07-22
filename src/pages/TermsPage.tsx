@@ -15,7 +15,7 @@ const TermsPage = () => {
             <div className="prose prose-gray max-w-none">
               <h1 className="text-3xl font-bold mb-6 text-foreground">Skyhug Terms of Service</h1>
               
-              <p className="text-muted-foreground mb-8">Last updated: [Insert date here]</p>
+              <p className="text-muted-foreground mb-8">Last updated: July 22, 2025</p>
 
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4 text-foreground">1. Acceptance of Terms</h2>
