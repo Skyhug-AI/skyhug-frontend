@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, User, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import Logo from '@/components/Logo';
 import CloudBackground from '@/components/CloudBackground';
 import SunriseGradientBackground from '@/components/SunriseGradientBackground';
@@ -18,7 +19,16 @@ const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
+  agreeTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the Terms and Services'
+  }),
+  agreePrivacy: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the Privacy Policy'
+  }),
+  agreeDisclaimer: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the Disclaimers'
+  })
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword']
@@ -38,6 +48,8 @@ const SignupPage = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: {
       errors
     }
@@ -47,9 +59,16 @@ const SignupPage = () => {
       name: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      agreeTerms: false,
+      agreePrivacy: false,
+      agreeDisclaimer: false
     }
   });
+
+  const agreeTerms = watch('agreeTerms');
+  const agreePrivacy = watch('agreePrivacy');
+  const agreeDisclaimer = watch('agreeDisclaimer');
 
   const onSubmit = async (data: SignupFormValues) => {
     console.log('🎯 Form submitted with data:', {
@@ -123,6 +142,57 @@ const SignupPage = () => {
                 </Label>
                 <Input id="confirmPassword" type="password" placeholder="••••••••" className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base" {...register('confirmPassword')} />
                 {errors.confirmPassword && <p className="text-sm text-rose-300 mt-1">{errors.confirmPassword.message}</p>}
+              </div>
+
+              {/* Agreement Checkboxes */}
+              <div className="space-y-4 pt-4">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="agreeTerms"
+                    checked={agreeTerms}
+                    onCheckedChange={(checked) => setValue('agreeTerms', !!checked)}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="agreeTerms" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
+                    I have read and agree to the{' '}
+                    <Link to="/terms" className="text-serenity-600 hover:text-serenity-700 hover:underline" target="_blank">
+                      Terms and Services
+                    </Link>
+                  </Label>
+                </div>
+                {errors.agreeTerms && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreeTerms.message}</p>}
+
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="agreePrivacy"
+                    checked={agreePrivacy}
+                    onCheckedChange={(checked) => setValue('agreePrivacy', !!checked)}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="agreePrivacy" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
+                    I have read and agree to the{' '}
+                    <Link to="/privacy" className="text-serenity-600 hover:text-serenity-700 hover:underline" target="_blank">
+                      Privacy Policy
+                    </Link>
+                  </Label>
+                </div>
+                {errors.agreePrivacy && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreePrivacy.message}</p>}
+
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="agreeDisclaimer"
+                    checked={agreeDisclaimer}
+                    onCheckedChange={(checked) => setValue('agreeDisclaimer', !!checked)}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="agreeDisclaimer" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
+                    I have read and agree to the{' '}
+                    <Link to="/disclaimer" className="text-serenity-600 hover:text-serenity-700 hover:underline" target="_blank">
+                      Disclaimers
+                    </Link>
+                  </Label>
+                </div>
+                {errors.agreeDisclaimer && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreeDisclaimer.message}</p>}
               </div>
 
               <Button type="submit" className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal" disabled={loading}>
