@@ -219,9 +219,9 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
               <ChatInput
                 initialValue={msg.text}
                 onEditMessage={async newText => {
-                  await invalidateFrom(message.id);           // ① drop downstream chats
-                  await editMessage(message.id, newText);     // ② update this turn’s text
-                  await regenerateAfter(message.id);          // ③ re-queue it for AI
+                  await invalidateFrom(msg.id);           // ① drop downstream chats
+                  await editMessage(msg.id, newText);     // ② update this turn’s text
+                  await regenerateAfter(msg.id);          // ③ re-queue it for AI
                   setEditingId(null);
                 }}
                 onSendMessage={sendMessage}

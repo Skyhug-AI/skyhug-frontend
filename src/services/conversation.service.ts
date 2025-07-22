@@ -23,7 +23,7 @@ const formatMessage = (msg: any) => ({
 export const conversationService = {
   async loadHistory(
     activeConversationId: string,
-    setMessages: (messages: Message[]) => void
+    setMessages: (messages: any[]) => void
   ) {
     const { data: rows, error } = await supabase
       .from("messages")
