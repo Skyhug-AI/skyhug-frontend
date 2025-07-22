@@ -183,7 +183,7 @@ const HomePage = () => {
             </span>
           </div>
 
-          <ul className="space-y-4 text-base text-gray-700 mt-12">
+          <ul className="space-y-4 text-base text-gray-700 mt-12 pt-6">
             <li
               className={`flex items-center justify-between p-4 rounded-xl transition-all border-2 ${
                 completedGoals.includes("session")
