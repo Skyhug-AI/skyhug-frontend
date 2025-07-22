@@ -9,13 +9,7 @@ import { Mic, Heart, X } from "lucide-react";
 import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 const Index = () => {
   const navigate = useNavigate();
   const [showVoiceInterface, setShowVoiceInterface] = useState(false);
@@ -27,18 +21,7 @@ const Index = () => {
   const [textOpacity, setTextOpacity] = useState(1);
 
   // Animated placeholder text for input
-  const placeholderTexts = [
-    "managing daily stress",
-    "better sleep habits",
-    "processing emotions",
-    "building confidence",
-    "mindfulness practice",
-    "relationship guidance",
-    "work-life balance",
-    "anxiety management",
-    "depression support",
-    "self-care routines"
-  ];
+  const placeholderTexts = ["managing daily stress", "better sleep habits", "processing emotions", "building confidence", "mindfulness practice", "relationship guidance", "work-life balance", "anxiety management", "depression support", "self-care routines"];
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
@@ -46,33 +29,37 @@ const Index = () => {
   // Check for authenticated user and redirect to /home if logged in
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       if (session?.user) {
         navigate("/home");
       }
     };
-
     checkAuth();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         navigate("/home");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   useEffect(() => {
     const interval = setInterval(() => {
       setTextOpacity(0); // Fade out
       setTimeout(() => {
-        setCurrentTextIndex((prev) => (prev + 1) % rotatingTexts.length);
+        setCurrentTextIndex(prev => (prev + 1) % rotatingTexts.length);
         setTextOpacity(1); // Fade in
       }, 200); // Wait for fade out to complete
     }, 1500);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -80,13 +67,11 @@ const Index = () => {
   useEffect(() => {
     let typingInterval: NodeJS.Timeout;
     let nextWordTimeout: NodeJS.Timeout;
-
     const typeText = () => {
       const currentText = placeholderTexts[currentPlaceholderIndex];
       let charIndex = 0;
       setTypedText("");
       setIsTyping(true);
-
       typingInterval = setInterval(() => {
         if (charIndex < currentText.length) {
           setTypedText(currentText.slice(0, charIndex + 1));
@@ -97,20 +82,17 @@ const Index = () => {
 
           // Wait before starting next word
           nextWordTimeout = setTimeout(() => {
-            setCurrentPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
+            setCurrentPlaceholderIndex(prev => (prev + 1) % placeholderTexts.length);
           }, 2000);
         }
       }, 100);
     };
-
     typeText();
-
     return () => {
       clearInterval(typingInterval);
       clearTimeout(nextWordTimeout);
     };
   }, [currentPlaceholderIndex]);
-
   const handleTalkToSky = () => {
     navigate("/signup");
   };
@@ -123,7 +105,6 @@ const Index = () => {
   const handleSessionStart = () => {
     setIsSessionStarted(true);
   };
-
   const handleVoiceRecorded = (transcript: string) => {
     console.log("Voice recorded:", transcript);
     // Handle the voice input here
@@ -131,44 +112,23 @@ const Index = () => {
 
   // Audio visualization bars for the bottom
   const AudioBars = () => {
-    const bars = Array.from(
-      {
-        length: 10,
-      },
-      (_, i) => ({
-        id: i,
-        height: Math.random() * 40 + 10,
-        color: [
-          "bg-blue-400",
-          "bg-purple-400",
-          "bg-pink-400",
-          "bg-green-400",
-          "bg-yellow-400",
-          "bg-indigo-400",
-          "bg-cyan-400",
-          "bg-orange-400",
-        ][Math.floor(Math.random() * 8)],
-      })
-    );
-    return (
-      <div className="flex items-end justify-center gap-1 h-24 w-full max-w-4xl mx-auto">
-        {bars.map((bar, index) => (
-          <div
-            key={bar.id}
-            className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`}
-            style={{
-              height: `${bar.height}px`,
-              width: "8px",
-              animationDelay: `${index * 100}ms`,
-              animationDuration: `${Math.random() * 0.8 + 0.8}s`,
-            }}
-          />
-        ))}
-      </div>
-    );
+    const bars = Array.from({
+      length: 10
+    }, (_, i) => ({
+      id: i,
+      height: Math.random() * 40 + 10,
+      color: ["bg-blue-400", "bg-purple-400", "bg-pink-400", "bg-green-400", "bg-yellow-400", "bg-indigo-400", "bg-cyan-400", "bg-orange-400"][Math.floor(Math.random() * 8)]
+    }));
+    return <div className="flex items-end justify-center gap-1 h-24 w-full max-w-4xl mx-auto">
+        {bars.map((bar, index) => <div key={bar.id} className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`} style={{
+        height: `${bar.height}px`,
+        width: "8px",
+        animationDelay: `${index * 100}ms`,
+        animationDuration: `${Math.random() * 0.8 + 0.8}s`
+      }} />)}
+      </div>;
   };
-  return (
-    <div className="min-h-[95vh] text-gray-900 relative overflow-hidden">
+  return <div className="min-h-[95vh] text-gray-900 relative overflow-hidden">
       <SunriseGradientBackground />
       <CloudBackground />
 
@@ -190,10 +150,9 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-800">
             AI Therapy Companion
             <br />
-            <span
-              className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
-              style={{ opacity: textOpacity }}
-            >
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200" style={{
+            opacity: textOpacity
+          }}>
               {rotatingTexts[currentTextIndex]}
             </span>
           </h1>
@@ -208,24 +167,32 @@ const Index = () => {
           <div className="relative">
             {/* Floating sparkles animation */}
             <div className="absolute -inset-6 opacity-70">
-              <div className="absolute top-0 left-0 w-2 h-2 bg-yellow-400 rounded-full animate-ping" style={{ animationDelay: '0s', animationDuration: '2s' }}></div>
-              <div className="absolute top-2 right-0 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '0.5s', animationDuration: '1.8s' }}></div>
-              <div className="absolute bottom-0 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '1s', animationDuration: '2.2s' }}></div>
-              <div className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1.5s', animationDuration: '1.5s' }}></div>
+              <div className="absolute top-0 left-0 w-2 h-2 bg-yellow-400 rounded-full animate-ping" style={{
+              animationDelay: '0s',
+              animationDuration: '2s'
+            }}></div>
+              <div className="absolute top-2 right-0 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{
+              animationDelay: '0.5s',
+              animationDuration: '1.8s'
+            }}></div>
+              <div className="absolute bottom-0 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" style={{
+              animationDelay: '1s',
+              animationDuration: '2.2s'
+            }}></div>
+              <div className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{
+              animationDelay: '1.5s',
+              animationDuration: '1.5s'
+            }}></div>
             </div>
 
             {/* Continuous glow effect */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/30 via-purple-400/30 to-pink-400/30 blur-xl animate-pulse"></div>
 
-            <button
-              onClick={handleTalkToSky}
-              className="relative glass-panel text-gray-900 px-8 py-4 mt-12 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group animate-bounce"
-              style={{
-                animationDuration: '3s',
-                animationIterationCount: 'infinite',
-                animationTimingFunction: 'ease-in-out'
-              }}
-            >
+            <button onClick={handleTalkToSky} className="relative glass-panel text-gray-900 px-8 py-4 mt-12 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group animate-bounce" style={{
+            animationDuration: '3s',
+            animationIterationCount: 'infinite',
+            animationTimingFunction: 'ease-in-out'
+          }}>
               <span className="text-lg group-hover:animate-bounce">TALK TO SKY 🌤️</span>
 
               {/* Ripple effect on hover */}
@@ -247,7 +214,7 @@ const Index = () => {
                 }} />
                 </div>
               </button>
-            ) : (
+             ) : (
               <div className="max-w-md w-full text-center">
                 {!isSessionStarted ? (
                   <AnimatedSunLoader
@@ -261,7 +228,7 @@ const Index = () => {
                   </div>
                 )}
               </div>
-            )} */}
+             )} */}
           </div>
         </div>
 
@@ -387,14 +354,7 @@ const Index = () => {
           {/* Custom text input */}
           <div className="max-w-4xl mx-auto mt-12">
             <div className="relative">
-              <input
-                type="text"
-                placeholder={`I want an AI therapy companion to help me with ${typedText}${isTyping ? '|' : ''}`}
-                className="w-full h-16 px-6 border-2 border-gray-200 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white shadow-lg transition-all duration-300 placeholder-gray-400"
-                style={{
-                  transition: 'opacity 0.2s ease-in-out'
-                }}
-              />
+              
               <button className="absolute right-2 top-2 h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 rounded-full font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300 flex items-center justify-center">
                 Share
               </button>
@@ -606,10 +566,9 @@ const Index = () => {
               Experience our AI companion in action. Send a message and see how it responds.
             </p>
           </div>
-
-          <DemoChatInterface />
+           <DemoChatInterface />
         </div>
-      </div> */}
+       </div> */}
 
       {/* Delivered with Care Section */}
       <div className="relative z-10 bg-white py-20 px-6">
@@ -670,7 +629,6 @@ const Index = () => {
       <div className="relative z-10">
         <Footer />
       </div>
-    </div>
-  );
+    </div>;
 };
 export default Index;
