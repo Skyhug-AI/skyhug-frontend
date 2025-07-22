@@ -117,7 +117,7 @@ const TermsPage = () => {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4 text-foreground">13. Additional Disclaimers</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  For further details and expanded disclaimers related to use of Skyhug, please visit our dedicated Disclaimers page at [Insert hyperlink to disclaimers page here].
+                  For further details and expanded disclaimers related to use of Skyhug, please visit our dedicated <a href="/disclaimer" className="text-skyhug-500 hover:underline">Disclaimers page</a>.
                 </p>
               </section>
 
