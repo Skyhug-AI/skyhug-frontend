@@ -20,14 +20,8 @@ const signupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
-  agreeTerms: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the Terms and Services'
-  }),
-  agreePrivacy: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the Privacy Policy'
-  }),
-  agreeDisclaimer: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the Disclaimers'
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the Terms and Services, Privacy Policy, and Disclaimers'
   })
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -60,15 +54,11 @@ const SignupPage = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      agreeTerms: false,
-      agreePrivacy: false,
-      agreeDisclaimer: false
+      agreeToTerms: false
     }
   });
 
-  const agreeTerms = watch('agreeTerms');
-  const agreePrivacy = watch('agreePrivacy');
-  const agreeDisclaimer = watch('agreeDisclaimer');
+  const agreeToTerms = watch('agreeToTerms');
 
   const onSubmit = async (data: SignupFormValues) => {
     console.log('🎯 Form submitted with data:', {
@@ -144,55 +134,31 @@ const SignupPage = () => {
                 {errors.confirmPassword && <p className="text-sm text-rose-300 mt-1">{errors.confirmPassword.message}</p>}
               </div>
 
-              {/* Agreement Checkboxes */}
-              <div className="space-y-4 pt-4">
+              {/* Agreement Checkbox */}
+              <div className="space-y-2 pt-4">
                 <div className="flex items-start space-x-3">
                   <Checkbox
-                    id="agreeTerms"
-                    checked={agreeTerms}
-                    onCheckedChange={(checked) => setValue('agreeTerms', !!checked)}
+                    id="agreeToTerms"
+                    checked={agreeToTerms}
+                    onCheckedChange={(checked) => setValue('agreeToTerms', !!checked)}
                     className="mt-0.5"
                   />
-                  <Label htmlFor="agreeTerms" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
+                  <Label htmlFor="agreeToTerms" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
                     I have read and agree to the{' '}
                     <Link to="/terms" className="text-serenity-600 hover:text-serenity-700 hover:underline" target="_blank">
                       Terms and Services
                     </Link>
-                  </Label>
-                </div>
-                {errors.agreeTerms && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreeTerms.message}</p>}
-
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="agreePrivacy"
-                    checked={agreePrivacy}
-                    onCheckedChange={(checked) => setValue('agreePrivacy', !!checked)}
-                    className="mt-0.5"
-                  />
-                  <Label htmlFor="agreePrivacy" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
-                    I have read and agree to the{' '}
+                    ,{' '}
                     <Link to="/privacy" className="text-serenity-600 hover:text-serenity-700 hover:underline" target="_blank">
                       Privacy Policy
                     </Link>
-                  </Label>
-                </div>
-                {errors.agreePrivacy && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreePrivacy.message}</p>}
-
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="agreeDisclaimer"
-                    checked={agreeDisclaimer}
-                    onCheckedChange={(checked) => setValue('agreeDisclaimer', !!checked)}
-                    className="mt-0.5"
-                  />
-                  <Label htmlFor="agreeDisclaimer" className="text-sm text-[#616161] leading-relaxed cursor-pointer">
-                    I have read and agree to the{' '}
+                    , and{' '}
                     <Link to="/disclaimer" className="text-serenity-600 hover:text-serenity-700 hover:underline" target="_blank">
                       Disclaimers
                     </Link>
                   </Label>
                 </div>
-                {errors.agreeDisclaimer && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreeDisclaimer.message}</p>}
+                {errors.agreeToTerms && <p className="text-sm text-rose-300 mt-1 ml-6">{errors.agreeToTerms.message}</p>}
               </div>
 
               <Button type="submit" className="w-full h-12 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 mt-6 text-base font-normal" disabled={loading}>
