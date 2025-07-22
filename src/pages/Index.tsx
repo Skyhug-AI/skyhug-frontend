@@ -246,11 +246,11 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {/* Stress less */}
+            {/* Manage stress & anxiety */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="text-3xl">💪</div>
-                <h3 className="text-xl font-semibold text-gray-900">Stress less</h3>
+                <div className="text-3xl">🌀</div>
+                <h3 className="text-xl font-semibold text-gray-900">Manage stress & anxiety</h3>
               </div>
             </div>
 
@@ -262,35 +262,35 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Manage anxiety */}
+            {/* Build confidence */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="text-3xl">🌀</div>
-                <h3 className="text-xl font-semibold text-gray-900">Manage anxiety</h3>
+                <div className="text-3xl">✨</div>
+                <h3 className="text-xl font-semibold text-gray-900">Build confidence</h3>
               </div>
             </div>
 
-            {/* Process thoughts */}
+            {/* Process emotions */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="text-3xl">🗨️</div>
-                <h3 className="text-xl font-semibold text-gray-900">Process thoughts</h3>
+                <div className="text-3xl">💭</div>
+                <h3 className="text-xl font-semibold text-gray-900">Process emotions</h3>
               </div>
             </div>
 
-            {/* Practice meditation */}
+            {/* Improve relationships */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="text-3xl">🧘</div>
-                <h3 className="text-xl font-semibold text-gray-900">Practice meditation</h3>
+                <div className="text-3xl">💝</div>
+                <h3 className="text-xl font-semibold text-gray-900">Improve relationships</h3>
               </div>
             </div>
 
-            {/* Start therapy */}
+            {/* Find life balance */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="text-3xl">💬</div>
-                <h3 className="text-xl font-semibold text-gray-900">Start therapy</h3>
+                <div className="text-3xl">⚖️</div>
+                <h3 className="text-xl font-semibold text-gray-900">Find life balance</h3>
               </div>
             </div>
           </div>
