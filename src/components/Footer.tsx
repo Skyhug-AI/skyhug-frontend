@@ -17,8 +17,7 @@ const Footer = () => {
           <h3 className="font-semibold mb-4">Quick Links</h3>
           <ul className="space-y-2">
             <li><a href="/" className="text-muted-foreground hover:text-skyhug-500 transition-colors">Home</a></li>
-            <li><a href="/chat" className="text-muted-foreground hover:text-skyhug-500 transition-colors">Chat Therapy</a></li>
-            <li><a href="/voice" className="text-muted-foreground hover:text-skyhug-500 transition-colors">Voice Therapy</a></li>
+            <li><a href="/sessions" className="text-muted-foreground hover:text-skyhug-500 transition-colors">Talk to Sky</a></li>
             <li><a href="#" className="text-muted-foreground hover:text-skyhug-500 transition-colors">About</a></li>
           </ul>
         </div>
