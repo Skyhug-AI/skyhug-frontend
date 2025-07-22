@@ -69,7 +69,7 @@ const TermsPage = () => {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4 text-foreground">7. Privacy and Data Collection</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  By using Skyhug, you acknowledge and consent to the collection, storage, analysis, and use of your data, chat history, voice recordings, and usage statistics. While we implement measures to protect your data, we explicitly disclaim responsibility and liability for data leaks, unauthorized access, or security breaches.
+                  By using Skyhug, you acknowledge and consent to the collection, storage, analysis, and use of your data, chat history, voice recordings, user profile information (including but not limited to career, age, topics on mind, and self-diagnosed issues), and usage statistics. While we implement measures to protect your data, we explicitly disclaim responsibility and liability for data leaks, unauthorized access, or security breaches.
                 </p>
               </section>
 
@@ -89,28 +89,28 @@ const TermsPage = () => {
                     <li>We expressly disclaim liability for emotional, psychological, medical, financial, or any other type of harm that may arise from using our Services.</li>
                   </ul>
                   <p>Skyhug is intended for informational and support purposes only and is not a substitute for professional medical or psychological advice, diagnosis, or treatment. Users should consult qualified professionals for any serious conditions or emergencies.</p>
-                  <p>Under no circumstances shall Skyhug, its affiliates, officers, employees, agents, partners, or licensors be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages, including loss of profits, data, goodwill, or other intangible losses arising from the use or inability to use the Services.</p>
+                  <p>Under no circumstances shall Skyhug, its affiliates, officers, employees, agents, partners, or licensors be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages, including loss of profits, data, goodwill, or other intangible losses arising from the use or inability to use the Services. In any event, damages are explicitly limited to the amount paid by you to Skyhug in the month the alleged damages occurred.</p>
                 </div>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold mb-4 text-foreground">10. Indemnification</h2>
+                <h2 className="text-xl font-semibold mb-4 text-foreground">10. Arbitration and Governing Law</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Any disputes arising out of or related to these Terms or your use of Skyhug's Services will be subject to binding arbitration. You agree to waive any right to a jury trial or participation in class action litigation. These Terms shall be governed by the laws of [Insert jurisdiction here], without regard to its conflict of law principles. Users agree to submit to the exclusive jurisdiction of arbitration within [Insert jurisdiction here].
+                </p>
+              </section>
+
+              <section className="mb-8">
+                <h2 className="text-xl font-semibold mb-4 text-foreground">11. Indemnification</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   You agree to indemnify, defend, and hold harmless Skyhug, its affiliates, officers, directors, employees, agents, licensors, and service providers from any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including attorneys' fees) arising from or related to your violation of these Terms or use of the Services.
                 </p>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold mb-4 text-foreground">11. Termination</h2>
+                <h2 className="text-xl font-semibold mb-4 text-foreground">12. Termination</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   Skyhug may terminate your access to all or part of the Services at any time, for any reason, without prior notice or liability.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-semibold mb-4 text-foreground">12. Governing Law</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  These Terms shall be governed by the laws of [Insert jurisdiction here], without regard to its conflict of law principles. Users agree to submit to the exclusive jurisdiction of the courts located within [Insert jurisdiction here].
                 </p>
               </section>
 
