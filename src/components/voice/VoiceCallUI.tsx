@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2 } from 'lucide-react';
+import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2, Edit2 } from 'lucide-react';
 import ChatBubble from '@/components/chat/ChatBubble';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import { useToast } from '@/hooks/use-toast';
@@ -41,16 +41,22 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { editMessage } = useTherapist();
+  const { 
+    editMessage, 
+    invalidateFrom, 
+    regenerateAfter, 
+    sendMessage,
+    isPlayingAudio,
+    playMessageAudio 
+  } = useTherapist();
   const [showReminder, setShowReminder] = useState(false);
   const [ambientSound, setAmbientSound] = useState<string | null>(null);
   const reminderTimeoutRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const { isPlayingAudio, playMessageAudio } = useTherapist();
-  const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
 
 
   useEffect(() => {
@@ -224,11 +230,11 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
             ) : (
               /* ─── NORMAL BUBBLE & CONTROLS ─── */
               <>
-                <ChatBubble
-                  message={msg.text}
-                  isUser={msg.isUser}
-                  editedAt={msg.edited_at}
-                />
+                 <ChatBubble
+                   message={msg.text}
+                   isUser={msg.isUser}
+                   editedAt={undefined}
+                 />
 
                 {/* AI Play/Pause */}
                 {!msg.isUser && msg.id && (
@@ -247,10 +253,10 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
                 {!msg.isUser && (
                   <button
                     className="text-sm text-skyhug-500 ml-12 mt-1"
-                    onClick={async () => {
-                      await invalidateFrom(msg.id);
-                      await regenerateAfter(msg.id);
-                    }}
+                     onClick={async () => {
+                       await invalidateFrom(msg.id);
+                       await regenerateAfter(msg.id);
+                     }}
                   >
                     Regenerate from here
                   </button>

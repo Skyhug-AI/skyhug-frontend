@@ -29,6 +29,7 @@ const TherapistContext = createContext<TherapistContextType>({
   activeConversationId: null,
   setVoiceEnabled: async () => {},
   therapists: [],
+  setTherapists: () => {},
   fetchTherapists: async (
     _setLoading: (l: boolean) => void,
     _identityFilter: string,
@@ -36,6 +37,8 @@ const TherapistContext = createContext<TherapistContextType>({
     _styleFilter: string
   ) => {},
   getActiveSessionIdAndTherapist: async () => {},
+  isPlayingAudio: false,
+  playMessageAudio: async () => {},
 });
 
 export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
@@ -72,7 +75,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const data = await therapistService.getTherapists({
         identity: identityFilter,
-        topics: topicsFilter,
+        topics: topicsFilter.join(','),
         style: styleFilter,
       });
       setTherapists(data);
@@ -83,6 +86,8 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       setLoading(false);
     }
   };
+
+
 
   const formatMessage = (
     msg: any
@@ -224,7 +229,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         therapistId.therapist_id
       );
 
-      setCurrentTherapist(therapistData);
+      setCurrentTherapist({
+        id: therapistData.id,
+        name: therapistData.name,
+        avatar_url: therapistData.avatar_url,
+        elevenLabsVoiceId: therapistData.elevenLabsVoiceId || "",
+      });
     } catch (error) {
       console.error("Error fetching active session:", error);
     } finally {
@@ -561,17 +571,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
 
   const triggerTTSForMessage = async (tts_path: string) => {
-    if (!activeConversationId) return;
-    const { data, error } = await supabase
-      .from("messages")
-      .select("id")
-      .eq("tts_path", tts_path)
-      .single();
-    if (error) {
-      console.error("Error fetching message ID for tts_path:", error);
-      return;
-    }
-    playMessageAudio(data.id);
+    await playMessageAudio(tts_path);
   };
 
   useEffect(() => {
@@ -644,18 +644,19 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         createOrStartActiveSession,
         triggerTTSForMessage,
         endConversation,
-        playMessageAudio,
-        currentTherapist,
-        setCurrentTherapist,
         editMessage,
         invalidateFrom,
         regenerateAfter,
         activeConversationId,
         setVoiceEnabled,
+        currentTherapist,
+        setCurrentTherapist,
         therapists,
         setTherapists,
         fetchTherapists,
         getActiveSessionIdAndTherapist,
+        isPlayingAudio,
+        playMessageAudio,
       }}
     >
       {children}

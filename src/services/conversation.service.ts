@@ -4,7 +4,21 @@ import { Database } from "@/types/supabase";
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
 
-
+const formatMessage = (msg: any) => ({
+  id: msg.id,
+  content: msg.transcription ?? msg.assistant_text ?? "[No content]",
+  isUser: msg.sender_role === "user",
+  timestamp: new Date(msg.created_at).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
+  tts_path: msg.tts_path,
+  ttsHasArrived: Boolean(msg.tts_path && msg.tts_status === "done"),
+  isGreeting: msg.sender_role === "assistant" && (
+    msg.assistant_text?.startsWith("Hi there, I'm") ||
+    msg.assistant_text?.startsWith("Last time we spoke")
+  ),
+});
 
 export const conversationService = {
   async loadHistory(
