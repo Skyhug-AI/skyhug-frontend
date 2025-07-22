@@ -579,67 +579,61 @@ const Index = () => {
             {/* CBT Card */}
             <div className="bg-blue-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3">CBT</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">CBT <span className="text-2xl">🧠</span></h3>
                 <p className="text-blue-100 text-sm leading-relaxed">
                   Cognitive Behavioral Therapy helps identify and change negative thought patterns and behaviors.
                 </p>
               </div>
-              <div className="text-2xl">🧠</div>
             </div>
 
             {/* EMDR/Trauma Card */}
             <div className="bg-purple-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3">Trauma Therapy</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">Trauma Therapy <span className="text-2xl">💜</span></h3>
                 <p className="text-purple-100 text-sm leading-relaxed">
                   EMDR and trauma-informed approaches for processing difficult experiences safely.
                 </p>
               </div>
-              <div className="text-2xl">💜</div>
             </div>
 
             {/* DBT Card */}
             <div className="bg-green-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3">DBT Skills</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">DBT Skills <span className="text-2xl">⚖️</span></h3>
                 <p className="text-green-100 text-sm leading-relaxed">
                   Dialectical Behavior Therapy skills for emotional regulation and distress tolerance.
                 </p>
               </div>
-              <div className="text-2xl">⚖️</div>
             </div>
 
             {/* Mindfulness Card */}
             <div className="bg-orange-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3">Mindfulness</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">Mindfulness <span className="text-2xl">🧘</span></h3>
                 <p className="text-orange-100 text-sm leading-relaxed">
                   Present-moment awareness and acceptance-based therapeutic practices.
                 </p>
               </div>
-              <div className="text-2xl">🧘</div>
             </div>
 
             {/* IFS/Parts Work Card */}
             <div className="bg-pink-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3">IFS Parts Work</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">IFS Parts Work <span className="text-2xl">🌟</span></h3>
                 <p className="text-pink-100 text-sm leading-relaxed">
                   Internal Family Systems therapy for understanding different parts of yourself.
                 </p>
               </div>
-              <div className="text-2xl">🌟</div>
             </div>
 
             {/* Childhood Trauma Card */}
             <div className="bg-indigo-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-3">Childhood Trauma</h3>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">Childhood Trauma <span className="text-2xl">🌱</span></h3>
                 <p className="text-indigo-100 text-sm leading-relaxed">
                   Specialized approaches for healing early life experiences and attachment wounds.
                 </p>
               </div>
-              <div className="text-2xl">🌱</div>
             </div>
           </div>
         </div>
