@@ -104,7 +104,7 @@ const TherapistSelectionPage = () => {
   );
 
   useEffect(() => {
-    fetchTherapists(setLoading, identityFilter, topicsFilter, styleFilter);
+    fetchTherapists(setLoading, identityFilter, [topicsFilter], styleFilter);
   }, [identityFilter, topicsFilter, styleFilter]);
 
   const handleTherapistSelect = (therapist) => {

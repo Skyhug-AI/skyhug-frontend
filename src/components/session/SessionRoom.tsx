@@ -206,13 +206,15 @@ const SessionRoom = () => {
 
   useEffect(() => {
     if (!activeConversationId) return;
-    const channel = supabase
-      .channel(`snippet-updates-${activeConversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
+    
+    const setupChannel = async () => {
+      const channel = supabase
+        .channel(`snippet-updates-${activeConversationId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
           table: "messages",
           filter: `conversation_id=eq.${activeConversationId}`,
         },
@@ -227,7 +229,10 @@ const SessionRoom = () => {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+      return () => supabase.removeChannel(channel);
+    };
+    
+    setupChannel();
   }, [activeConversationId]);
 
   // HIDE PLAY BUTTON FOR EARLIER MESSAGES

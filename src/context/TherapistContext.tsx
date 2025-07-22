@@ -232,7 +232,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
       setCurrentTherapist({
         id: therapistData.id,
         name: therapistData.name,
-        avatar_url: therapistData.avatar_url,
+        avatar_url: therapistData.avatarSrc,
         elevenLabsVoiceId: therapistData.elevenLabsVoiceId || "",
       });
     } catch (error) {
@@ -293,10 +293,10 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     // 5) Create a brand-new conversation
     console.log("🟡 Creating new conversation...");
 
-    const convoPayload: Record<string, any> = {
+    const convoPayload = {
       patient_id: user.id,
       title: "Therapy Session",
-    };
+    } as any;
 
     // only include therapist_id when someone’s explicitly picked one
     if (currentTherapist?.id) {
@@ -656,7 +656,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         fetchTherapists,
         getActiveSessionIdAndTherapist,
         isPlayingAudio,
-        playMessageAudio,
+        playMessageAudio: async (tts_path: string) => playMessageAudio(tts_path),
       }}
     >
       {children}

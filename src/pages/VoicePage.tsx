@@ -92,7 +92,7 @@ const VoicePage = () => {
   if (inCall) {
     return (
       <VoiceCallUI
-        messages={formattedMessages}
+        messages={formattedMessages.map((msg, index) => ({ ...msg, id: `msg-${index}` }))}
         isProcessing={isProcessing}
         onVoiceRecorded={handleVoiceRecorded}
         onEndCall={endCall}
