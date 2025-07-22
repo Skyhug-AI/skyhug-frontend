@@ -181,7 +181,7 @@ const HomePage = () => {
               className="h-4 rounded-full bg-gradient-to-r from-gray-100 to-gray-200"
               indicatorClassName="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full shadow-lg"
             />
-            <span className="absolute left-0 top-6 text-sm font-medium text-gray-600">
+            <span className="absolute left-0 top-6 text-sm font-medium text-gray-600 pb-4">
               {progressPercentage}% complete
             </span>
           </div>
