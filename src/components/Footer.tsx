@@ -33,7 +33,7 @@ const Footer = () => {
 
       <div className="max-w-7xl mx-auto mt-8 pt-4 border-t border-border text-sm text-muted-foreground text-center">
         <p>© {new Date().getFullYear()} Skyhug AI. All rights reserved.</p>
-        <p className="mt-1">Skyhug is not a replacement for professional mental health services.</p>
+        <p className="mt-1">Skyhug is not a replacement for therapy and can make mistakes.</p>
       </div>
     </footer>
   );
