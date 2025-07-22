@@ -314,12 +314,8 @@ const Index = () => {
                   <div className="absolute top-10 right-12 w-12 h-8 bg-white/15 rounded-full"></div>
                   <div className="absolute top-4 right-20 w-8 h-6 bg-white/10 rounded-full"></div>
 
-                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="text-white/80 font-medium">Online therapy</span>
-                      </div>
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                         Convenient
                         <br />
@@ -330,7 +326,10 @@ const Index = () => {
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Check your coverage, find a therapist, and start feeling your best with Headspace therapy.
                       </p>
-                      <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                      <button 
+                        onClick={() => navigate("/sessions")}
+                        className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                      >
                         Get started
                       </button>
                     </div>
@@ -363,12 +362,8 @@ const Index = () => {
               {/* Guided Meditations */}
               <CarouselItem className="pl-2 md:pl-4">
                 <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
-                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="text-white/80 font-medium">Guided meditations</span>
-                      </div>
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                         Find your
                         <br />
@@ -377,7 +372,10 @@ const Index = () => {
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Discover mindfulness and meditation practices designed to reduce stress and improve focus.
                       </p>
-                      <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                      <button 
+                        onClick={() => navigate("/sessions")}
+                        className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                      >
                         Start meditating
                       </button>
                     </div>
@@ -396,12 +394,8 @@ const Index = () => {
               {/* AI Guidance */}
               <CarouselItem className="pl-2 md:pl-4">
                 <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
-                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="text-white/80 font-medium">AI guidance</span>
-                      </div>
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                         Personalized
                         <br />
@@ -410,7 +404,10 @@ const Index = () => {
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Get instant, personalized guidance from our AI companion whenever you need it.
                       </p>
-                      <button className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                      <button 
+                        onClick={() => navigate("/sessions")}
+                        className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                      >
                         Chat now
                       </button>
                     </div>
@@ -429,12 +426,8 @@ const Index = () => {
               {/* Sleep Resources */}
               <CarouselItem className="pl-2 md:pl-4">
                 <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
-                  <div className="flex flex-col md:flex-row items-center gap-8 w-full">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="text-white/80 font-medium">Sleep resources</span>
-                      </div>
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                         Better
                         <br />
@@ -445,7 +438,10 @@ const Index = () => {
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Discover sleep stories, sounds, and techniques to help you fall asleep faster and sleep deeper.
                       </p>
-                      <button className="bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                      <button 
+                        onClick={() => navigate("/sessions")}
+                        className="bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                      >
                         Sleep better
                       </button>
                     </div>
