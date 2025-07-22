@@ -479,9 +479,6 @@ const Index = () => {
             developed and validated by licensed mental health professionals with decades of experience.
           </p>
 
-          <button className="bg-gray-900 text-white px-8 py-4 rounded-full font-medium hover:bg-gray-800 transition-all duration-300 mb-16">
-            Learn about our approach
-          </button>
 
           {/* Therapy Model Cards Row */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
