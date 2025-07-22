@@ -323,7 +323,7 @@ const Index = () => {
                         No hidden fees, no subscriptions, no limits. Your mental health support should be accessible to everyone.
                       </p>
                       <button 
-                        onClick={() => navigate("/sessions")}
+                        onClick={() => navigate("/session")}
                         className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
                       >
                         Start for free
@@ -367,7 +367,7 @@ const Index = () => {
                         Get support whenever you need it. No appointments, no waiting - your AI therapist is always ready to listen.
                       </p>
                       <button 
-                        onClick={() => navigate("/sessions")}
+                        onClick={() => navigate("/session")}
                         className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
                       >
                         Start now
