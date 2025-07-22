@@ -308,7 +308,7 @@ const Index = () => {
             <CarouselContent className="-ml-2 md:-ml-4">
               {/* 100% Free */}
               <CarouselItem className="pl-2 md:pl-4">
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden h-[400px] flex items-center">
                   {/* Decorative elements */}
                   <div className="absolute top-6 right-6 w-16 h-10 bg-white/20 rounded-full"></div>
                   <div className="absolute top-10 right-12 w-12 h-8 bg-white/15 rounded-full"></div>
@@ -317,11 +317,7 @@ const Index = () => {
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        100%
-                        <br />
-                        Free
-                        <br />
-                        Forever
+                        100% Free
                       </h3>
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         No hidden fees, no subscriptions, no limits. Your mental health support should be accessible to everyone.
@@ -361,15 +357,11 @@ const Index = () => {
 
               {/* Convenient and Accessible */}
               <CarouselItem className="pl-2 md:pl-4">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden h-[400px] flex items-center">
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Available
-                        <br />
-                        24/7
-                        <br />
-                        Anywhere
+                        Available 24/7 Anywhere
                       </h3>
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Get support whenever you need it. No appointments, no waiting - your AI therapist is always ready to listen.
@@ -395,15 +387,11 @@ const Index = () => {
 
               {/* Customized for You */}
               <CarouselItem className="pl-2 md:pl-4">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden h-[400px] flex items-center">
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Learns
-                        <br />
-                        About
-                        <br />
-                        You
+                        Learns About You
                       </h3>
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Your AI companion remembers your conversations and learns what's on your mind to provide truly personalized support.
