@@ -306,10 +306,10 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <Carousel className="w-full max-w-4xl mx-auto">
             <CarouselContent className="-ml-2 md:-ml-4">
-              {/* Convenient Online Therapy */}
+              {/* 100% Free */}
               <CarouselItem className="pl-2 md:pl-4">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
-                  {/* Decorative clouds */}
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                  {/* Decorative elements */}
                   <div className="absolute top-6 right-6 w-16 h-10 bg-white/20 rounded-full"></div>
                   <div className="absolute top-10 right-12 w-12 h-8 bg-white/15 rounded-full"></div>
                   <div className="absolute top-4 right-20 w-8 h-6 bg-white/10 rounded-full"></div>
@@ -317,20 +317,20 @@ const Index = () => {
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Convenient
+                        100%
                         <br />
-                        online
+                        Free
                         <br />
-                        therapy
+                        Forever
                       </h3>
                       <p className="text-lg text-white/90 mb-8 max-w-md">
-                        Check your coverage, find a therapist, and start feeling your best with Headspace therapy.
+                        No hidden fees, no subscriptions, no limits. Your mental health support should be accessible to everyone.
                       </p>
                       <button 
                         onClick={() => navigate("/sessions")}
-                        className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                        className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
                       >
-                        Get started
+                        Start for free
                       </button>
                     </div>
 
@@ -359,97 +359,67 @@ const Index = () => {
                 </div>
               </CarouselItem>
 
-              {/* Guided Meditations */}
+              {/* Convenient and Accessible */}
+              <CarouselItem className="pl-2 md:pl-4">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
+                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
+                    <div className="flex-1">
+                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                        Available
+                        <br />
+                        24/7
+                        <br />
+                        Anywhere
+                      </h3>
+                      <p className="text-lg text-white/90 mb-8 max-w-md">
+                        Get support whenever you need it. No appointments, no waiting - your AI therapist is always ready to listen.
+                      </p>
+                      <button 
+                        onClick={() => navigate("/sessions")}
+                        className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                      >
+                        Start now
+                      </button>
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                          <div className="text-6xl">🕒</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              {/* Customized for You */}
               <CarouselItem className="pl-2 md:pl-4">
                 <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Find your
+                        Learns
                         <br />
-                        inner peace
+                        About
+                        <br />
+                        You
                       </h3>
                       <p className="text-lg text-white/90 mb-8 max-w-md">
-                        Discover mindfulness and meditation practices designed to reduce stress and improve focus.
+                        Your AI companion remembers your conversations and learns what's on your mind to provide truly personalized support.
                       </p>
                       <button 
-                        onClick={() => navigate("/sessions")}
+                        onClick={() => navigate("/profile")}
                         className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
                       >
-                        Start meditating
+                        View profile
                       </button>
                     </div>
 
                     <div className="flex-shrink-0">
                       <div className="relative">
                         <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
-                          <div className="text-6xl">🧘</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CarouselItem>
-
-              {/* AI Guidance */}
-              <CarouselItem className="pl-2 md:pl-4">
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
-                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
-                    <div className="flex-1">
-                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Personalized
-                        <br />
-                        support
-                      </h3>
-                      <p className="text-lg text-white/90 mb-8 max-w-md">
-                        Get instant, personalized guidance from our AI companion whenever you need it.
-                      </p>
-                      <button 
-                        onClick={() => navigate("/sessions")}
-                        className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
-                      >
-                        Chat now
-                      </button>
-                    </div>
-
-                    <div className="flex-shrink-0">
-                      <div className="relative">
-                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
-                          <div className="text-6xl">🤖</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CarouselItem>
-
-              {/* Sleep Resources */}
-              <CarouselItem className="pl-2 md:pl-4">
-                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden min-h-[400px] flex items-center">
-                  <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
-                    <div className="flex-1">
-                      <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Better
-                        <br />
-                        sleep
-                        <br />
-                        tonight
-                      </h3>
-                      <p className="text-lg text-white/90 mb-8 max-w-md">
-                        Discover sleep stories, sounds, and techniques to help you fall asleep faster and sleep deeper.
-                      </p>
-                      <button 
-                        onClick={() => navigate("/sessions")}
-                        className="bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
-                      >
-                        Sleep better
-                      </button>
-                    </div>
-
-                    <div className="flex-shrink-0">
-                      <div className="relative">
-                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
-                          <div className="text-6xl">🌙</div>
+                          <div className="text-6xl">🧠</div>
                         </div>
                       </div>
                     </div>
