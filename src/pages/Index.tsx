@@ -239,7 +239,7 @@ const Index = () => {
       </div>
 
       {/* What do you want section */}
-      <div className="relative z-10 bg-gradient-to-br from-slate-50 to-blue-50 py-20 px-6">
+      <div className="relative z-10 bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
