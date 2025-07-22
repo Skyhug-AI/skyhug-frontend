@@ -10,6 +10,7 @@ import AnimatedSunLoader from "@/components/ui/AnimatedSunLoader";
 import VoiceRecorder from "@/components/voice/VoiceRecorder";
 import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+
 const Index = () => {
   const navigate = useNavigate();
   const [showVoiceInterface, setShowVoiceInterface] = useState(false);
@@ -52,6 +53,7 @@ const Index = () => {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setTextOpacity(0); // Fade out
@@ -93,6 +95,7 @@ const Index = () => {
       clearTimeout(nextWordTimeout);
     };
   }, [currentPlaceholderIndex]);
+
   const handleTalkToSky = () => {
     navigate("/signup");
   };
@@ -105,6 +108,7 @@ const Index = () => {
   const handleSessionStart = () => {
     setIsSessionStarted(true);
   };
+
   const handleVoiceRecorded = (transcript: string) => {
     console.log("Voice recorded:", transcript);
     // Handle the voice input here
@@ -119,22 +123,33 @@ const Index = () => {
       height: Math.random() * 40 + 10,
       color: ["bg-blue-400", "bg-purple-400", "bg-pink-400", "bg-green-400", "bg-yellow-400", "bg-indigo-400", "bg-cyan-400", "bg-orange-400"][Math.floor(Math.random() * 8)]
     }));
-    return <div className="flex items-end justify-center gap-1 h-24 w-full max-w-4xl mx-auto">
-        {bars.map((bar, index) => <div key={bar.id} className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`} style={{
-        height: `${bar.height}px`,
-        width: "8px",
-        animationDelay: `${index * 100}ms`,
-        animationDuration: `${Math.random() * 0.8 + 0.8}s`
-      }} />)}
-      </div>;
+    return (
+      <div className="flex items-end justify-center gap-1 h-24 w-full max-w-4xl mx-auto">
+        {bars.map((bar, index) => (
+          <div
+            key={bar.id}
+            className={`${bar.color} rounded-full transition-all duration-300 hover:opacity-80 animate-wave`}
+            style={{
+              height: `${bar.height}px`,
+              width: "8px",
+              animationDelay: `${index * 100}ms`,
+              animationDuration: `${Math.random() * 0.8 + 0.8}s`
+            }}
+          />
+        ))}
+      </div>
+    );
   };
-  return <div className="min-h-[95vh] text-gray-900 relative overflow-hidden">
+
+  return (
+    <div className="min-h-[95vh] text-gray-900 relative overflow-hidden">
       <SunriseGradientBackground />
       <CloudBackground />
 
       <div className="relative z-50">
         <Header />
       </div>
+
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[82vh] px-6">
         <div className="mb-0">
           <div className="flex items-center gap-3 mb-4">
@@ -150,9 +165,12 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-800">
             AI Therapy Companion
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200" style={{
-            opacity: textOpacity
-          }}>
+            <span
+              className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-float transition-opacity duration-200"
+              style={{
+                opacity: textOpacity
+              }}
+            >
               {rotatingTexts[currentTextIndex]}
             </span>
           </h1>
@@ -167,68 +185,53 @@ const Index = () => {
           <div className="relative">
             {/* Floating sparkles animation */}
             <div className="absolute -inset-6 opacity-70">
-              <div className="absolute top-0 left-0 w-2 h-2 bg-yellow-400 rounded-full animate-ping" style={{
-              animationDelay: '0s',
-              animationDuration: '2s'
-            }}></div>
-              <div className="absolute top-2 right-0 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{
-              animationDelay: '0.5s',
-              animationDuration: '1.8s'
-            }}></div>
-              <div className="absolute bottom-0 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" style={{
-              animationDelay: '1s',
-              animationDuration: '2.2s'
-            }}></div>
-              <div className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{
-              animationDelay: '1.5s',
-              animationDuration: '1.5s'
-            }}></div>
+              <div
+                className="absolute top-0 left-0 w-2 h-2 bg-yellow-400 rounded-full animate-ping"
+                style={{
+                  animationDelay: '0s',
+                  animationDuration: '2s'
+                }}
+              ></div>
+              <div
+                className="absolute top-2 right-0 w-1 h-1 bg-blue-400 rounded-full animate-ping"
+                style={{
+                  animationDelay: '0.5s',
+                  animationDuration: '1.8s'
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping"
+                style={{
+                  animationDelay: '1s',
+                  animationDuration: '2.2s'
+                }}
+              ></div>
+              <div
+                className="absolute bottom-2 right-2 w-1 h-1 bg-pink-400 rounded-full animate-ping"
+                style={{
+                  animationDelay: '1.5s',
+                  animationDuration: '1.5s'
+                }}
+              ></div>
             </div>
 
             {/* Continuous glow effect */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/30 via-purple-400/30 to-pink-400/30 blur-xl animate-pulse"></div>
 
-            <button onClick={handleTalkToSky} className="relative glass-panel text-gray-900 px-8 py-4 mt-12 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group animate-bounce" style={{
-            animationDuration: '3s',
-            animationIterationCount: 'infinite',
-            animationTimingFunction: 'ease-in-out'
-          }}>
+            <button
+              onClick={handleTalkToSky}
+              className="relative glass-panel text-gray-900 px-8 py-4 mt-12 rounded-full font-medium hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl flex items-center gap-3 hover:shadow-2xl group animate-bounce"
+              style={{
+                animationDuration: '3s',
+                animationIterationCount: 'infinite',
+                animationTimingFunction: 'ease-in-out'
+              }}
+            >
               <span className="text-lg group-hover:animate-bounce">TALK TO SKY 🌤️</span>
 
               {/* Ripple effect on hover */}
               <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"></div>
             </button>
-
-            {/* Commented out voice interface for now */}
-            {/* {!showVoiceInterface ? (
-              <button onClick={handleTalkToSky} className="glass-panel text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-white/90 transition-all duration-300 shadow-xl flex items-center gap-3">
-                <Mic className="w-5 h-5" />
-                <span className="text-lg">TALK TO SKY</span>
-                <div className="flex gap-1">
-                  <div className="w-1 h-4 bg-blue-500/60 rounded-full animate-wave" />
-                  <div className="w-1 h-4 bg-purple-500/60 rounded-full animate-wave" style={{
-                  animationDelay: '0.1s'
-                }} />
-                  <div className="w-1 h-4 bg-pink-500/60 rounded-full animate-wave" style={{
-                  animationDelay: '0.2s'
-                }} />
-                </div>
-              </button>
-             ) : (
-              <div className="max-w-md w-full text-center">
-                {!isSessionStarted ? (
-                  <AnimatedSunLoader
-                    onComplete={handleSessionStart}
-                    duration={3000}
-                    subtext="Your mind deserves this pause."
-                  />
-                ) : (
-                  <div className="space-y-4">
-                    <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
-                  </div>
-                )}
-              </div>
-             )} */}
           </div>
         </div>
 
@@ -242,7 +245,7 @@ const Index = () => {
       <div className="relative z-10 py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">How can an AI therapy companion help you? </h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">How can an AI therapy companion help you? </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -295,14 +298,9 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Custom text input */}
-          <div className="max-w-4xl mx-auto mt-12">
-            
-          </div>
-
           {/* Subtitle */}
           <div className="text-center mt-16">
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The mental health app for every moment </h3>
+            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The mental health app for every moment </h3>
             <div className="flex flex-wrap justify-center gap-8 text-gray-600">
               <span className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -492,21 +490,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Demo Chat Section */}
-      {/* <div className="relative z-10 py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Try it out
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Experience our AI companion in action. Send a message and see how it responds.
-            </p>
-          </div>
-           <DemoChatInterface />
-        </div>
-       </div> */}
-
       {/* Evidence-Based Therapy Models Section */}
       <div className="relative z-10 py-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
@@ -591,6 +574,8 @@ const Index = () => {
       <div className="relative z-10">
         <Footer />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
