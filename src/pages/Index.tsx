@@ -559,56 +559,87 @@ const Index = () => {
         </div>
        </div> */}
 
-      {/* Delivered with Care Section */}
+      {/* Evidence-Based Therapy Models Section */}
       <div className="relative z-10 bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
-            Designed by experts,<br />delivered with care
+            Built on proven therapy models,<br />created by licensed therapists
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-            From guided meditations to one-on-one coaching, our team of clinical experts and
-            trained coaches work together to bring you science-backed care.
+            Our AI was trained on the most well-researched and successful therapy approaches,
+            developed and validated by licensed mental health professionals with decades of experience.
           </p>
 
           <button className="bg-gray-900 text-white px-8 py-4 rounded-full font-medium hover:bg-gray-800 transition-all duration-300 mb-16">
-            Learn more
+            Learn about our approach
           </button>
 
-          {/* Therapist Cards Row */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl mx-auto">
-            {/* Card 1 - Blue */}
-            <div className="bg-blue-400 rounded-2xl aspect-square p-6 flex items-end">
-              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+          {/* Therapy Model Cards Row */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* CBT Card */}
+            <div className="bg-blue-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-3">CBT</h3>
+                <p className="text-blue-100 text-sm leading-relaxed">
+                  Cognitive Behavioral Therapy helps identify and change negative thought patterns and behaviors.
+                </p>
               </div>
+              <div className="text-2xl">🧠</div>
             </div>
 
-            {/* Card 2 - Pink */}
-            <div className="bg-pink-400 rounded-2xl aspect-square p-6 flex items-end">
-              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+            {/* EMDR/Trauma Card */}
+            <div className="bg-purple-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-3">Trauma Therapy</h3>
+                <p className="text-purple-100 text-sm leading-relaxed">
+                  EMDR and trauma-informed approaches for processing difficult experiences safely.
+                </p>
               </div>
+              <div className="text-2xl">💜</div>
             </div>
 
-            {/* Card 3 - Green */}
-            <div className="bg-green-500 rounded-2xl aspect-square p-6 flex items-end">
-              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+            {/* DBT Card */}
+            <div className="bg-green-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-3">DBT Skills</h3>
+                <p className="text-green-100 text-sm leading-relaxed">
+                  Dialectical Behavior Therapy skills for emotional regulation and distress tolerance.
+                </p>
               </div>
+              <div className="text-2xl">⚖️</div>
             </div>
 
-            {/* Card 4 - Orange */}
-            <div className="bg-orange-500 rounded-2xl aspect-square p-6 flex items-end">
-              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+            {/* Mindfulness Card */}
+            <div className="bg-orange-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-3">Mindfulness</h3>
+                <p className="text-orange-100 text-sm leading-relaxed">
+                  Present-moment awareness and acceptance-based therapeutic practices.
+                </p>
               </div>
+              <div className="text-2xl">🧘</div>
             </div>
 
-            {/* Card 5 - Olive/Yellow */}
-            <div className="bg-yellow-600 rounded-2xl aspect-square p-6 flex items-end md:col-span-1 col-span-2">
-              <div className="w-full h-24 bg-gray-200 rounded-lg overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
+            {/* IFS/Parts Work Card */}
+            <div className="bg-pink-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-3">IFS Parts Work</h3>
+                <p className="text-pink-100 text-sm leading-relaxed">
+                  Internal Family Systems therapy for understanding different parts of yourself.
+                </p>
               </div>
+              <div className="text-2xl">🌟</div>
+            </div>
+
+            {/* Childhood Trauma Card */}
+            <div className="bg-indigo-500 rounded-2xl p-6 text-white text-left min-h-[200px] flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-3">Childhood Trauma</h3>
+                <p className="text-indigo-100 text-sm leading-relaxed">
+                  Specialized approaches for healing early life experiences and attachment wounds.
+                </p>
+              </div>
+              <div className="text-2xl">🌱</div>
             </div>
           </div>
         </div>
