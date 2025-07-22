@@ -1,7 +1,6 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2 } from 'lucide-react';
+import { Volume2, VolumeX, MessageSquare, MessageSquareOff, Calendar, Play, ArrowLeft, Music2, Edit2 } from 'lucide-react';
 import ChatBubble from '@/components/chat/ChatBubble';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import { useToast } from '@/hooks/use-toast';
@@ -41,14 +40,13 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { editMessage } = useTherapist();
+  const { editMessage, invalidateFrom, regenerateAfter, isPlayingAudio, playMessageAudio } = useTherapist();
   const [showReminder, setShowReminder] = useState(false);
   const [ambientSound, setAmbientSound] = useState<string | null>(null);
   const reminderTimeoutRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentlyPlayingPath, setCurrentlyPlayingPath] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const { isPlayingAudio, playMessageAudio } = useTherapist();
   const [streamedMap, setStreamedMap] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -83,85 +81,6 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
     onEndCall();
     navigate('/schedule');
   };
-
-
-// const handlePlayAudio = (messageId?: string | null) => {
-//   if (!messageId || streamedMap[messageId]) return;
-
-//   const STREAM_BASE = "http://localhost:8000";
-
-
-//   // If already playing this clip, toggle pause/resume
-//   if (currentlyPlayingPath === messageId && audioRef.current) {
-//     if (!isPaused) {
-//       audioRef.current.pause();
-//       setIsPaused(true);
-//     } else {
-//       audioRef.current.play();
-//       setIsPaused(false);
-//     }
-//     return;
-//   }
-
-//   // Tear down any previous player
-//   if (audioRef.current) {
-//     audioRef.current.pause();
-//     audioRef.current.currentTime = 0;
-//   }
-
-//   // 1) Create a streaming <audio>
-//   const streamUrl = `http://localhost:8000/tts-stream/${messageId}`;
-//   // ↪️ adjust host/origin for production
-
-//   const audio = new Audio(streamUrl);
-//   audio.crossOrigin = "anonymous";
-//   audio.src         = `${STREAM_BASE}/tts-stream/${messageId}`;
-//   audio.preload = 'auto';  // start buffering immediately
-//   audioRef.current = audio;
-//   setCurrentlyPlayingPath(messageId);
-//   setIsPaused(false);
-
-//   // 2) when it ends…
-//   audio.onended = () => {
-//     setCurrentlyPlayingPath(null);
-//     setIsPaused(false);
-//     setStreamedMap(prev => ({ ...prev, [messageId]: true }));
-//   };
-//   audio.onerror = () => {
-//     console.error("Audio playback error");
-//     // optionally toast an error
-//   };
-
-//   audio.addEventListener("error", (e) => {
-//     console.error("🔊 <audio> error:", {
-//       networkState:   audio.networkState,
-//       readyState:     audio.readyState,
-//       currentSrc:     audio.currentSrc,
-//       event:          e,
-//     });
-//   });
-//   audio.addEventListener("stalled", () => {
-//     console.warn("🔊 <audio> stalled (no data arriving).");
-//   });
-
-//     // 3) kick it off
-//     audio.play().catch(err => {
-//       console.error("Play() failed:", err, "— falling back to fetch+blob");
-//       // fallback: download the entire stream as a Blob
-//       fetch(`${STREAM_BASE}/tts-stream/${messageId}`, { mode: "cors" })
-//         .then(res => {
-//           if (!res.ok) throw new Error(`status ${res.status}`);
-//           return res.blob();
-//         })
-//         .then(blob => {
-//           const objectUrl = URL.createObjectURL(blob);
-//           const fallbackAudio = new Audio(objectUrl);
-//           fallbackAudio.play().catch(e => console.error("Fallback play failed:", e));
-//         })
-//         .catch(e => console.error("Fallback fetch+blob error:", e));
-//     });
-
-// };
 
   const handlePlayAudio = (messageId?: string | null) => {
     if (messageId) playMessageAudio(messageId);
@@ -213,12 +132,11 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
               <ChatInput
                 initialValue={msg.text}
                 onEditMessage={async newText => {
-                  await invalidateFrom(message.id);           // ① drop downstream chats
-                  await editMessage(message.id, newText);     // ② update this turn’s text
-                  await regenerateAfter(message.id);          // ③ re-queue it for AI
+                  await invalidateFrom(msg.id);           // ① drop downstream chats
+                  await editMessage(msg.id, newText);     // ② update this turn's text
                   setEditingId(null);
                 }}
-                onSendMessage={sendMessage}
+                onSendMessage={onVoiceRecorded}
                 isDisabled={isProcessing}
               />
             ) : (
@@ -227,7 +145,6 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
                 <ChatBubble
                   message={msg.text}
                   isUser={msg.isUser}
-                  editedAt={msg.edited_at}
                 />
 
                 {/* AI Play/Pause */}
@@ -243,7 +160,7 @@ const VoiceCallUI: React.FC<VoiceCallUIProps> = ({
                   </button>
                 )}
 
-                {/* AI “Regenerate from here” */}
+                {/* AI "Regenerate from here" */}
                 {!msg.isUser && (
                   <button
                     className="text-sm text-skyhug-500 ml-12 mt-1"

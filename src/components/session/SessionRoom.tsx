@@ -227,7 +227,9 @@ const SessionRoom = () => {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [activeConversationId]);
 
   // HIDE PLAY BUTTON FOR EARLIER MESSAGES

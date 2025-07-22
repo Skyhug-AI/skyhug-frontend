@@ -12,6 +12,8 @@ export interface Message {
 export type TherapistContextType = {
   messages: Message[];
   isProcessing: boolean;
+  isLoadingSession: boolean;
+  isPlayingAudio: boolean;
   sendMessage: (content: string) => Promise<void>;
   sendAudioMessage: (blob: Blob) => Promise<void>;
   createOrStartActiveSession: () => Promise<void>;
@@ -20,6 +22,7 @@ export type TherapistContextType = {
   editMessage: (id: string, newContent: string) => Promise<void>;
   invalidateFrom: (id: string) => Promise<void>;
   regenerateAfter: (id: string) => Promise<void>;
+  playMessageAudio: (messageId: string) => Promise<void>;
   activeConversationId: string | null;
   setVoiceEnabled: (on: boolean) => Promise<void>;
   currentTherapist: {

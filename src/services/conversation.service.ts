@@ -9,7 +9,7 @@ type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
 export const conversationService = {
   async loadHistory(
     activeConversationId: string,
-    setMessages: (messages: Message[]) => void
+    setMessages: (messages: any[]) => void
   ) {
     const { data: rows, error } = await supabase
       .from("messages")
@@ -22,7 +22,16 @@ export const conversationService = {
       console.error("Error loading conversation history:", error);
       return;
     }
-    setMessages(rows.map(formatMessage));
+    setMessages(rows.map((msg: any) => ({
+      id: msg.id,
+      content: msg.transcription ?? msg.assistant_text ?? "[No content]",
+      isUser: msg.sender_role === "user",
+      timestamp: new Date(msg.created_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      tts_path: msg.tts_path,
+    })));
   },
 
 

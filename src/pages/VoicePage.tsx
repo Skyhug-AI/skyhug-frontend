@@ -34,6 +34,7 @@ const VoicePage = () => {
   const { toast } = useToast();
 
   const formattedMessages = therapistMessages.map((message) => ({
+    id: message.id,
     text: message.content,
     isUser: message.isUser,
     tts_path: message.id,

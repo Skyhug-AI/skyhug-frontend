@@ -16,6 +16,7 @@ const TherapistContext = createContext<TherapistContextType>({
   messages: [],
   isProcessing: false,
   isLoadingSession: true,
+  isPlayingAudio: false,
   sendMessage: async (_content: string) => {},
   sendAudioMessage: async () => {},
   createOrStartActiveSession: async () => {},
@@ -26,6 +27,8 @@ const TherapistContext = createContext<TherapistContextType>({
   editMessage: async () => {},
   invalidateFrom: async () => {},
   regenerateAfter: async () => {},
+  playMessageAudio: async (_messageId: string) => {},
+  setTherapists: (_therapists: any[]) => {},
   activeConversationId: null,
   setVoiceEnabled: async () => {},
   therapists: [],
@@ -72,7 +75,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const data = await therapistService.getTherapists({
         identity: identityFilter,
-        topics: topicsFilter,
+        topics: Array.isArray(topicsFilter) ? topicsFilter.join(',') : topicsFilter,
         style: styleFilter,
       });
       setTherapists(data);
@@ -224,7 +227,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         therapistId.therapist_id
       );
 
-      setCurrentTherapist(therapistData);
+      setCurrentTherapist({
+        id: therapistData.id,
+        name: therapistData.name,
+        avatar_url: therapistData.avatarSrc,
+        elevenLabsVoiceId: therapistData.elevenLabsVoiceId
+      });
     } catch (error) {
       console.error("Error fetching active session:", error);
     } finally {
@@ -295,7 +303,11 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     const { data, error } = await supabase
       .from("conversations")
-      .insert(convoPayload)
+      .insert({
+        patient_id: user.id,
+        title: "Therapy Session",
+        ...(currentTherapist?.id && { therapist_id: currentTherapist.id })
+      })
       .select()
       .single();
 
@@ -522,7 +534,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const playMessageAudio = (messageId: string) => {
+  const playMessageAudio = async (messageId: string) => {
     // 1) tear down any old audio
     currentAudio?.pause();
     if (currentAudio) currentAudio.currentTime = 0;
@@ -639,6 +651,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
         messages,
         isProcessing,
         isLoadingSession,
+        isPlayingAudio,
         sendMessage,
         sendAudioMessage,
         createOrStartActiveSession,
