@@ -361,7 +361,7 @@ const Index = () => {
                   <div className="flex flex-col md:flex-row items-center gap-8 w-full pl-8">
                     <div className="flex-1">
                       <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                        Available 24/7 Anywhere
+                        Available 24/7
                       </h3>
                       <p className="text-lg text-white/90 mb-8 max-w-md">
                         Get support whenever you need it. No appointments, no waiting - your AI therapist is always ready to listen.
