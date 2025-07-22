@@ -298,28 +298,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Subtitle */}
-          <div className="text-center mt-16">
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The mental health app for every moment </h3>
-            <div className="flex flex-wrap justify-center gap-8 text-gray-600">
-              <span className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                AI guidance
-              </span>
-              <span className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                Guided meditations
-              </span>
-              <span className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                Sleep resources
-              </span>
-              <span className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                Expert-led programs
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
