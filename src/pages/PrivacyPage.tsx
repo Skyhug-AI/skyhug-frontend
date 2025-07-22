@@ -94,7 +94,14 @@ const PrivacyPage = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold mb-4 text-foreground">10. Contact Information</h2>
+                <h2 className="text-xl font-semibold mb-4 text-foreground">10. Additional Disclaimers</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  For further details and expanded disclaimers related to use of Skyhug, please visit our dedicated <a href="/disclaimer" className="text-skyhug-500 hover:underline">Disclaimers page</a>.
+                </p>
+              </section>
+
+              <section className="mb-8">
+                <h2 className="text-xl font-semibold mb-4 text-foreground">11. Contact Information</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   For any questions regarding this Privacy Policy or our data practices, please contact us at [Insert contact information here].
                 </p>
