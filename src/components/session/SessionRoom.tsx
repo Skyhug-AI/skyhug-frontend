@@ -602,11 +602,11 @@ const SessionRoom = () => {
           }}
           className="border-t border-gray-100 bg-transparent backdrop-blur-sm p-4"
         >
-          <div className="flex justify-center items-center mb-4 w-full max-w-lg mx-auto">
-            <p className="text-sm text-gray-600 text-center">
-              Skyhug is not a replacement for professional mental health services.
+          <div className="flex justify-between items-center mb-4 w-full max-w-lg mx-auto">
+            <p className="text-sm text-gray-600 flex-1">
+              Skyhug is not a replacement for therapy and can make mistakes.
             </p>
-            <div className="ml-auto">
+            <div className="ml-4">
               <Button
                 variant="ghost"
                 size="icon"
