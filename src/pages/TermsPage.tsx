@@ -1,10 +1,15 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const TermsPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
+      <div className="sticky top-0 z-50">
+        <Header />
+      </div>
+      <div className="flex-grow container mx-auto px-4 py-8">
         <Card className="max-w-4xl mx-auto">
           <CardContent className="p-8">
             <div className="prose prose-gray max-w-none">
@@ -132,6 +137,7 @@ const TermsPage = () => {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };
