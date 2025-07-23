@@ -25,7 +25,7 @@ const Header = () => {
 
   const handleEndSession = async () => {
     await endConversation();
-    navigate("/session-summary");
+    navigate("/home");
   };
 
   // Load calm points from database
