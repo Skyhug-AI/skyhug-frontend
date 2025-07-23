@@ -522,14 +522,62 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     setActiveConversationId(null);
     console.log("✅ Conversation truly ended.");
 
-    // Dispatch custom event to notify that session was completed
+    // Handle session completion directly - award points and save goal completion
     if (user?.id) {
-      console.log("🎯 Dispatching session-completed event for user:", user.id);
-      window.dispatchEvent(new CustomEvent('session-completed', { 
-        detail: { userId: user.id } 
-      }));
+      console.log("🎯 Processing session completion for user:", user.id);
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Check if session already completed today
+        const { data: existingCompletion } = await supabase
+          .from('daily_goal_completions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('goal_type', 'session')
+          .eq('completion_date', today)
+          .single();
+
+        if (!existingCompletion) {
+          console.log("🎯 No existing session completion, creating new one...");
+          
+          // Insert goal completion record
+          const { error: insertError } = await supabase
+            .from('daily_goal_completions')
+            .insert({
+              user_id: user.id,
+              goal_type: 'session',
+              completion_date: today,
+              points_awarded: 50
+            });
+          
+          if (insertError && !insertError.message.includes('duplicate key')) {
+            console.error('Error saving session goal completion:', insertError);
+          } else {
+            console.log("✅ Session goal completion saved!");
+            
+            // Update calm points
+            const { data: currentProfile } = await supabase
+              .from('user_profiles')
+              .select('calm_points')
+              .eq('user_id', user.id)
+              .single();
+              
+            if (currentProfile) {
+              await supabase
+                .from('user_profiles')
+                .update({ calm_points: currentProfile.calm_points + 50 })
+                .eq('user_id', user.id);
+              console.log("✅ Calm points updated!");
+            }
+          }
+        } else {
+          console.log("🎯 Session already completed today");
+        }
+      } catch (error) {
+        console.error('Error processing session completion:', error);
+      }
     } else {
-      console.log("❌ No user ID found, not dispatching session-completed event");
+      console.log("❌ No user ID found");
     }
 
     try {

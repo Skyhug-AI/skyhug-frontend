@@ -111,48 +111,21 @@ const HomePage = () => {
     loadTodaysCompletedGoals();
   }, [user?.id]);
 
-  // Listen for session completion events
+  // Reload goals when navigating back to home (in case session was completed)
   useEffect(() => {
-    const handleSessionCompleted = async (event: CustomEvent) => {
-      console.log("🎯 HomePage received session-completed event:", event.detail);
-      if (event.detail.userId === user?.id) {
-        console.log("🎯 User ID matches, checking for existing completion...");
-        // Check current state when event fires to avoid stale closures
-        const { data: existingCompletion } = await supabase
-          .from('daily_goal_completions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('goal_type', 'session')
-          .eq('completion_date', new Date().toISOString().split('T')[0])
-          .single();
-
-        console.log("🎯 Existing completion:", existingCompletion);
-
-        if (!existingCompletion) {
-          console.log("🎯 No existing completion, saving session goal...");
-          await saveGoalCompletion("session", 50);
-          toast({
-            title: "Session completed!",
-            description: "You earned +50 Calm Points",
-          });
-        } else {
-          console.log("🎯 Session already completed today");
-        }
-      } else {
-        console.log("🎯 User ID mismatch:", event.detail.userId, "vs", user?.id);
-      }
+    const reloadGoals = () => {
+      console.log("🔄 Reloading goals due to focus/navigation");
+      loadTodaysCompletedGoals();
     };
-
-    if (user?.id) {
-      console.log("🎯 Setting up session-completed event listener for user:", user.id);
-      window.addEventListener('session-completed', handleSessionCompleted as EventListener);
-      
-      return () => {
-        console.log("🎯 Cleaning up session-completed event listener");
-        window.removeEventListener('session-completed', handleSessionCompleted as EventListener);
-      };
-    }
-  }, [user?.id, saveGoalCompletion]);
+    
+    // Reload when component mounts or when window gains focus
+    reloadGoals();
+    window.addEventListener('focus', reloadGoals);
+    
+    return () => {
+      window.removeEventListener('focus', reloadGoals);
+    };
+  }, []);
   const moodData = [
     {
       day: "Mon",
