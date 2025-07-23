@@ -130,6 +130,33 @@ export type Database = {
           },
         ]
       }
+      daily_goal_completions: {
+        Row: {
+          completion_date: string
+          created_at: string
+          goal_type: string
+          id: string
+          points_awarded: number
+          user_id: string
+        }
+        Insert: {
+          completion_date: string
+          created_at?: string
+          goal_type: string
+          id?: string
+          points_awarded?: number
+          user_id: string
+        }
+        Update: {
+          completion_date?: string
+          created_at?: string
+          goal_type?: string
+          id?: string
+          points_awarded?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           ai_started: boolean
@@ -342,7 +369,7 @@ export type Database = {
           career: string | null
           gender: string | null
           last_login_date: string | null
-          self_diagnosed_issues: string | null
+          self_diagnosed_issues: string[] | null
           sexual_preferences: string | null
           topics_on_mind: string[] | null
           user_id: string
@@ -356,7 +383,7 @@ export type Database = {
           career?: string | null
           gender?: string | null
           last_login_date?: string | null
-          self_diagnosed_issues?: string | null
+          self_diagnosed_issues?: string[] | null
           sexual_preferences?: string | null
           topics_on_mind?: string[] | null
           user_id: string
@@ -370,7 +397,7 @@ export type Database = {
           career?: string | null
           gender?: string | null
           last_login_date?: string | null
-          self_diagnosed_issues?: string | null
+          self_diagnosed_issues?: string[] | null
           sexual_preferences?: string | null
           topics_on_mind?: string[] | null
           user_id?: string

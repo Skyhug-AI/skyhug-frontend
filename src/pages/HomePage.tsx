@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -39,51 +39,72 @@ const HomePage = () => {
   // Track completed goals
   const [completedGoals, setCompletedGoals] = useState<string[]>([]);
 
-  // Load today's completed goals - check if user already did mood check-in today
+  // Load today's completed goals from database
   const loadTodaysCompletedGoals = async () => {
     if (!user?.id) return;
     
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('last_login_date')
-      .eq('user_id', user.id)
-      .single();
-    
     const today = new Date().toISOString().split('T')[0];
     
-    // Check if there's a record of completing mood today by checking if there was already a mood completion stored
-    // For now, we'll use localStorage as a simple solution until we add a proper daily_goal_completions table
-    const completedToday = localStorage.getItem(`goals_completed_${user.id}_${today}`);
-    if (completedToday) {
-      setCompletedGoals(JSON.parse(completedToday));
+    const { data: completions, error } = await supabase
+      .from('daily_goal_completions')
+      .select('goal_type')
+      .eq('user_id', user.id)
+      .eq('completion_date', today);
+    
+    if (error) {
+      console.error('Error loading completed goals:', error);
+      return;
     }
+    
+    const completedGoalTypes = completions?.map(c => c.goal_type) || [];
+    setCompletedGoals(completedGoalTypes);
   };
 
-  // Save goal completion 
-  const saveGoalCompletion = async (goalType: string, points: number) => {
+  // Save goal completion to database
+  const saveGoalCompletion = useCallback(async (goalType: string, points: number) => {
     if (!user?.id) return;
     
     const today = new Date().toISOString().split('T')[0];
-    const newCompletedGoals = [...completedGoals, goalType];
-    setCompletedGoals(newCompletedGoals);
     
-    // Store in localStorage temporarily 
-    localStorage.setItem(`goals_completed_${user.id}_${today}`, JSON.stringify(newCompletedGoals));
-    
-    // Update calm points in database
-    const { data: currentProfile } = await supabase
-      .from('user_profiles')
-      .select('calm_points')
-      .eq('user_id', user.id)
-      .single();
+    try {
+      // Insert goal completion record
+      const { error: insertError } = await supabase
+        .from('daily_goal_completions')
+        .insert({
+          user_id: user.id,
+          goal_type: goalType,
+          completion_date: today,
+          points_awarded: points
+        });
       
-    if (currentProfile) {
-      await supabase
+      if (insertError && !insertError.message.includes('duplicate key')) {
+        console.error('Error saving goal completion:', insertError);
+        return;
+      }
+      
+      // Update local state
+      setCompletedGoals(prev => {
+        if (prev.includes(goalType)) return prev;
+        return [...prev, goalType];
+      });
+      
+      // Update calm points in user profile
+      const { data: currentProfile } = await supabase
         .from('user_profiles')
-        .update({ calm_points: currentProfile.calm_points + points })
-        .eq('user_id', user.id);
+        .select('calm_points')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (currentProfile) {
+        await supabase
+          .from('user_profiles')
+          .update({ calm_points: currentProfile.calm_points + points })
+          .eq('user_id', user.id);
+      }
+    } catch (error) {
+      console.error('Error in saveGoalCompletion:', error);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     getActiveSessionIdAndTherapist();
@@ -93,21 +114,34 @@ const HomePage = () => {
   // Listen for session completion events
   useEffect(() => {
     const handleSessionCompleted = async (event: CustomEvent) => {
-      if (event.detail.userId === user?.id && !completedGoals.includes("session")) {
-        await saveGoalCompletion("session", 50);
-        toast({
-          title: "Session completed!",
-          description: "You earned +50 Calm Points",
-        });
+      if (event.detail.userId === user?.id) {
+        // Check current state when event fires to avoid stale closures
+        const { data: existingCompletion } = await supabase
+          .from('daily_goal_completions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('goal_type', 'session')
+          .eq('completion_date', new Date().toISOString().split('T')[0])
+          .single();
+
+        if (!existingCompletion) {
+          await saveGoalCompletion("session", 50);
+          toast({
+            title: "Session completed!",
+            description: "You earned +50 Calm Points",
+          });
+        }
       }
     };
 
-    window.addEventListener('session-completed', handleSessionCompleted as EventListener);
-    
-    return () => {
-      window.removeEventListener('session-completed', handleSessionCompleted as EventListener);
-    };
-  }, [user?.id, completedGoals, saveGoalCompletion, toast]);
+    if (user?.id) {
+      window.addEventListener('session-completed', handleSessionCompleted as EventListener);
+      
+      return () => {
+        window.removeEventListener('session-completed', handleSessionCompleted as EventListener);
+      };
+    }
+  }, [user?.id, saveGoalCompletion]);
   const moodData = [
     {
       day: "Mon",
