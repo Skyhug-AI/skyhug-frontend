@@ -260,14 +260,14 @@ const HomePage = () => {
               
               {/* Main sun button */}
               <Button
-                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-lg shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-4 border-white/60"
+                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-xl shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-4 border-white/60"
                 onClick={() => navigate("/session")}
               >
                 {/* Inner glow */}
                 <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-100/50 to-transparent animate-[ping_7s_ease-out_infinite]"></div>
                 <div className="absolute inset-6 rounded-full bg-gradient-radial from-amber-100/60 to-transparent animate-[ping_9s_ease-out_infinite]"></div>
                 
-                <span className="relative z-10 drop-shadow-sm flex flex-col items-center leading-tight">
+                <span className="relative z-10 drop-shadow-sm flex flex-col items-center leading-relaxed">
                   <span>Start</span>
                   <span>Session</span>
                 </span>
@@ -278,7 +278,7 @@ const HomePage = () => {
               className="px-20 py-8 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-3xl text-2xl font-normal text-white"
               onClick={() => navigate("/session")}
             >
-              <span className="flex flex-col items-center leading-tight">
+              <span className="flex flex-col items-center leading-relaxed">
                 <span>Resume</span>
                 <span>Session</span>
               </span>
