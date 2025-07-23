@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TagInput } from "@/components/ui/tag-input";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -33,8 +34,6 @@ const onboardingSchema = z.object({
   gender: z.string().min(1, "Please select your gender"),
   occupation: z.string().min(1, "Please enter your occupation"),
   sexual_preference: z.string().min(1, "Please select your sexual preference"),
-  self_diagnosed_issues: z.string().optional(),
-  topics_on_mind: z.string().optional(),
   additional_info: z.string().optional(),
 });
 
@@ -47,6 +46,10 @@ const OnboardingPage = () => {
   const [loading, setLoading] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [therapistStyle, setTherapistStyle] = useState([50]); // 0 = agreeable, 100 = challenging
+  
+  // State for tag arrays
+  const [selfDiagnosedIssues, setSelfDiagnosedIssues] = useState<string[]>([]);
+  const [topicsOnMind, setTopicsOnMind] = useState<string[]>([]);
 
   const {
     register,
@@ -60,8 +63,6 @@ const OnboardingPage = () => {
       gender: "",
       occupation: "",
       sexual_preference: "",
-      self_diagnosed_issues: "",
-      topics_on_mind: "",
       additional_info: "",
     },
   });
@@ -73,22 +74,6 @@ const OnboardingPage = () => {
     setLoading(true);
 
     try {
-      // Convert topics_on_mind string to array
-      const topicsArray = data.topics_on_mind
-        ? data.topics_on_mind
-            .split(",")
-            .map((topic) => topic.trim())
-            .filter((topic) => topic.length > 0)
-        : [];
-
-      // Convert self_diagnosed_issues string to array
-      const issuesArray = data.self_diagnosed_issues
-        ? data.self_diagnosed_issues
-            .split(",")
-            .map((issue) => issue.trim())
-            .filter((issue) => issue.length > 0)
-        : [];
-
       // Insert/update user profile data
       const { error: profileError } = await supabase
         .from("user_profiles")
@@ -98,8 +83,8 @@ const OnboardingPage = () => {
           gender: data.gender,
           career: data.occupation,
           sexual_preferences: data.sexual_preference,
-          self_diagnosed_issues: issuesArray,
-          topics_on_mind: topicsArray,
+          self_diagnosed_issues: selfDiagnosedIssues,
+          topics_on_mind: topicsOnMind,
           additional_info: data.additional_info,
           agreeable_slider: therapistStyle[0],
           agreeable_slider_updated_at: new Date().toISOString(),
@@ -294,35 +279,29 @@ const OnboardingPage = () => {
 
               {/* Self Diagnosed Issues */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="self_diagnosed_issues"
-                  className="text-[15px] text-[#616161] font-normal"
-                >
+                <Label className="text-[15px] text-[#616161] font-normal">
                   Self-Diagnosed Issues{" "}
                   <span className="text-[#9b9b9b]">(Optional)</span>
                 </Label>
-                <Textarea
-                  id="self_diagnosed_issues"
-                  placeholder="Any mental health concerns you'd like to share..."
-                  className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base min-h-[80px]"
-                  {...register("self_diagnosed_issues")}
+                <TagInput
+                  value={selfDiagnosedIssues}
+                  onChange={setSelfDiagnosedIssues}
+                  placeholder="Type an issue and press Enter to add..."
+                  maxTags={10}
                 />
               </div>
 
               {/* Topics on Mind */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="topics_on_mind"
-                  className="text-[15px] text-[#616161] font-normal"
-                >
+                <Label className="text-[15px] text-[#616161] font-normal">
                   What's on your mind?{" "}
                   <span className="text-[#9b9b9b]">(Optional)</span>
                 </Label>
-                <Textarea
-                  id="topics_on_mind"
-                  placeholder="Topics, concerns, or goals you'd like to explore..."
-                  className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base min-h-[80px]"
-                  {...register("topics_on_mind")}
+                <TagInput
+                  value={topicsOnMind}
+                  onChange={setTopicsOnMind}
+                  placeholder="Type a topic and press Enter to add..."
+                  maxTags={10}
                 />
               </div>
 
