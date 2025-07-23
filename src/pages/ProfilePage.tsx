@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -10,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Edit, Sparkles, Save, User, Heart, Brain, Briefcase, Info } from 'lucide-react';
+import { Edit, Sparkles, Save, User, Heart, Brain, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,7 +31,6 @@ const ProfilePage = () => {
     sexual_preferences: '',
     topics_on_mind: [] as string[],
     self_diagnosed_issues: '',
-    additional_info: '',
     agreeable_slider: 50,
     calm_points: 0
   });
@@ -71,7 +69,6 @@ const ProfilePage = () => {
           sexual_preferences: data.sexual_preferences || '',
           topics_on_mind: data.topics_on_mind || [],
           self_diagnosed_issues: data.self_diagnosed_issues || '',
-          additional_info: data.additional_info || '',
           agreeable_slider: data.agreeable_slider || 50,
           calm_points: data.calm_points || 0
         });
@@ -101,7 +98,6 @@ const ProfilePage = () => {
         sexual_preferences: profileData.sexual_preferences || null,
         topics_on_mind: profileData.topics_on_mind.length > 0 ? profileData.topics_on_mind : null,
         self_diagnosed_issues: profileData.self_diagnosed_issues || null,
-        additional_info: profileData.additional_info || null,
         agreeable_slider: profileData.agreeable_slider
       };
 
@@ -184,6 +180,10 @@ const ProfilePage = () => {
                   <div className="flex-grow">
                     <h2 className="text-xl font-semibold">{user?.name}</h2>
                     <p className="text-muted-foreground">{user?.email}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Sparkles className="h-4 w-4 text-purple-500" />
+                      <span className="font-medium text-purple-500">{calmPoints} Calm Points</span>
+                    </div>
                   </div>
                   {!isEditing ? (
                     <Button variant="outline" onClick={() => setIsEditing(true)}>
@@ -201,19 +201,6 @@ const ProfilePage = () => {
                       </Button>
                     </div>
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-purple-500" />
-                    <span className="font-medium">Calm Points</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-3 py-1 rounded-full text-lg font-semibold shadow-sm flex items-center gap-1">
-                      <Sparkles className="h-4 w-4" />
-                      {calmPoints}
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -395,32 +382,6 @@ const ProfilePage = () => {
                         <span>More Agreeable</span>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Additional Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5" />
-                  Additional Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <Label htmlFor="additional_info">Tell us more about yourself</Label>
-                  {isEditing ? (
-                    <Textarea
-                      id="additional_info"
-                      value={profileData.additional_info}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, additional_info: e.target.value }))}
-                      placeholder="Share anything else you'd like us to know about you..."
-                      rows={4}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-1">{profileData.additional_info || 'Not specified'}</p>
                   )}
                 </div>
               </CardContent>
