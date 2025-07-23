@@ -222,7 +222,7 @@ const HomePage = () => {
         </div>
 
         {/* Floating Action Button */}
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center py-8 animate-[slide-up_1.5s_ease-out]">
           {!activeConversationId ? (
             <div className="relative p-8">
               {/* Multiple soft radiation glows */}
