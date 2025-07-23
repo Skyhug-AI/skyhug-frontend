@@ -137,21 +137,23 @@ const HomePage = () => {
         </div>
 
         {/* Floating Action Button */}
-        {!activeConversationId ? (
-          <Button
-            className="mx-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            onClick={() => navigate("/session")}
-          >
-            Start Session
-          </Button>
-        ) : (
-          <Button
-            className="mx-auto px-8 py-4 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-xl text-base font-normal text-white"
-            onClick={() => navigate("/session")}
-          >
-            Resume Session
-          </Button>
-        )}
+        <div className="flex justify-center">
+          {!activeConversationId ? (
+            <Button
+              className="px-12 py-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold text-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              onClick={() => navigate("/session")}
+            >
+              Start Session
+            </Button>
+          ) : (
+            <Button
+              className="px-12 py-6 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-2xl text-xl font-normal text-white"
+              onClick={() => navigate("/session")}
+            >
+              Resume Session
+            </Button>
+          )}
+        </div>
 
         {/* Goals + Calm Points */}
         <div className="rounded-2xl border border-white/30 p-8 space-y-6 bg-white/90 backdrop-blur-sm shadow-xl">
