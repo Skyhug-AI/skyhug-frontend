@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TagInput } from "@/components/ui/tag-input";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -50,6 +49,10 @@ const OnboardingPage = () => {
   // State for tag arrays
   const [selfDiagnosedIssues, setSelfDiagnosedIssues] = useState<string[]>([]);
   const [topicsOnMind, setTopicsOnMind] = useState<string[]>([]);
+  
+  // State for input fields
+  const [newTopic, setNewTopic] = useState('');
+  const [newCondition, setNewCondition] = useState('');
 
   const {
     register,
@@ -120,6 +123,28 @@ const OnboardingPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const addTopic = () => {
+    if (newTopic.trim() && !topicsOnMind.includes(newTopic.trim())) {
+      setTopicsOnMind(prev => [...prev, newTopic.trim()]);
+      setNewTopic('');
+    }
+  };
+
+  const removeTopic = (topic: string) => {
+    setTopicsOnMind(prev => prev.filter(t => t !== topic));
+  };
+
+  const addCondition = () => {
+    if (newCondition.trim() && !selfDiagnosedIssues.includes(newCondition.trim())) {
+      setSelfDiagnosedIssues(prev => [...prev, newCondition.trim()]);
+      setNewCondition('');
+    }
+  };
+
+  const removeCondition = (condition: string) => {
+    setSelfDiagnosedIssues(prev => prev.filter(c => c !== condition));
   };
 
   const getTherapistStyleText = () => {
@@ -283,12 +308,30 @@ const OnboardingPage = () => {
                   Self-Diagnosed Issues{" "}
                   <span className="text-[#9b9b9b]">(Optional)</span>
                 </Label>
-                <TagInput
-                  value={selfDiagnosedIssues}
-                  onChange={setSelfDiagnosedIssues}
-                  placeholder="Type an issue and press Enter to add..."
-                  maxTags={10}
-                />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newCondition}
+                      onChange={(e) => setNewCondition(e.target.value)}
+                      placeholder="Add a condition..."
+                      onKeyPress={(e) => e.key === 'Enter' && addCondition()}
+                      className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
+                    />
+                    <Button type="button" onClick={addCondition} variant="outline">
+                      Add
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selfDiagnosedIssues.map((condition, index) => (
+                      <div key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm flex items-center gap-1">
+                        {condition}
+                        <button onClick={() => removeCondition(condition)} className="ml-1 text-red-600 hover:text-red-800">
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Topics on Mind */}
@@ -297,12 +340,30 @@ const OnboardingPage = () => {
                   What's on your mind?{" "}
                   <span className="text-[#9b9b9b]">(Optional)</span>
                 </Label>
-                <TagInput
-                  value={topicsOnMind}
-                  onChange={setTopicsOnMind}
-                  placeholder="Type a topic and press Enter to add..."
-                  maxTags={10}
-                />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newTopic}
+                      onChange={(e) => setNewTopic(e.target.value)}
+                      placeholder="Add a topic..."
+                      onKeyPress={(e) => e.key === 'Enter' && addTopic()}
+                      className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
+                    />
+                    <Button type="button" onClick={addTopic} variant="outline">
+                      Add
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {topicsOnMind.map((topic, index) => (
+                      <div key={index} className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm flex items-center gap-1">
+                        {topic}
+                        <button onClick={() => removeTopic(topic)} className="ml-1 text-purple-600 hover:text-purple-800">
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Additional Info */}
