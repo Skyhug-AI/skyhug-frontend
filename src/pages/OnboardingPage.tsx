@@ -314,7 +314,12 @@ const OnboardingPage = () => {
                       value={newCondition}
                       onChange={(e) => setNewCondition(e.target.value)}
                       placeholder="Add a condition..."
-                      onKeyPress={(e) => e.key === 'Enter' && addCondition()}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCondition();
+                        }
+                      }}
                       className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
                     />
                     <Button type="button" onClick={addCondition} variant="outline">
@@ -346,7 +351,12 @@ const OnboardingPage = () => {
                       value={newTopic}
                       onChange={(e) => setNewTopic(e.target.value)}
                       placeholder="Add a topic..."
-                      onKeyPress={(e) => e.key === 'Enter' && addTopic()}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addTopic();
+                        }
+                      }}
                       className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
                     />
                     <Button type="button" onClick={addTopic} variant="outline">
