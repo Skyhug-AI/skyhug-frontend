@@ -226,36 +226,36 @@ const HomePage = () => {
           {!activeConversationId ? (
             <div className="relative">
               {/* Outer radiating rings */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 animate-ping opacity-20"></div>
-              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-400 animate-pulse opacity-30"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-300/20 via-yellow-300/20 to-amber-400/20 animate-[ping_4s_ease-in-out_infinite] opacity-30"></div>
+              <div className="absolute inset-1 rounded-full bg-gradient-to-r from-amber-200/30 via-yellow-200/30 to-amber-300/30 animate-[pulse_3s_ease-in-out_infinite] opacity-40"></div>
               
               {/* Main sun button */}
               <Button
-                className="relative w-48 h-48 rounded-full bg-gradient-to-br from-yellow-300 via-orange-400 to-yellow-500 text-white font-bold text-xl shadow-2xl hover:shadow-yellow-500/50 transition-all duration-500 hover:scale-110 border-4 border-yellow-200/50"
+                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-lg shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-2 border-amber-100/60"
                 onClick={() => navigate("/session")}
               >
                 {/* Inner glow */}
-                <div className="absolute inset-4 rounded-full bg-gradient-to-br from-yellow-200/30 to-transparent pointer-events-none"></div>
+                <div className="absolute inset-3 rounded-full bg-gradient-to-br from-yellow-100/40 to-transparent pointer-events-none"></div>
                 
                 {/* Sunbeams */}
                 <div className="absolute inset-0 rounded-full">
                   {[...Array(8)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-1 bg-gradient-to-t from-transparent via-yellow-300 to-transparent animate-pulse"
+                      className="absolute w-0.5 bg-gradient-to-t from-transparent via-amber-300/60 to-transparent animate-[pulse_4s_ease-in-out_infinite]"
                       style={{
-                        height: '20px',
+                        height: '16px',
                         left: '50%',
-                        top: '-10px',
-                        transformOrigin: '0 106px',
+                        top: '-8px',
+                        transformOrigin: '0 80px',
                         transform: `translateX(-50%) rotate(${i * 45}deg)`,
-                        animationDelay: `${i * 0.2}s`
+                        animationDelay: `${i * 0.5}s`
                       }}
                     />
                   ))}
                 </div>
                 
-                <span className="relative z-10 drop-shadow-lg">Start Session</span>
+                <span className="relative z-10 drop-shadow-sm">Start Session</span>
               </Button>
             </div>
           ) : (
