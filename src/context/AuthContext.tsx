@@ -150,15 +150,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
       setUser(newUser);
 
-      console.log('👤 Creating patient record...');
+      console.log('👤 Creating patient record with username:', name);
       const { error: patientError } = await supabase
         .from("patients")
         .upsert({ id: newUser.id, username: name }, { onConflict: "id" });
 
       if (patientError) {
         console.error('❌ Patient creation error:', patientError);
+        throw patientError; // This will bubble up to the signup form
       } else {
-        console.log('✅ Patient record created successfully');
+        console.log('✅ Patient record created successfully with username:', name);
         setPatientReady(true);
       }
     } catch (signupError) {
