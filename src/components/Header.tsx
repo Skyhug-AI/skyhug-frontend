@@ -5,6 +5,7 @@ import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboa
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useTherapist } from '@/context/TherapistContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,8 +19,14 @@ const Header = () => {
     logout,
     isAuthenticated
   } = useAuth();
+  const { endConversation } = useTherapist();
   const { toast } = useToast();
   const [calmPoints, setCalmPoints] = useState(0);
+
+  const handleEndSession = async () => {
+    await endConversation();
+    navigate("/session-summary");
+  };
 
   // Load calm points from database
   useEffect(() => {
@@ -70,7 +77,17 @@ const Header = () => {
       
       {/* Right: Session CTA + Profile */}
       <div className="flex items-center gap-3">
-        {/* Removed the "Start a Session" button from here */}
+        {/* End Chat button - only show on /session route */}
+        {location.pathname === '/session' && isAuthenticated && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+            onClick={handleEndSession}
+          >
+            End Chat & Continue
+          </Button>
+        )}
         
         {isAuthenticated ? (
           <DropdownMenu>
