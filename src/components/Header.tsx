@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import Logo from './Logo';
-import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboard, Search, Play } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { LogIn, UserPlus, LogOut, User, Settings, Sparkles, Award, LayoutDashboard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTherapist } from '@/context/TherapistContext';
@@ -150,83 +150,6 @@ const Header = () => {
             </button>
           </div>
         )}
-      </div>
-
-      {/* Mobile menu */}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <LayoutDashboard className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <div className="flex flex-col gap-6 pt-10">
-              {isAuthenticated && <button onClick={() => navigate('/home')} className={`transition-colors ${location.pathname === '/home' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'} text-lg py-2`}>
-                  Dashboard
-                </button>}
-              <button 
-                onClick={() => navigate('/session')} 
-                className={`transition-colors ${location.pathname === '/session' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'} text-lg py-2`}
-              >
-                Start a Session
-              </button>
-              <button 
-                onClick={() => navigate('/therapists')} 
-                className={`transition-colors ${location.pathname === '/therapists' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'} text-lg py-2`}
-              >
-                Find a Therapist
-              </button>
-              
-              <button onClick={() => navigate('/')} className={`transition-colors ${location.pathname === '/' ? 'text-skyhug-500' : 'text-foreground hover:text-skyhug-500'} text-lg py-2`}>
-                Landing
-              </button>
-              <button className="text-foreground hover:text-skyhug-500 transition-colors text-lg py-2">
-                About
-              </button>
-              
-              {isAuthenticated ? <div className="pt-4 border-t">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-8 w-8 bg-skyhug-100 rounded-full flex items-center justify-center text-skyhug-500">
-                      {user?.name?.[0] || 'U'}
-                    </div>
-                    <div className="text-sm">
-                      <p className="font-medium">{user?.name || 'User'}</p>
-                      <p className="text-muted-foreground text-xs">{user?.email}</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/home')}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/sessions')}>
-                    Session History
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/therapists')}>
-                    <Search className="mr-2 h-4 w-4" />
-                    Find a Therapist
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start mb-2" onClick={() => navigate('/settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </Button>
-                </div> : <div className="flex flex-col gap-3 pt-4 border-t">
-                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/login')}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Login
-                  </Button>
-                  <Button variant="default" className="w-full justify-start bg-skyhug-500 hover:bg-skyhug-600" onClick={() => navigate('/signup')}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Sign Up
-                  </Button>
-                </div>}
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
     </header>
   );
