@@ -18,6 +18,7 @@ import { ChevronRight } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
 import { useTherapist } from "@/context/TherapistContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
@@ -35,12 +36,59 @@ const HomePage = () => {
     currentTherapist,
   } = useTherapist();
 
-  useEffect(() => {
-    getActiveSessionIdAndTherapist();
-  }, []);
-
   // Track completed goals
   const [completedGoals, setCompletedGoals] = useState<string[]>([]);
+
+  // Load today's completed goals - check if user already did mood check-in today
+  const loadTodaysCompletedGoals = async () => {
+    if (!user?.id) return;
+    
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('last_login_date')
+      .eq('user_id', user.id)
+      .single();
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check if there's a record of completing mood today by checking if there was already a mood completion stored
+    // For now, we'll use localStorage as a simple solution until we add a proper daily_goal_completions table
+    const completedToday = localStorage.getItem(`goals_completed_${user.id}_${today}`);
+    if (completedToday) {
+      setCompletedGoals(JSON.parse(completedToday));
+    }
+  };
+
+  // Save goal completion 
+  const saveGoalCompletion = async (goalType: string, points: number) => {
+    if (!user?.id) return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const newCompletedGoals = [...completedGoals, goalType];
+    setCompletedGoals(newCompletedGoals);
+    
+    // Store in localStorage temporarily 
+    localStorage.setItem(`goals_completed_${user.id}_${today}`, JSON.stringify(newCompletedGoals));
+    
+    // Update calm points in database
+    const { data: currentProfile } = await supabase
+      .from('user_profiles')
+      .select('calm_points')
+      .eq('user_id', user.id)
+      .single();
+      
+    if (currentProfile) {
+      await supabase
+        .from('user_profiles')
+        .update({ calm_points: currentProfile.calm_points + points })
+        .eq('user_id', user.id);
+    }
+  };
+
+  useEffect(() => {
+    getActiveSessionIdAndTherapist();
+    loadTodaysCompletedGoals();
+  }, [user?.id]);
   const moodData = [
     {
       day: "Mon",
@@ -97,17 +145,17 @@ const HomePage = () => {
       setMoodDialogOpen(true);
     }
   };
-  const handleMoodSelect = () => {
+  const handleMoodSelect = async () => {
     // Update the goals list to show completion
     setSelectedMood(3);
 
-    // Mark the mood goal as completed
-    setCompletedGoals((prev) => [...prev, "mood"]);
+    // Save the goal completion to database and localStorage
+    await saveGoalCompletion("mood", 10);
 
     // Close the dialog
     setMoodDialogOpen(false);
 
-    // Add points notification could go here
+    // Add points notification
     toast({
       title: "Mood logged successfully!",
       description: "You earned +10 Calm Points",
