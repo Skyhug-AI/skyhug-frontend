@@ -236,13 +236,18 @@ const ProfilePage = () => {
                   <div>
                     <Label htmlFor="age">Age</Label>
                     {isEditing ? (
-                      <Input
-                        id="age"
-                        type="number"
-                        value={profileData.age}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, age: e.target.value }))}
-                        placeholder="Enter your age"
-                      />
+                      <Select value={profileData.age} onValueChange={(value) => setProfileData(prev => ({ ...prev, age: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your age" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          {Array.from({ length: 109 }, (_, i) => i + 12).map((age) => (
+                            <SelectItem key={age} value={age.toString()}>
+                              {age}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <p className="text-sm text-muted-foreground mt-1">{profileData.age || 'Not specified'}</p>
                     )}
