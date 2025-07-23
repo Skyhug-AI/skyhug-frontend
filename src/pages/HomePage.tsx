@@ -231,23 +231,43 @@ const HomePage = () => {
               
               {/* Main sun button */}
               <Button
-                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-lg shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-2 border-amber-100/60"
+                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-lg shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-2 border-amber-100/60 animate-[pulse_5s_ease-in-out_infinite]"
                 onClick={() => navigate("/session")}
               >
                 {/* Inner glow */}
-                <div className="absolute inset-3 rounded-full bg-gradient-to-br from-yellow-100/40 to-transparent pointer-events-none"></div>
+                <div className="absolute inset-3 rounded-full bg-gradient-to-br from-yellow-100/40 to-transparent pointer-events-none animate-[pulse_6s_ease-in-out_infinite]"></div>
                 
-                {/* Sunbeams */}
+                {/* Sun flares around the border */}
+                <div className="absolute inset-0 rounded-full">
+                  {[...Array(12)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute bg-gradient-to-r from-transparent via-amber-300/70 to-transparent animate-[pulse_4s_ease-in-out_infinite]"
+                      style={{
+                        width: '3px',
+                        height: '12px',
+                        left: '50%',
+                        top: '-6px',
+                        transformOrigin: '1.5px 78px',
+                        transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                        animationDelay: `${i * 0.3}s`,
+                        borderRadius: '50% 50% 0 0'
+                      }}
+                    />
+                  ))}
+                </div>
+                
+                {/* Longer sunbeams */}
                 <div className="absolute inset-0 rounded-full">
                   {[...Array(8)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-0.5 bg-gradient-to-t from-transparent via-amber-300/60 to-transparent animate-[pulse_4s_ease-in-out_infinite]"
+                      className="absolute w-0.5 bg-gradient-to-t from-transparent via-amber-300/50 to-transparent animate-[pulse_4s_ease-in-out_infinite]"
                       style={{
-                        height: '16px',
+                        height: '20px',
                         left: '50%',
-                        top: '-8px',
-                        transformOrigin: '0 80px',
+                        top: '-10px',
+                        transformOrigin: '0 82px',
                         transform: `translateX(-50%) rotate(${i * 45}deg)`,
                         animationDelay: `${i * 0.5}s`
                       }}
@@ -255,7 +275,7 @@ const HomePage = () => {
                   ))}
                 </div>
                 
-                <span className="relative z-10 drop-shadow-sm">Start Session</span>
+                <span className="relative z-10 drop-shadow-sm animate-[pulse_7s_ease-in-out_infinite]">Start Session</span>
               </Button>
             </div>
           ) : (
