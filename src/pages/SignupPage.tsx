@@ -101,9 +101,9 @@ const SignupPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="name" className="flex items-center gap-2 text-[15px] text-[#616161] font-normal">
                   <User className="h-4 w-4 text-[#9b9b9b]" />
-                  Full Name
+                  Username
                 </Label>
-                <Input id="name" type="text" placeholder="Your name" className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base" {...register('name')} />
+                <Input id="name" type="text" placeholder="Your username" className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base" {...register('name')} />
                 {errors.name && <p className="text-sm text-rose-300 mt-1">{errors.name.message}</p>}
               </div>
 

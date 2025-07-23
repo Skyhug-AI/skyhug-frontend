@@ -280,7 +280,7 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     if (!patientExists) {
       const { error: insertError } = await supabase
         .from("patients")
-        .insert({ id: user.id, full_name: user.name });
+        .insert({ id: user.id, username: user.name });
       if (insertError) {
         console.error("❌ Error inserting patient:", insertError);
         return;

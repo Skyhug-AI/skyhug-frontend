@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { error: patientError } = await supabase
         .from("patients")
         .upsert(
-          { id: newUser.id, full_name: newUser.name },
+          { id: newUser.id, username: newUser.name },
           { onConflict: "id" }
         );
 
@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log('👤 Creating patient record...');
       const { error: patientError } = await supabase
         .from("patients")
-        .upsert({ id: newUser.id, full_name: name }, { onConflict: "id" });
+        .upsert({ id: newUser.id, username: name }, { onConflict: "id" });
 
       if (patientError) {
         console.error('❌ Patient creation error:', patientError);

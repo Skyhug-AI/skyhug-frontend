@@ -266,31 +266,31 @@ export type Database = {
           active_conversation_id: string | null
           created_at: string
           dob: string | null
-          full_name: string
           id: string
           metadata: Json | null
           onboarding_completed: boolean | null
           updated_at: string
+          username: string
         }
         Insert: {
           active_conversation_id?: string | null
           created_at?: string
           dob?: string | null
-          full_name: string
           id: string
           metadata?: Json | null
           onboarding_completed?: boolean | null
           updated_at?: string
+          username: string
         }
         Update: {
           active_conversation_id?: string | null
           created_at?: string
           dob?: string | null
-          full_name?: string
           id?: string
           metadata?: Json | null
           onboarding_completed?: boolean | null
           updated_at?: string
+          username?: string
         }
         Relationships: [
           {

@@ -55,10 +55,10 @@ export const conversationService = {
       .single();
   },
 
-  async createPatient(userId: string, fullName: string) {
+  async createPatient(userId: string, username: string) {
     return await supabase
       .from("patients")
-      .insert({ id: userId, full_name: fullName });
+      .insert({ id: userId, username: username });
   },
 
   async createConversation(userId: string, therapistId?: string) {
