@@ -140,14 +140,14 @@ const HomePage = () => {
         <div className="flex justify-center">
           {!activeConversationId ? (
             <Button
-              className="px-12 py-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold text-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="px-20 py-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-3xl font-bold text-2xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               onClick={() => navigate("/session")}
             >
               Start Session
             </Button>
           ) : (
             <Button
-              className="px-12 py-6 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-2xl text-xl font-normal text-white"
+              className="px-20 py-8 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-3xl text-2xl font-normal text-white"
               onClick={() => navigate("/session")}
             >
               Resume Session
