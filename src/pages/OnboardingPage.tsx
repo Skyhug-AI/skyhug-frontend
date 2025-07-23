@@ -305,7 +305,7 @@ const OnboardingPage = () => {
               {/* Self Diagnosed Issues */}
               <div className="space-y-2">
                 <Label className="text-[15px] text-[#616161] font-normal">
-                  Self-Diagnosed Issues{" "}
+                  Self-Diagnosed Mental Health Conditions{" "}
                   <span className="text-[#9b9b9b]">(Optional)</span>
                 </Label>
                 <div className="space-y-2">
