@@ -69,7 +69,7 @@ const ProfilePage = () => {
           career: data.career || '',
           sexual_preferences: data.sexual_preferences || '',
           topics_on_mind: data.topics_on_mind || [],
-          self_diagnosed_issues: data.self_diagnosed_issues ? data.self_diagnosed_issues.split(',').map(s => s.trim()) : [],
+          self_diagnosed_issues: (data.self_diagnosed_issues as unknown as string[]) || [],
           agreeable_slider: data.agreeable_slider || 50,
           calm_points: data.calm_points || 0
         });
@@ -98,13 +98,13 @@ const ProfilePage = () => {
         career: profileData.career || null,
         sexual_preferences: profileData.sexual_preferences || null,
         topics_on_mind: profileData.topics_on_mind.length > 0 ? profileData.topics_on_mind : null,
-        self_diagnosed_issues: profileData.self_diagnosed_issues.length > 0 ? profileData.self_diagnosed_issues.join(', ') : null,
+        self_diagnosed_issues: profileData.self_diagnosed_issues.length > 0 ? profileData.self_diagnosed_issues : null,
         agreeable_slider: profileData.agreeable_slider
       };
 
       const { error } = await supabase
         .from('user_profiles')
-        .upsert(dataToSave, { onConflict: 'user_id' });
+        .upsert(dataToSave as any, { onConflict: 'user_id' });
 
       if (error) throw error;
 
