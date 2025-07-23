@@ -102,7 +102,7 @@ const Header = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
                     {user?.name || 'User'}
                   </span>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
