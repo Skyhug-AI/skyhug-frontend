@@ -522,6 +522,13 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
     setActiveConversationId(null);
     console.log("✅ Conversation truly ended.");
 
+    // Dispatch custom event to notify that session was completed
+    if (user?.id) {
+      window.dispatchEvent(new CustomEvent('session-completed', { 
+        detail: { userId: user.id } 
+      }));
+    }
+
     try {
       await fetch("http://localhost:8001/summarize_conversation", {
         method: "POST",

@@ -89,6 +89,25 @@ const HomePage = () => {
     getActiveSessionIdAndTherapist();
     loadTodaysCompletedGoals();
   }, [user?.id]);
+
+  // Listen for session completion events
+  useEffect(() => {
+    const handleSessionCompleted = async (event: CustomEvent) => {
+      if (event.detail.userId === user?.id && !completedGoals.includes("session")) {
+        await saveGoalCompletion("session", 50);
+        toast({
+          title: "Session completed!",
+          description: "You earned +50 Calm Points",
+        });
+      }
+    };
+
+    window.addEventListener('session-completed', handleSessionCompleted as EventListener);
+    
+    return () => {
+      window.removeEventListener('session-completed', handleSessionCompleted as EventListener);
+    };
+  }, [user?.id, completedGoals, saveGoalCompletion, toast]);
   const moodData = [
     {
       day: "Mon",
@@ -208,7 +227,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold text-gray-800">Today's Goals</h3>
             <span className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {completedCount * 10 + 10}/100 Calm Points
+              {(completedGoals.includes("session") ? 50 : 0) + (completedGoals.includes("mood") ? 10 : 0)}/60 Calm Points
             </span>
           </div>
 
