@@ -137,25 +137,22 @@ const HomePage = () => {
         </div>
 
         {/* Action: Start Session CTA */}
-        <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8 flex flex-col md:flex-row justify-between items-center shadow-xl border border-white/30 backdrop-blur-sm">
+        <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8 flex flex-col items-center justify-center text-center shadow-xl border border-white/30 backdrop-blur-sm">
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              Need a quick check-in?
+              Your healing journey starts here
             </h2>
-            <p className="text-base text-gray-600 mt-2">
-              Tap below to begin a voice or reflection session.
-            </p>
           </div>
           {!activeConversationId ? (
             <Button
-              className="mt-6 md:mt-0 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="mt-6 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               onClick={() => navigate("/session")}
             >
               Start Session
             </Button>
           ) : (
             <Button
-              className="mt-6 md:mt-0 px-8 py-4 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-xl text-base font-normal text-white"
+              className="mt-6 px-8 py-4 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-xl text-base font-normal text-white"
               onClick={() => navigate("/session")}
             >
               Resume Session
