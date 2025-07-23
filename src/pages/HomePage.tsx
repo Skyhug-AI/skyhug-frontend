@@ -18,6 +18,8 @@ import { ChevronRight } from "lucide-react";
 import MoodSelectionDialog from "@/components/mood/MoodSelectionDialog";
 import { toast } from "@/hooks/use-toast";
 import { useTherapist } from "@/context/TherapistContext";
+import { supabase } from "@/integrations/supabase/client";
+import { formatInTimeZone } from "date-fns-tz";
 
 const getFirstName = (fullName: string | undefined) => {
   return fullName?.split(" ")[0] || "Friend";
@@ -35,12 +37,56 @@ const HomePage = () => {
     currentTherapist,
   } = useTherapist();
 
+  // Track completed goals and calm points
+  const [completedGoals, setCompletedGoals] = useState<string[]>([]);
+  const [calmPoints, setCalmPoints] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Get user's timezone for accurate "today" calculation
+  const getUserTimezone = () => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
+
+  const getTodayDate = () => {
+    return formatInTimeZone(new Date(), getUserTimezone(), "yyyy-MM-dd");
+  };
+
+  // Load today's goal completions and calm points
+  const loadTodaysGoals = async () => {
+    if (!user?.id) return;
+
+    try {
+      const today = getTodayDate();
+      
+      // Load today's completed goals
+      const { data: completions } = await supabase
+        .from('daily_goal_completions')
+        .select('goal_type')
+        .eq('user_id', user.id)
+        .eq('completion_date', today);
+
+      const completedGoalTypes = completions?.map(c => c.goal_type) || [];
+      setCompletedGoals(completedGoalTypes);
+
+      // Load current calm points
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('calm_points')
+        .eq('user_id', user.id)
+        .single();
+
+      setCalmPoints(profile?.calm_points || 0);
+    } catch (error) {
+      console.error('Error loading today\'s goals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     getActiveSessionIdAndTherapist();
-  }, []);
-
-  // Track completed goals
-  const [completedGoals, setCompletedGoals] = useState<string[]>([]);
+    loadTodaysGoals();
+  }, [user?.id]);
   const moodData = [
     {
       day: "Mon",
@@ -91,27 +137,67 @@ const HomePage = () => {
       return;
     }
     if (type === "session") {
+      // When navigating to session, we'll track completion there
       navigate("/session");
     } else if (type === "mood") {
       // Open mood selection dialog
       setMoodDialogOpen(true);
     }
   };
+
+  // Function to be called when session is completed (can be called from SessionPage)
+  const handleSessionComplete = () => {
+    completeGoal('session', 50);
+  };
+  // Complete a goal and award points
+  const completeGoal = async (goalType: string, points: number) => {
+    if (!user?.id || completedGoals.includes(goalType)) return;
+
+    try {
+      const today = getTodayDate();
+      
+      // Save goal completion
+      const { error: goalError } = await supabase
+        .from('daily_goal_completions')
+        .upsert({
+          user_id: user.id,
+          goal_type: goalType,
+          completion_date: today,
+          points_awarded: points
+        });
+
+      if (goalError) throw goalError;
+
+      // Update calm points
+      const { error: pointsError } = await supabase
+        .from('user_profiles')
+        .update({ calm_points: calmPoints + points })
+        .eq('user_id', user.id);
+
+      if (pointsError) throw pointsError;
+
+      // Update local state
+      setCompletedGoals(prev => [...prev, goalType]);
+      setCalmPoints(prev => prev + points);
+
+      toast({
+        title: `${goalType === 'mood' ? 'Mood logged' : 'Goal completed'} successfully!`,
+        description: `You earned +${points} Calm Points`,
+      });
+    } catch (error) {
+      console.error('Error completing goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your progress. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleMoodSelect = () => {
-    // Update the goals list to show completion
     setSelectedMood(3);
-
-    // Mark the mood goal as completed
-    setCompletedGoals((prev) => [...prev, "mood"]);
-
-    // Close the dialog
     setMoodDialogOpen(false);
-
-    // Add points notification could go here
-    toast({
-      title: "Mood logged successfully!",
-      description: "You earned +10 Calm Points",
-    });
+    completeGoal('mood', 10);
   };
 
   // Calculate progress based on completed goals
@@ -168,7 +254,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold text-gray-800">Today's Goals</h3>
             <span className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {completedCount * 10 + 10}/100 Calm Points
+              {calmPoints}/100 Calm Points
             </span>
           </div>
 

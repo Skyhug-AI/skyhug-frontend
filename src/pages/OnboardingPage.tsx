@@ -90,7 +90,7 @@ const OnboardingPage = () => {
           gender: data.gender,
           career: data.occupation,
           sexual_preferences: data.sexual_preference,
-          self_diagnosed_issues: data.self_diagnosed_issues,
+          self_diagnosed_issues: data.self_diagnosed_issues?.split(',').map(s => s.trim()).filter(s => s.length > 0) || [],
           topics_on_mind: topicsArray,
           additional_info: data.additional_info,
           agreeable_slider: therapistStyle[0],
