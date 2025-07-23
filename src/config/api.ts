@@ -1,7 +1,7 @@
 // API configuration for external backend
 export const API_CONFIG = {
-  // Use your deployed backend URL
-  BACKEND_URL: 'https://your-backend.railway.app', // Replace with your actual backend URL
+  // Local development backend URL
+  BACKEND_URL: 'http://127.0.0.1:8000',
   
   // API endpoints
   ENDPOINTS: {
