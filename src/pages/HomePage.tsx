@@ -222,12 +222,14 @@ const HomePage = () => {
         </div>
 
         {/* Floating Action Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-center py-12">
           {!activeConversationId ? (
-            <div className="relative">
-              {/* Soft radiation glow */}
-              <div className="absolute inset-0 rounded-full bg-gradient-radial from-amber-300/20 to-transparent animate-[ping_8s_ease-out_infinite]"></div>
-              <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-200/30 to-transparent animate-[ping_10s_ease-out_infinite]"></div>
+            <div className="relative p-8">
+              {/* Multiple soft radiation glows */}
+              <div className="absolute inset-0 rounded-full bg-gradient-radial from-amber-300/25 to-transparent animate-[ping_6s_ease-out_infinite]"></div>
+              <div className="absolute inset-2 rounded-full bg-gradient-radial from-yellow-200/30 to-transparent animate-[ping_8s_ease-out_infinite]"></div>
+              <div className="absolute inset-4 rounded-full bg-gradient-radial from-amber-200/35 to-transparent animate-[ping_10s_ease-out_infinite]"></div>
+              <div className="absolute inset-6 rounded-full bg-gradient-radial from-yellow-100/40 to-transparent animate-[ping_12s_ease-out_infinite]"></div>
               
               {/* Triangular sun rays */}
               <div className="absolute inset-0">
@@ -262,7 +264,8 @@ const HomePage = () => {
                 onClick={() => navigate("/session")}
               >
                 {/* Inner glow */}
-                <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-100/50 to-transparent"></div>
+                <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-100/50 to-transparent animate-[ping_7s_ease-out_infinite]"></div>
+                <div className="absolute inset-6 rounded-full bg-gradient-radial from-amber-100/60 to-transparent animate-[ping_9s_ease-out_infinite]"></div>
                 
                 <span className="relative z-10 drop-shadow-sm">Start Session</span>
               </Button>
