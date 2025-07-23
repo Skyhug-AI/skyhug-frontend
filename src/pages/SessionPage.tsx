@@ -83,7 +83,7 @@ const SessionPage = () => {
       <div className="sticky top-0 z-50 bg-white">
         <Header />
 
-        {isSessionStarted && (
+        {/* {isSessionStarted && (
           <div className="border-b border-gray-100 bg-white/90 shadow-sm">
             <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative">
               <div className="flex items-center gap-4">
@@ -156,7 +156,7 @@ const SessionPage = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Main content area */}
@@ -168,6 +168,18 @@ const SessionPage = () => {
         ) : ( */}
         {isSessionStarted && (
           <div className="w-full h-full flex relative z-10">
+            {/* End Chat Button - Top Right */}
+            <div className="absolute top-4 right-4 z-20">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 shadow-lg"
+                onClick={handleEndSession}
+              >
+                End Chat & Continue
+              </Button>
+            </div>
+            
             <ResizablePanelGroup direction="horizontal" className="w-full">
               <ResizablePanel
                 defaultSize={isSidePanelOpen ? 60 : 100}
