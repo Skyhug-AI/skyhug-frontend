@@ -114,7 +114,9 @@ const HomePage = () => {
   // Listen for session completion events
   useEffect(() => {
     const handleSessionCompleted = async (event: CustomEvent) => {
+      console.log("🎯 HomePage received session-completed event:", event.detail);
       if (event.detail.userId === user?.id) {
+        console.log("🎯 User ID matches, checking for existing completion...");
         // Check current state when event fires to avoid stale closures
         const { data: existingCompletion } = await supabase
           .from('daily_goal_completions')
@@ -124,20 +126,29 @@ const HomePage = () => {
           .eq('completion_date', new Date().toISOString().split('T')[0])
           .single();
 
+        console.log("🎯 Existing completion:", existingCompletion);
+
         if (!existingCompletion) {
+          console.log("🎯 No existing completion, saving session goal...");
           await saveGoalCompletion("session", 50);
           toast({
             title: "Session completed!",
             description: "You earned +50 Calm Points",
           });
+        } else {
+          console.log("🎯 Session already completed today");
         }
+      } else {
+        console.log("🎯 User ID mismatch:", event.detail.userId, "vs", user?.id);
       }
     };
 
     if (user?.id) {
+      console.log("🎯 Setting up session-completed event listener for user:", user.id);
       window.addEventListener('session-completed', handleSessionCompleted as EventListener);
       
       return () => {
+        console.log("🎯 Cleaning up session-completed event listener");
         window.removeEventListener('session-completed', handleSessionCompleted as EventListener);
       };
     }

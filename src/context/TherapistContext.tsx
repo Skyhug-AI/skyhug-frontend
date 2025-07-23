@@ -524,9 +524,12 @@ export const TherapistProvider: React.FC<{ children: ReactNode }> = ({
 
     // Dispatch custom event to notify that session was completed
     if (user?.id) {
+      console.log("🎯 Dispatching session-completed event for user:", user.id);
       window.dispatchEvent(new CustomEvent('session-completed', { 
         detail: { userId: user.id } 
       }));
+    } else {
+      console.log("❌ No user ID found, not dispatching session-completed event");
     }
 
     try {
