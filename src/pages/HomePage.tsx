@@ -267,7 +267,10 @@ const HomePage = () => {
                 <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-100/50 to-transparent animate-[ping_7s_ease-out_infinite]"></div>
                 <div className="absolute inset-6 rounded-full bg-gradient-radial from-amber-100/60 to-transparent animate-[ping_9s_ease-out_infinite]"></div>
                 
-                <span className="relative z-10 drop-shadow-sm">Start Session</span>
+                <span className="relative z-10 drop-shadow-sm flex flex-col items-center leading-tight">
+                  <span>Start</span>
+                  <span>Session</span>
+                </span>
               </Button>
             </div>
           ) : (
@@ -275,7 +278,10 @@ const HomePage = () => {
               className="px-20 py-8 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-3xl text-2xl font-normal text-white"
               onClick={() => navigate("/session")}
             >
-              Resume Session
+              <span className="flex flex-col items-center leading-tight">
+                <span>Resume</span>
+                <span>Session</span>
+              </span>
             </Button>
           )}
         </div>
