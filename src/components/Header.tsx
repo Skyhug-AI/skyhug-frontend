@@ -25,7 +25,10 @@ const Header = () => {
 
   const handleEndSession = async () => {
     await endConversation();
-    navigate("/home");
+    // Small delay to allow the session-completed event to be processed
+    setTimeout(() => {
+      navigate("/home");
+    }, 100);
   };
 
   // Load calm points from database
