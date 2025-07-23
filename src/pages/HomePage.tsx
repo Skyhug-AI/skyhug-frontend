@@ -225,57 +225,44 @@ const HomePage = () => {
         <div className="flex justify-center">
           {!activeConversationId ? (
             <div className="relative">
-              {/* Outer radiating rings */}
-              <div className="absolute inset-0 rounded-full bg-gradient-radial from-amber-300/30 to-transparent animate-[ping_4s_ease-out_infinite] opacity-40"></div>
-              <div className="absolute inset-2 rounded-full bg-gradient-radial from-amber-200/40 to-transparent animate-[ping_5s_ease-out_infinite] opacity-50"></div>
+              {/* Soft radiation glow */}
+              <div className="absolute inset-0 rounded-full bg-gradient-radial from-amber-300/20 to-transparent animate-[ping_8s_ease-out_infinite]"></div>
+              <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-200/30 to-transparent animate-[ping_10s_ease-out_infinite]"></div>
+              
+              {/* Triangular sun rays */}
+              <div className="absolute inset-0">
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-90px)`,
+                    }}
+                  >
+                    <div 
+                      className="bg-gradient-to-t from-amber-400 to-yellow-300"
+                      style={{
+                        width: '0',
+                        height: '0',
+                        borderLeft: '8px solid transparent',
+                        borderRight: '8px solid transparent',
+                        borderBottom: '20px solid #fbbf24',
+                        filter: 'drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3))'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
               
               {/* Main sun button */}
               <Button
-                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-lg shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-2 border-amber-100/60"
+                className="relative w-36 h-36 rounded-full bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-300 text-amber-900 font-bold text-lg shadow-xl hover:shadow-amber-400/40 transition-all duration-500 hover:scale-105 border-4 border-white/60"
                 onClick={() => navigate("/session")}
               >
-                {/* Inner glow with radiation */}
-                <div className="absolute inset-2 rounded-full bg-gradient-radial from-yellow-100/60 to-transparent animate-[ping_6s_ease-out_infinite]"></div>
-                
-                {/* Prominent sun flares around the border */}
-                <div className="absolute inset-0 rounded-full">
-                  {[...Array(16)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute bg-gradient-to-t from-amber-400/80 via-yellow-300/90 to-transparent"
-                      style={{
-                        width: '4px',
-                        height: '18px',
-                        left: '50%',
-                        top: '-9px',
-                        transformOrigin: '2px 81px',
-                        transform: `translateX(-50%) rotate(${i * 22.5}deg)`,
-                        borderRadius: '50% 50% 0 0',
-                        animation: `ping ${3 + (i % 3)}s ease-out infinite`,
-                        animationDelay: `${i * 0.2}s`
-                      }}
-                    />
-                  ))}
-                </div>
-                
-                {/* Longer radiating sunbeams */}
-                <div className="absolute inset-0 rounded-full">
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-1 bg-gradient-to-t from-transparent via-amber-300/70 to-transparent"
-                      style={{
-                        height: '25px',
-                        left: '50%',
-                        top: '-12px',
-                        transformOrigin: '0 84px',
-                        transform: `translateX(-50%) rotate(${i * 45}deg)`,
-                        animation: `ping ${4 + (i % 2)}s ease-out infinite`,
-                        animationDelay: `${i * 0.4}s`
-                      }}
-                    />
-                  ))}
-                </div>
+                {/* Inner glow */}
+                <div className="absolute inset-4 rounded-full bg-gradient-radial from-yellow-100/50 to-transparent"></div>
                 
                 <span className="relative z-10 drop-shadow-sm">Start Session</span>
               </Button>
