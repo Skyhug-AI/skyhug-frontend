@@ -224,12 +224,40 @@ const HomePage = () => {
         {/* Floating Action Button */}
         <div className="flex justify-center">
           {!activeConversationId ? (
-            <Button
-              className="px-20 py-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-3xl font-bold text-2xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              onClick={() => navigate("/session")}
-            >
-              Start Session
-            </Button>
+            <div className="relative">
+              {/* Outer radiating rings */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 animate-ping opacity-20"></div>
+              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-400 animate-pulse opacity-30"></div>
+              
+              {/* Main sun button */}
+              <Button
+                className="relative w-48 h-48 rounded-full bg-gradient-to-br from-yellow-300 via-orange-400 to-yellow-500 text-white font-bold text-xl shadow-2xl hover:shadow-yellow-500/50 transition-all duration-500 hover:scale-110 border-4 border-yellow-200/50"
+                onClick={() => navigate("/session")}
+              >
+                {/* Inner glow */}
+                <div className="absolute inset-4 rounded-full bg-gradient-to-br from-yellow-200/30 to-transparent pointer-events-none"></div>
+                
+                {/* Sunbeams */}
+                <div className="absolute inset-0 rounded-full">
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 bg-gradient-to-t from-transparent via-yellow-300 to-transparent animate-pulse"
+                      style={{
+                        height: '20px',
+                        left: '50%',
+                        top: '-10px',
+                        transformOrigin: '0 106px',
+                        transform: `translateX(-50%) rotate(${i * 45}deg)`,
+                        animationDelay: `${i * 0.2}s`
+                      }}
+                    />
+                  ))}
+                </div>
+                
+                <span className="relative z-10 drop-shadow-lg">Start Session</span>
+              </Button>
+            </div>
           ) : (
             <Button
               className="px-20 py-8 bg-gradient-to-r from-[#a0c4ff] to-[#bdb2ff] hover:brightness-105 hover:scale-[1.02] transition-all duration-200 border-0 rounded-3xl text-2xl font-normal text-white"
