@@ -25,6 +25,29 @@ const Header = () => {
   useEffect(() => {
     if (user?.id && isAuthenticated) {
       loadCalmPoints();
+      
+      // Set up real-time subscription for calm points updates
+      const channel = supabase
+        .channel('calm-points-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'user_profiles',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new && 'calm_points' in payload.new) {
+              setCalmPoints(payload.new.calm_points);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user?.id, isAuthenticated]);
 
