@@ -339,14 +339,13 @@ const ProfilePage = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="self_diagnosed_issues">Mental Health Concerns</Label>
+                  <Label htmlFor="self_diagnosed_issues">Self Diagnosed Mental Health Conditions (eg. depression)</Label>
                   {isEditing ? (
-                    <Textarea
+                    <Input
                       id="self_diagnosed_issues"
                       value={profileData.self_diagnosed_issues}
                       onChange={(e) => setProfileData(prev => ({ ...prev, self_diagnosed_issues: e.target.value }))}
-                      placeholder="Any mental health concerns or conditions you'd like to share..."
-                      rows={3}
+                      placeholder="e.g. depression, anxiety, ADHD..."
                     />
                   ) : (
                     <p className="text-sm text-muted-foreground mt-1">{profileData.self_diagnosed_issues || 'Not specified'}</p>
