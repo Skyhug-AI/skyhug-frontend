@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, Mail, Lock, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import SocialLoginButton from "@/components/auth/SocialLoginButton";
 import Logo from "@/components/Logo";
 import CloudBackground from "@/components/CloudBackground";
 import SunriseGradientBackground from "@/components/SunriseGradientBackground";
@@ -64,24 +63,6 @@ const LoginPage = () => {
       email: "",
     },
   });
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/home`,
-        },
-      });
-      if (error) throw error;
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Unable to sign in with Google. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -250,23 +231,6 @@ const LoginPage = () => {
                 <LogIn className="ml-2 h-4 w-4" />
               </Button>
             </form>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#eee]" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white/70 px-4 text-[#9b9b9b]">
-                  or continue with
-                </span>
-              </div>
-            </div>
-
-            <SocialLoginButton
-              provider="google"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            />
 
             <div className="mt-8 text-center">
               <p className="text-[#9b9b9b] text-[15px]">
