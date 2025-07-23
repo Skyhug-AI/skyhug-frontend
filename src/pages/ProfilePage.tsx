@@ -30,12 +30,13 @@ const ProfilePage = () => {
     career: '',
     sexual_preferences: '',
     topics_on_mind: [] as string[],
-    self_diagnosed_issues: '',
+    self_diagnosed_issues: [] as string[],
     agreeable_slider: 50,
     calm_points: 0
   });
 
   const [newTopic, setNewTopic] = useState('');
+  const [newCondition, setNewCondition] = useState('');
 
   const calmPoints = profileData.calm_points;
   console.log('Current calm points in component:', calmPoints, 'Raw profileData:', profileData);
@@ -68,7 +69,7 @@ const ProfilePage = () => {
           career: data.career || '',
           sexual_preferences: data.sexual_preferences || '',
           topics_on_mind: data.topics_on_mind || [],
-          self_diagnosed_issues: data.self_diagnosed_issues || '',
+          self_diagnosed_issues: data.self_diagnosed_issues ? data.self_diagnosed_issues.split(',').map(s => s.trim()) : [],
           agreeable_slider: data.agreeable_slider || 50,
           calm_points: data.calm_points || 0
         });
@@ -97,7 +98,7 @@ const ProfilePage = () => {
         career: profileData.career || null,
         sexual_preferences: profileData.sexual_preferences || null,
         topics_on_mind: profileData.topics_on_mind.length > 0 ? profileData.topics_on_mind : null,
-        self_diagnosed_issues: profileData.self_diagnosed_issues || null,
+        self_diagnosed_issues: profileData.self_diagnosed_issues.length > 0 ? profileData.self_diagnosed_issues.join(', ') : null,
         agreeable_slider: profileData.agreeable_slider
       };
 
@@ -138,6 +139,23 @@ const ProfilePage = () => {
     setProfileData(prev => ({
       ...prev,
       topics_on_mind: prev.topics_on_mind.filter(t => t !== topic)
+    }));
+  };
+
+  const addCondition = () => {
+    if (newCondition.trim() && !profileData.self_diagnosed_issues.includes(newCondition.trim())) {
+      setProfileData(prev => ({
+        ...prev,
+        self_diagnosed_issues: [...prev.self_diagnosed_issues, newCondition.trim()]
+      }));
+      setNewCondition('');
+    }
+  };
+
+  const removeCondition = (condition: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      self_diagnosed_issues: prev.self_diagnosed_issues.filter(c => c !== condition)
     }));
   };
 
@@ -341,14 +359,41 @@ const ProfilePage = () => {
                 <div>
                   <Label htmlFor="self_diagnosed_issues">Self Diagnosed Mental Health Conditions (eg. depression)</Label>
                   {isEditing ? (
-                    <Input
-                      id="self_diagnosed_issues"
-                      value={profileData.self_diagnosed_issues}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, self_diagnosed_issues: e.target.value }))}
-                      placeholder="e.g. depression, anxiety, ADHD..."
-                    />
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          value={newCondition}
+                          onChange={(e) => setNewCondition(e.target.value)}
+                          placeholder="Add a condition..."
+                          onKeyPress={(e) => e.key === 'Enter' && addCondition()}
+                        />
+                        <Button type="button" onClick={addCondition} variant="outline">
+                          Add
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {profileData.self_diagnosed_issues.map((condition, index) => (
+                          <div key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm flex items-center gap-1">
+                            {condition}
+                            <button onClick={() => removeCondition(condition)} className="ml-1 text-red-600 hover:text-red-800">
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground mt-1">{profileData.self_diagnosed_issues || 'Not specified'}</p>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {profileData.self_diagnosed_issues.length > 0 ? (
+                        profileData.self_diagnosed_issues.map((condition, index) => (
+                          <div key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm">
+                            {condition}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No conditions specified</p>
+                      )}
+                    </div>
                   )}
                 </div>
 
