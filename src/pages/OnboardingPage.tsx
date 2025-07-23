@@ -26,9 +26,9 @@ import { supabase } from "@/integrations/supabase/client";
 const onboardingSchema = z.object({
   age: z.coerce
     .number({
-      invalid_type_error: "Please enter your age",
+      invalid_type_error: "Please select your age",
     })
-    .min(13, "Must be at least 13 years old")
+    .min(12, "Must be at least 12 years old")
     .max(120, "Please enter a valid age"),
   gender: z.string().min(1, "Please select your gender"),
   occupation: z.string().min(1, "Please enter your occupation"),
@@ -202,19 +202,21 @@ const OnboardingPage = () => {
 
               {/* Age */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="age"
-                  className="text-[15px] text-[#616161] font-normal"
-                >
+                <Label className="text-[15px] text-[#616161] font-normal">
                   Age
                 </Label>
-                <Input
-                  id="age"
-                  type="number"
-                  placeholder="Your age"
-                  className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base"
-                  {...register("age", { valueAsNumber: true })}
-                />
+                <Select onValueChange={(value) => setValue("age", parseInt(value))}>
+                  <SelectTrigger className="bg-[#f7f7fb] border-transparent hover:border-serenity-200 focus:border-serenity-300 transition-colors text-base">
+                    <SelectValue placeholder="Select your age" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    {Array.from({ length: 109 }, (_, i) => i + 12).map((age) => (
+                      <SelectItem key={age} value={age.toString()}>
+                        {age}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.age && (
                   <p className="text-sm text-rose-300 mt-1">
                     {errors.age.message}
