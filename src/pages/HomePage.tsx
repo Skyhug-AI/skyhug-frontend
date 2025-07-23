@@ -222,7 +222,7 @@ const HomePage = () => {
         </div>
 
         {/* Floating Action Button */}
-        <div className="flex justify-center py-12">
+        <div className="flex justify-center py-8">
           {!activeConversationId ? (
             <div className="relative p-8">
               {/* Multiple soft radiation glows */}
