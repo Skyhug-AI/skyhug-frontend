@@ -81,6 +81,14 @@ const OnboardingPage = () => {
             .filter((topic) => topic.length > 0)
         : [];
 
+      // Convert self_diagnosed_issues string to array
+      const issuesArray = data.self_diagnosed_issues
+        ? data.self_diagnosed_issues
+            .split(",")
+            .map((issue) => issue.trim())
+            .filter((issue) => issue.length > 0)
+        : [];
+
       // Insert/update user profile data
       const { error: profileError } = await supabase
         .from("user_profiles")
@@ -90,7 +98,7 @@ const OnboardingPage = () => {
           gender: data.gender,
           career: data.occupation,
           sexual_preferences: data.sexual_preference,
-          self_diagnosed_issues: data.self_diagnosed_issues,
+          self_diagnosed_issues: issuesArray,
           topics_on_mind: topicsArray,
           additional_info: data.additional_info,
           agreeable_slider: therapistStyle[0],
